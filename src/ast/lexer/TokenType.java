@@ -1,0 +1,27 @@
+package ast.lexer;
+
+enum TokenType {
+    // Single-character tokens.
+    LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
+    COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
+    COLON, SQUARE_BRACE_LEFT, SQUARE_BRACE_RIGHT, TILDA,
+    AND, LOGICAL_AND, PIPE, LOGICAL_OR,
+
+  
+    // One or two character tokens.
+    BANG, BANG_EQUAL,
+    EQUAL, EQUAL_EQUAL,
+    GREATER, GREATER_EQUAL,
+    LESS, LESS_EQUAL,
+  
+    // Literals.
+    IDENTIFIER, STRING, NUMBER,
+  
+    // Keywords.
+    IF, ELSE, FOR, DO, WHILE, GOTO, SWITCH, CASE,
+    BREAK, STATIC, EXTERN, VOID, CONST, RETURN,
+  
+    EOF
+
+    //PASS THE STRUCT, DYNAMIC ARRAY, POINTER
+  }
