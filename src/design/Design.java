@@ -1,5 +1,6 @@
 package design;
 
+import java.awt.image.BufferedImage;
 import java.util.LinkedList;
 
 import piet.datatypes.*;
@@ -56,91 +57,89 @@ public class Design {
 
     LinkedList<Operation> ops = new LinkedList<Operation>();
 
+    int currentHue, currentShade, currentBlock, currentYOffset;
+    BufferedImage image;
+
+    public Design() {
+        currentHue = 0;
+        currentShade = 0;
+        currentBlock = 1;
+        currentYOffset = 0;
+
+        image = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
+    }
     public static void parse(LinkedList<Block> blocks) {
     }
 
     private void opIter() {
         for (Operation name : ops) {
-            processOperation(name);
+            paintOperation(name);
         }
         ;
     }
 
-    private void processOperation(Operation operation) {
+    private void paintOperation(Operation operation) {
         switch (operation.getName()) {
-            case ("color"):
-
+            case PUSH:
+                addColor(0, 1);
                 break;
-            case ("push"):
-
+            case POP:
+                addColor(0, 2);
                 break;
-
-            case ("pop"):
-
+            case ADD:
+                addColor(1, 0);
                 break;
-
-            case ("add"):
-
+            case SUBTRACT:
+                addColor(1, 1);
                 break;
-
-            case ("subtract"):
-
+            case MULTIPLY:
+                addColor(1, 2);
                 break;
-
-            case ("multiply"):
-
+            case DIVIDE:
+                addColor(2, 0);
                 break;
-
-            case ("divide"):
-
+            case MOD:
+                addColor(2, 1);
                 break;
-            case ("mod"):
-
+            case NOT:
+                addColor(2, 2);
                 break;
-
-            case ("not"):
-
+            case GREATER:
+                addColor(3, 0);
                 break;
-
-            case ("greater"):
-
+            case POINTER:
+                addColor(3, 1);
                 break;
-
-            case ("pointer"):
-
+            case SWITCH:
+                addColor(3, 2);
                 break;
-
-            case ("switch"):
-
+            case DUPLICATE:
+                addColor(4, 0);
                 break;
-
-            case ("duplicate"):
-
+            case ROLL:
+                addColor(4, 1);
                 break;
-
-            case ("roll"):
-
+            case INNUMBER:
+                addColor(4, 2);
                 break;
-
-            case ("inNumber"):
-
+            case INCHAR:
+                addColor(5, 0);
                 break;
-
-            case ("inChar"):
-
+            case OUTNUMBER:
+                addColor(5, 1);
                 break;
-
-            case ("outNumber"):
-
+            case OUTCHAR:
+                addColor(5, 2);
                 break;
-
-            case ("outChar"):
-
-                break;
-
             default:
                 break;
         }
+        image.setRGB(currentBlock * 7, 5 + currentYOffset, matrixOfColor[currentHue][currentShade]);
+        currentYOffset += 1;
     }
 
+    private void addColor(int hue, int shade) {
+        currentHue = (currentHue + hue) % 6;
+        currentShade = (currentShade + shade) % 3;
+    }
 }
