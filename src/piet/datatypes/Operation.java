@@ -14,12 +14,14 @@ enum Command {
     SWITCH,
     DUPLICATE,
     ROLL,
-    IN,
-    OUT
+    INI,
+    OUTI,
+    INC,
+    OUTC
 }
 
 public class Operation {
-    private Command	 name;
+    private Command name;
     private int val1;
     private int val2;
 
