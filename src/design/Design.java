@@ -55,33 +55,59 @@ public class Design {
 
     };
 
-    LinkedList<Operation> ops = new LinkedList<Operation>();
-
-    int currentHue, currentShade, currentBlock, currentYOffset;
+    LinkedList<Block> ops;
+    int width, height, currentHue, currentShade, currentBlock, currentYOffset;
     BufferedImage image;
 
-    public Design() {
+    public static BufferedImage parse(LinkedList<Block> blocks) {
+        Design design = new Design(blocks);
+        //TODO
+        //loop erstellen mit block und operation iteration
+        //paint noop
+        //current block anpassen
+        //möglicherweise current hue und shade zurücksetzen
+        return design.image;
+    }
+
+    public Design(LinkedList<Block> blocks) {
         currentHue = 0;
         currentShade = 0;
         currentBlock = 1;
         currentYOffset = 0;
+        ops = blocks;
+        calcImageWidth(blocks);
+        calcImageHeight(blocks);
 
-        image = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
-    }
-    public static void parse(LinkedList<Block> blocks) {
+        image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        paintNoBlockPixels();
     }
 
-    private void opIter() {
-        for (Operation name : ops) {
-            paintOperation(name);
-        }
-        ;
+    private void calcImageWidth(LinkedList<Block> blocks) {
+        //TODO
+        //calculate the required image width
+    }
+
+    private void calcImageHeight(LinkedList<Block> blocks) {
+        //TODO
+        //calculate the required image height
+        //aufpassen auf platz nach oben
+        //dafür auch variable anpassen für yoffset oder so
+    }
+
+    private void paintNoBlockPixels() {
+        //TODO: Sarah
+        //Malt alle Pixel, die nicht zu den Blöcken gehören
+        //das sind unten links, oben links und finish oben rechts
+        //auch Block Leiste oben Überprüfung
     }
 
     private void paintOperation(Operation operation) {
+        boolean special = false;
         switch (operation.getName()) {
             case PUSH:
                 addColor(0, 1);
+                paintPush(operation.getVal1());
+                special = true;
                 break;
             case POP:
                 addColor(0, 2);
@@ -109,6 +135,8 @@ public class Design {
                 break;
             case POINTER:
                 addColor(3, 1);
+                paintPointer(operation.getVal1(), operation.getVal2());
+                special = true;
                 break;
             case SWITCH:
                 addColor(3, 2);
@@ -134,8 +162,21 @@ public class Design {
             default:
                 break;
         }
-        image.setRGB(currentBlock * 7, 5 + currentYOffset, matrixOfColor[currentHue][currentShade]);
+        if(!special)
+            image.setRGB(currentBlock * 7, 5 + currentYOffset, matrixOfColor[currentHue][currentShade]);
         currentYOffset += 1;
+    }
+
+    private void paintPush(int val1) {
+        //TODO: Moritz
+        //Pixels bei push richtig setzen
+        //yoffset für zusätzliche Zeilen erhöhen
+    }
+
+    private void paintPointer(int val1, int val2) {
+        //TODO: Moritz
+        //Pixels bei pointer richtig setzen
+        //yoffset für zusätzliche Zeilen erhöhen
     }
 
     private void addColor(int hue, int shade) {
