@@ -15,8 +15,8 @@ public enum Command {
     SWITCH,
     DUPLICATE,
     ROLL,
-    INI,
-    OUTI,
-    INC,
-    OUTC
+    INNUMBER,
+    INCHAR,
+    OUTNUMBER,
+    OUTCHAR
 }
