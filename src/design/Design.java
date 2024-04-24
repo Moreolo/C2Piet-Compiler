@@ -104,13 +104,21 @@ public class Design {
 
     //Setzt die Pixel passend zu der übergebenen Operation
     private void paintOperation(Operation operation) {
-        //Bei Spezialoperationen wird dieser bool auf wahr gesetzt
-        boolean special = false;
-        switch (operation.getName()) {
+        //Setzt die Pixel für die vorherige Operation
+        //Das muss in dieser Reihenfolge gemacht werden damit die push und pointer Operation richtig gezeichnet werden können
+        Command c = operation.getName();
+        if(c == Command.PUSH)
+            paintPush(operation.getVal1());
+        else if(c == Command.POINTER)
+            paintPointer(operation.getVal1(), operation.getVal2());
+        else
+            paintPixel(0);
+        //Erhöht den y offset für die Operation
+        currentYOffset += 1;
+        //Verändert den Farbwert für den nächsten Pixel für die Operation
+        switch (c) {
             case PUSH:
                 addColor(0, 1);
-                paintPush(operation.getVal1());
-                special = true;
                 break;
             case POP:
                 addColor(0, 2);
@@ -138,8 +146,6 @@ public class Design {
                 break;
             case POINTER:
                 addColor(3, 1);
-                paintPointer(operation.getVal1(), operation.getVal2());
-                special = true;
                 break;
             case SWITCH:
                 addColor(3, 2);
@@ -165,18 +171,13 @@ public class Design {
             default:
                 break;
         }
-        //Bei Spezialoperationen wurde schon gemalt, bei den anderen nicht
-        if(!special)
-            paintPixel();
-        //Erhöht den y offset für die nächste Operation
-        //TODO
-        //In parse Funktion umlagern für klarere Anpassung der Offset Variablen (currentBlock)
-        currentYOffset += 1;
     }
 
     //Setzt den Pixel mit den akutellen Werten
-    private void paintPixel() {
-        image.setRGB(currentBlock * 7, 5 + currentYOffset, matrixOfColor[currentHue][currentShade]);
+    private void paintPixel(int xPos) {
+        //xPos muss innerhalb des Blocks liegen
+        if(xPos >= 0 && xPos <= 5)
+            image.setRGB(currentBlock * 7 - xPos, 5 + currentYOffset, matrixOfColor[currentHue][currentShade]);
     }
 
     private void paintPush(int val1) {
