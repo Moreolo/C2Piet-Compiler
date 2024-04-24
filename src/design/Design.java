@@ -163,8 +163,12 @@ public class Design {
                 break;
         }
         if(!special)
-            image.setRGB(currentBlock * 7, 5 + currentYOffset, matrixOfColor[currentHue][currentShade]);
+            paintPixel();
         currentYOffset += 1;
+    }
+
+    private void paintPixel() {
+        image.setRGB(currentBlock * 7, 5 + currentYOffset, matrixOfColor[currentHue][currentShade]);
     }
 
     private void paintPush(int val1) {
