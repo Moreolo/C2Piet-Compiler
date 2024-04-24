@@ -173,17 +173,25 @@ public class Design {
         }
     }
 
-    //Setzt den Pixel mit den akutellen Werten
+    //Setzt den Pixel mit den akutellen Werten und der x Position im Block
     private void paintPixel(int xPos) {
         //xPos muss innerhalb des Blocks liegen
         if(xPos >= 0 && xPos <= 5)
             image.setRGB(currentBlock * 7 - xPos, 5 + currentYOffset, matrixOfColor[currentHue][currentShade]);
     }
 
+    //Setzt alle Pixel für die push Operation
     private void paintPush(int val1) {
-        //TODO: Moritz
-        //Pixels bei push richtig setzen
-        //yoffset für zusätzliche Zeilen erhöhen
+        //Iteriert durch die Werte
+        for(int val = 0; val < val1; val++) {
+            //Rechnet die x Position aus
+            int xPos = val % 6;
+            //Bei einer neuen Zeile (außer der ersten) wird der yOffset erhöht
+            if(xPos == 0 && val != 0)
+                currentYOffset += 1;
+            //Setzt den Pixel
+            paintPixel(xPos);
+        }
     }
 
     private void paintPointer(int val1, int val2) {
