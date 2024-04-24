@@ -69,6 +69,7 @@ public class Design {
         return design.image;
     }
 
+    //Initialisiert alle Variablen und setzt die konstanten Pixel
     public Design(LinkedList<Block> blocks) {
         currentHue = 0;
         currentShade = 0;
@@ -101,7 +102,9 @@ public class Design {
         //auch Block Leiste oben Überprüfung
     }
 
+    //Setzt die Pixel passend zu der übergebenen Operation
     private void paintOperation(Operation operation) {
+        //Bei Spezialoperationen wird dieser bool auf wahr gesetzt
         boolean special = false;
         switch (operation.getName()) {
             case PUSH:
@@ -162,11 +165,16 @@ public class Design {
             default:
                 break;
         }
+        //Bei Spezialoperationen wurde schon gemalt, bei den anderen nicht
         if(!special)
             paintPixel();
+        //Erhöht den y offset für die nächste Operation
+        //TODO
+        //In parse Funktion umlagern für klarere Anpassung der Offset Variablen (currentBlock)
         currentYOffset += 1;
     }
 
+    //Setzt den Pixel mit den akutellen Werten
     private void paintPixel() {
         image.setRGB(currentBlock * 7, 5 + currentYOffset, matrixOfColor[currentHue][currentShade]);
     }
@@ -183,7 +191,9 @@ public class Design {
         //yoffset für zusätzliche Zeilen erhöhen
     }
 
+    //Passt die aktuelle Farbe an, sodass eine Piet Operation leicht in die passende Farbe übersetzt werden kann
     private void addColor(int hue, int shade) {
+        //Ein Wert wird addiert und es wird der passende Modulo genommen (Die Farben der Operationen sind zyklisch)
         currentHue = (currentHue + hue) % 6;
         currentShade = (currentShade + shade) % 3;
     }
