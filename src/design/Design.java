@@ -86,6 +86,7 @@ public class Design {
     private void calcImageWidth(LinkedList<Block> blocks) {
         //TODO
         //calculate the required image width
+        width = 100;
     }
 
     private void calcImageHeight(LinkedList<Block> blocks) {
@@ -93,6 +94,7 @@ public class Design {
         //calculate the required image height
         //aufpassen auf platz nach oben
         //dafür auch variable anpassen für yoffset oder so
+        height = 100;
     }
 
     private void paintNoBlockPixels() {
