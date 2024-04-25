@@ -108,7 +108,7 @@ public class Design {
         //Das muss in dieser Reihenfolge gemacht werden damit die push und pointer Operation richtig gezeichnet werden können
         Command c = operation.getName();
         if(c == Command.PUSH)
-            paintPush(operation.getVal1());
+            paintPush(operation.getVal1(), 6);
         else if(c == Command.POINTER)
             paintPointer(operation.getVal1(), operation.getVal2());
         else
@@ -145,7 +145,7 @@ public class Design {
                 addColor(3, 0);
                 break;
             case POINTER:
-                addColor(3, 1);
+                //Die Farbe wird bereits in der paintPointer Funktion angepasst
                 break;
             case SWITCH:
                 addColor(3, 2);
@@ -180,12 +180,18 @@ public class Design {
             image.setRGB(currentBlock * 7 - xPos, 5 + currentYOffset, matrixOfColor[currentHue][currentShade]);
     }
 
+    //Setzt den Pixel mit der x Position im Block schwarz
+    private void paintPixelBlack(int xPos) {
+        image.setRGB(currentBlock * 7 - xPos, 5 + currentYOffset, black);
+    }
+
     //Setzt alle Pixel für die push Operation
-    private void paintPush(int val1) {
+    //width ist die maximal zulässige Breite des Push Blocks
+    private void paintPush(int val1, int width) {
         //Iteriert durch die Werte
         for(int val = 0; val < val1; val++) {
             //Rechnet die x Position aus
-            int xPos = val % 6;
+            int xPos = val % width;
             //Bei einer neuen Zeile (außer der ersten) wird der yOffset erhöht
             if(xPos == 0 && val != 0)
                 currentYOffset += 1;
@@ -194,10 +200,81 @@ public class Design {
         }
     }
 
+    //Setzt alle Pixel für die pointer Operation
     private void paintPointer(int val1, int val2) {
-        //TODO: Moritz
-        //Pixels bei pointer richtig setzen
-        //yoffset für zusätzliche Zeilen erhöhen
+        //yOffset speichern für setzen der schwarzen und push Pixel
+        int startYOffset = currentYOffset;
+
+        //Pixel von vorher setzen und current auf pointer Operation setzen
+        paintPixel(0);
+        currentYOffset += 1;
+        addColor(3, 1);
+
+        //val1 setzen
+        paintPush(val1, 5);
+        //yOffset erhöhen
+        currentYOffset += 2;
+        //val2 setzen
+        paintPush(val2, 5);
+
+        //Breite und Höhe ausrechnen der push Blöcke
+        int width1 = Math.min(val1, 5);
+        int width2 = Math.min(val2, 5);
+        int height1 = (val1 - 1) / 5 + 1;
+        int height2 = (val2 - 1) / 5 + 1;
+        //yOffset zurücksetzen und Operation auf push setzen
+        currentYOffset = startYOffset;
+        addColor(0, 1);
+        //Setzt den oberen Pixel schwarz, damit Pointer nicht nach oben geht
+        paintPixelBlack(width1);
+        currentYOffset += 1;
+
+        //Falls nötig, setzt den links oberen Pixel schwarz, damit der Pointer nicht nach links geht
+        if(width1 >= width2)
+            paintPixelBlack(width1 + 1);
+        //Iteriert durch die Höhe des ersten Push blocks und setzt die Pixel
+        for(int h = 0; h < height1; h++) {
+            paintPixel(width1);
+            currentYOffset += 1;
+        }
+
+        //Falls nötig, setzt den links unteren bzw. oberen Pixel schwarz, damit der Pointer nicht nach links geht
+        if(width1 > width2)
+            paintPixelBlack(width1 + 1);
+        else if(width2 > width1)
+            paintPixelBlack(width2 + 1);
+
+        //Setzt die Leiste zwischen den Push blocks
+        //Richtung der Leiste
+        int dir = 1;
+        if(width1 > width2)
+            dir = -1;
+        //Iteriert durch die Leiste
+        for(int w = width1; w != width2; w += dir) {
+            paintPixel(w);
+        }
+        //Setzt den letzten Pixel der Leiste
+        paintPixel(width2);
+        currentYOffset += 1;
+
+        //Iteriert durch die Höhe des zweiten Push blocks und setzt die Pixel
+        for(int h = 0; h < height2; h++) {
+            paintPixel(width2);
+            currentYOffset += 1;
+        }
+
+        //Falls nötig, setzt den links unteren Pixel schwarz, damit der Pointer nicht nach links geht
+        if(width2 >= width1)
+            paintPixelBlack(width2 + 1);
+        //Setzt die Leiste nach dem zweiten Push Block
+        for(int w = width2; w > 0; w--) {
+            paintPixel(w);
+        }
+        //Setzt den rechten Pixel schwarz, damit der Pointer nicht nach rechts geht
+        paintPixelBlack(-1);
+        //Der letzte Pixel der Leiste wird nicht gesetzt, da er bei der letzten NOOP Operation gesetzt wird
+        //Dafür muss yOffset nochmal kleiner gemacht werden
+        currentYOffset -= 1;
     }
 
     //Passt die aktuelle Farbe an, sodass eine Piet Operation leicht in die passende Farbe übersetzt werden kann
