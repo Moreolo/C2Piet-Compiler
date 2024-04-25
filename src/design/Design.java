@@ -80,6 +80,11 @@ public class Design {
         calcImageHeight(blocks);
 
         image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        //Setzt alle Pixel auf weiß
+        for(int x = 0; x < width; x++)
+            for(int y = 0; y < height; y++)
+                image.setRGB(x, y, white);
+
         paintNoBlockPixels();
     }
 
