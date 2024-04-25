@@ -55,8 +55,19 @@ public class Design {
 
     };
 
-    LinkedList<Block> ops;
-    int width, height, currentHue, currentShade, currentBlock, currentYOffset;
+    //Die Liste der Blöcke
+    LinkedList<Block> blocks;
+    //Die Breite und Höhe des Bilds
+    int width, height;
+    //Die akutelle Farbe (auch aktuelle Operation, weil der Pixel noch gesetzt werden muss)
+    int currentHue, currentShade;
+    //Der aktuelle Block
+    int currentBlock;
+    //Die aktuelle Reihe innerhalb des Blocks
+    int currentYOffset;
+    //Die zusätzlichen Pixel nach oben (Wenn die Nummern der Blöcke größer als 13 werden, dann braucht man mehr Platz nach oben)
+    int addedRowsTop;
+    //Das Bild, in das der Piet Code übertragen wird
     BufferedImage image;
 
     public static BufferedImage parse(LinkedList<Block> blocks) {
@@ -75,9 +86,9 @@ public class Design {
         currentShade = 0;
         currentBlock = 1;
         currentYOffset = 0;
-        ops = blocks;
-        calcImageWidth(blocks);
-        calcImageHeight(blocks);
+        this.blocks = blocks;
+        calcImageWidth();
+        calcImageHeight();
 
         image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         //Setzt alle Pixel auf weiß
@@ -88,13 +99,13 @@ public class Design {
         paintNoBlockPixels();
     }
 
-    private void calcImageWidth(LinkedList<Block> blocks) {
+    private void calcImageWidth() {
         //TODO
         //calculate the required image width
         width = 100;
     }
 
-    private void calcImageHeight(LinkedList<Block> blocks) {
+    private void calcImageHeight() {
         //TODO
         //calculate the required image height
         //aufpassen auf platz nach oben
