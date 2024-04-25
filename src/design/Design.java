@@ -68,13 +68,26 @@ public class Design {
     //Das Bild, in das der Piet Code übertragen wird
     BufferedImage image;
 
+    //Wandelt eine Block Liste mit Piet Commands in ein Bild um
     public static BufferedImage parse(LinkedList<Block> blocks) {
         Design design = new Design(blocks);
-        //TODO
-        //loop erstellen mit block und operation iteration
-        //paint noop
-        //current block anpassen
-        //möglicherweise current hue und shade zurücksetzen
+        //Iteriert durch die Blöcke
+        for(Block block: blocks) {
+            //Setzt aktuellen Block
+            design.currentBlock = block.getNum();
+            //Setzt y offset zurück
+            design.currentYOffset = 0;
+            //Setzt Farbe auf dunkelgrün
+            design.currentHue = 2;
+            design.currentShade = 2;
+            //Iteriert durch die Operationen
+            for(Operation op: block.getOperations()) {
+                design.paintOperation(op);
+            }
+            //Finale NOOP Operation
+            //Wird benötigt, weil Piet Commands auf Farbübergängen ausgeführt werden
+            design.paintOperation(new Operation(Command.NOOP));
+        }
         return design.image;
     }
 
