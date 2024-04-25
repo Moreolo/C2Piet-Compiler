@@ -55,8 +55,6 @@ public class Design {
 
     };
 
-    //Die Liste der Blöcke
-    LinkedList<Block> blocks;
     //Die Breite und Höhe des Bilds
     int width, height;
     //Die akutelle Farbe (auch aktuelle Operation, weil der Pixel noch gesetzt werden muss)
@@ -86,9 +84,8 @@ public class Design {
         currentShade = 0;
         currentBlock = 1;
         currentYOffset = 0;
-        this.blocks = blocks;
-        calcImageWidth();
-        calcImageHeight();
+        calcImageWidth(blocks);
+        calcImageHeight(blocks);
 
         image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         //Setzt alle Pixel auf weiß
@@ -99,13 +96,13 @@ public class Design {
         paintNoBlockPixels();
     }
 
-    private void calcImageWidth() {
+    private void calcImageWidth(LinkedList<Block> blocks) {
         //TODO
         //calculate the required image width
         width = 100;
     }
 
-    private void calcImageHeight() {
+    private void calcImageHeight(LinkedList<Block> blocks) {
         //TODO
         //calculate the required image height
         //aufpassen auf platz nach oben
