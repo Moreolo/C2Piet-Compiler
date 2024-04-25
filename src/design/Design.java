@@ -192,12 +192,12 @@ public class Design {
     private void paintPixel(int xPos) {
         //xPos muss innerhalb des Blocks liegen
         if(xPos >= 0 && xPos <= 5)
-            image.setRGB(currentBlock * 7 - xPos, addedRowsTop + currentYOffset, matrixOfColor[currentHue][currentShade]);
+            image.setRGB(currentBlock * 7 - xPos, 5 + addedRowsTop + currentYOffset, matrixOfColor[currentHue][currentShade]);
     }
 
     //Setzt den Pixel mit der x Position im Block schwarz
     private void paintPixelBlack(int xPos) {
-        image.setRGB(currentBlock * 7 - xPos, addedRowsTop + currentYOffset, black);
+        image.setRGB(currentBlock * 7 - xPos, 5 + addedRowsTop + currentYOffset, black);
     }
 
     //Setzt alle Pixel für die push Operation
