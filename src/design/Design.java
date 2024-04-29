@@ -55,43 +55,45 @@ public class Design {
 
     };
 
-    //Die Breite und Höhe des Bilds
+    // Die Breite und Höhe des Bilds
     int width, height;
-    //Die akutelle Farbe (auch aktuelle Operation, weil der Pixel noch gesetzt werden muss)
+    // Die akutelle Farbe (auch aktuelle Operation, weil der Pixel noch gesetzt
+    // werden muss)
     int currentHue, currentShade;
-    //Der aktuelle Block
+    // Der aktuelle Block
     int currentBlock;
-    //Die aktuelle Reihe innerhalb des Blocks
+    // Die aktuelle Reihe innerhalb des Blocks
     int currentYOffset;
-    //Die zusätzlichen Pixel nach oben (Wenn die Nummern der Blöcke größer als 13 werden, dann braucht man mehr Platz nach oben)
+    // Die zusätzlichen Pixel nach oben (Wenn die Nummern der Blöcke größer als 13
+    // werden, dann braucht man mehr Platz nach oben)
     int addedRowsTop;
-    //Das Bild, in das der Piet Code übertragen wird
+    // Das Bild, in das der Piet Code übertragen wird
     BufferedImage image;
 
-    //Wandelt eine Block Liste mit Piet Commands in ein Bild um
+    // Wandelt eine Block Liste mit Piet Commands in ein Bild um
     public static BufferedImage parse(LinkedList<Block> blocks) {
         Design design = new Design(blocks);
-        //Iteriert durch die Blöcke
-        for(Block block: blocks) {
-            //Setzt aktuellen Block
+        // Iteriert durch die Blöcke
+        for (Block block : blocks) {
+            // Setzt aktuellen Block
             design.currentBlock = block.getNum();
-            //Setzt y offset zurück
+            // Setzt y offset zurück
             design.currentYOffset = 0;
-            //Setzt Farbe auf dunkelgrün
+            // Setzt Farbe auf dunkelgrün
             design.currentHue = 2;
             design.currentShade = 2;
-            //Iteriert durch die Operationen
-            for(Operation op: block.getOperations()) {
+            // Iteriert durch die Operationen
+            for (Operation op : block.getOperations()) {
                 design.paintOperation(op);
             }
-            //Finale NOOP Operation
-            //Wird benötigt, weil Piet Commands auf Farbübergängen ausgeführt werden
+            // Finale NOOP Operation
+            // Wird benötigt, weil Piet Commands auf Farbübergängen ausgeführt werden
             design.paintOperation(new Operation(Command.NOOP));
         }
         return design.image;
     }
 
-    //Initialisiert alle Variablen und setzt die konstanten Pixel
+    // Initialisiert alle Variablen und setzt die konstanten Pixel
     public Design(LinkedList<Block> blocks) {
         currentHue = 0;
         currentShade = 0;
@@ -101,49 +103,122 @@ public class Design {
         calcImageHeight(blocks);
 
         image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        //Setzt alle Pixel auf weiß
-        for(int x = 0; x < width; x++)
-            for(int y = 0; y < height; y++)
+        // Setzt alle Pixel auf weiß
+        for (int x = 0; x < width; x++)
+            for (int y = 0; y < height; y++)
                 image.setRGB(x, y, white);
 
         paintNoBlockPixels();
     }
 
     private void calcImageWidth(LinkedList<Block> blocks) {
-        //TODO
-        //calculate the required image width
+        // TODO
+        // calculate the required image width
         width = 100;
     }
 
     private void calcImageHeight(LinkedList<Block> blocks) {
-        //TODO
-        //calculate the required image height
-        //aufpassen auf platz nach oben
-        //dafür auch variable anpassen für yoffset oder so
+        // TODO
+        // calculate the required image height
+        // aufpassen auf platz nach oben
+        // dafür auch variable anpassen für yoffset oder so
         height = 100;
     }
 
     private void paintNoBlockPixels() {
-        //TODO: Sarah
-        //Malt alle Pixel, die nicht zu den Blöcken gehören
-        //das sind unten links, oben links und finish oben rechts
-        //auch Block Leiste oben Überprüfung
+        // TODO: Sarah
+        // Malt alle Pixel, die nicht zu den Blöcken gehören
+        // das sind unten links, oben links und finish oben rechts
+        // auch Block Leiste oben Überprüfung
+        // start links oben
+        image.setRGB(4, 0, black);
+        image.setRGB(0, 1, black);
+
+        // finish rechts oben
+        image.setRGB(width - 1, 0, black);
+        image.setRGB(width - 2, 1, black);
+        image.setRGB(width - 2, 3, black);
+        image.setRGB(width - 1, 4, black);
+
+        for (int y = 1; y <= 3; y++) {
+            image.setRGB(width - 1, y, red);
+        }
+
+        // unten links
+        image.setRGB(1, height - 2, black);
+        image.setRGB(0, height - 1, lightGreen);
+        image.setRGB(1, height - 1, lightGreen);
+
+        // Block überprüfen
+
+        // for each element in Block
+        // for (Block block : blocks) {
+        // if(block == 0)
+        // erster Block
+        image.setRGB(2, 2, blue);
+        // multiply
+        image.setRGB(3, 2, green);
+        // push 1
+        image.setRGB(4, 2, darkGreen);
+        // subtract
+        image.setRGB(5, 2, lightCyan);
+        // not
+        image.setRGB(6, 2, darkMagenta);
+        // pointer
+        image.setRGB(7, 2, lightGreen);
+        // pop
+        image.setRGB(6, 3, darkGreen);
+        image.setRGB(7, 3, darkGreen);
+        image.setRGB(6, 4, black);
+        // erster Block auf Stack
+        // push 1
+        image.setRGB(3, 3, darkGreen);
+        // turn
+        image.setRGB(3, 4, black);
+        // else
+        // fuer jeden Block nach dem ersten
+        // for(int i=1; i <= blocks.length;i++)
+        image.setRGB(2, 2, blue);
+        // multiply
+        image.setRGB(3, 2, green);
+        // nummer des Blocks zum pushen nach links erweitern
+        // for(j=0; j<=i;j++){
+        // wenn zu weit links eins nach oben
+        // if(j<=2)
+        // image.setRGB((i+(currentBlock*7))-j, 1, green);
+        // else
+        // image.setRGB((i+(currentBlock*7))-j, 0, green);
+        // }
+        // push
+        image.setRGB(4, 2, darkGreen);
+        // subtract
+        image.setRGB(5, 2, lightCyan);
+        // not
+        image.setRGB(6, 2, darkMagenta);
+        // pointer
+        image.setRGB(7, 2, lightGreen);
+        // pop
+        image.setRGB(6, 3, darkGreen);
+        image.setRGB(7, 3, darkGreen);
+        image.setRGB(6, 4, black);
+
     }
 
-    //Setzt die Pixel passend zu der übergebenen Operation
+    // Setzt die Pixel passend zu der übergebenen Operation
     private void paintOperation(Operation operation) {
-        //Setzt die Pixel für die vorherige Operation
-        //Das muss in dieser Reihenfolge gemacht werden damit die push und pointer Operation richtig gezeichnet werden können
+        // Setzt die Pixel für die vorherige Operation
+        // Das muss in dieser Reihenfolge gemacht werden damit die push und pointer
+        // Operation richtig gezeichnet werden können
         Command c = operation.getName();
-        if(c == Command.PUSH)
+        if (c == Command.PUSH)
             paintPush(operation.getVal1(), 6);
-        else if(c == Command.POINTER)
+        else if (c == Command.POINTER)
             paintPointer(operation.getVal1(), operation.getVal2());
         else
             paintPixel(0);
-        //Erhöht den y offset für die Operation
+        // Erhöht den y offset für die Operation
         currentYOffset += 1;
-        //Verändert den Farbwert für den nächsten Pixel für die Operation
+        // Verändert den Farbwert für den nächsten Pixel für die Operation
         switch (c) {
             case PUSH:
                 addColor(0, 1);
@@ -173,7 +248,7 @@ public class Design {
                 addColor(3, 0);
                 break;
             case POINTER:
-                //Die Farbe wird bereits in der paintPointer Funktion angepasst
+                // Die Farbe wird bereits in der paintPointer Funktion angepasst
                 break;
             case SWITCH:
                 addColor(3, 2);
@@ -201,113 +276,120 @@ public class Design {
         }
     }
 
-    //Setzt den Pixel mit den akutellen Werten und der x Position im Block
+    // Setzt den Pixel mit den akutellen Werten und der x Position im Block
     private void paintPixel(int xPos) {
-        //xPos muss innerhalb des Blocks liegen
-        if(xPos >= 0 && xPos <= 5)
-            image.setRGB(currentBlock * 7 - xPos, 5 + addedRowsTop + currentYOffset, matrixOfColor[currentHue][currentShade]);
+        // xPos muss innerhalb des Blocks liegen
+        if (xPos >= 0 && xPos <= 5)
+            image.setRGB(currentBlock * 7 - xPos, 5 + addedRowsTop + currentYOffset,
+                    matrixOfColor[currentHue][currentShade]);
     }
 
-    //Setzt den Pixel mit der x Position im Block schwarz
+    // Setzt den Pixel mit der x Position im Block schwarz
     private void paintPixelBlack(int xPos) {
         image.setRGB(currentBlock * 7 - xPos, 5 + addedRowsTop + currentYOffset, black);
     }
 
-    //Setzt alle Pixel für die push Operation
-    //width ist die maximal zulässige Breite des Push Blocks
+    // Setzt alle Pixel für die push Operation
+    // width ist die maximal zulässige Breite des Push Blocks
     private void paintPush(int val1, int width) {
-        //Iteriert durch die Werte
-        for(int val = 0; val < val1; val++) {
-            //Rechnet die x Position aus
+        // Iteriert durch die Werte
+        for (int val = 0; val < val1; val++) {
+            // Rechnet die x Position aus
             int xPos = val % width;
-            //Bei einer neuen Zeile (außer der ersten) wird der yOffset erhöht
-            if(xPos == 0 && val != 0)
+            // Bei einer neuen Zeile (außer der ersten) wird der yOffset erhöht
+            if (xPos == 0 && val != 0)
                 currentYOffset += 1;
-            //Setzt den Pixel
+            // Setzt den Pixel
             paintPixel(xPos);
         }
     }
 
-    //Setzt alle Pixel für die pointer Operation
+    // Setzt alle Pixel für die pointer Operation
     private void paintPointer(int val1, int val2) {
-        //yOffset speichern für setzen der schwarzen und push Pixel
+        // yOffset speichern für setzen der schwarzen und push Pixel
         int startYOffset = currentYOffset;
 
-        //Pixel von vorher setzen und current auf pointer Operation setzen
+        // Pixel von vorher setzen und current auf pointer Operation setzen
         paintPixel(0);
         currentYOffset += 1;
         addColor(3, 1);
 
-        //val1 setzen
+        // val1 setzen
         paintPush(val1, 5);
-        //yOffset erhöhen
+        // yOffset erhöhen
         currentYOffset += 2;
-        //val2 setzen
+        // val2 setzen
         paintPush(val2, 5);
 
-        //Breite und Höhe ausrechnen der push Blöcke
+        // Breite und Höhe ausrechnen der push Blöcke
         int width1 = Math.min(val1, 5);
         int width2 = Math.min(val2, 5);
         int height1 = (val1 - 1) / 5 + 1;
         int height2 = (val2 - 1) / 5 + 1;
-        //yOffset zurücksetzen und Operation auf push setzen
+        // yOffset zurücksetzen und Operation auf push setzen
         currentYOffset = startYOffset;
         addColor(0, 1);
-        //Setzt den oberen Pixel schwarz, damit Pointer nicht nach oben geht
+        // Setzt den oberen Pixel schwarz, damit Pointer nicht nach oben geht
         paintPixelBlack(width1);
         currentYOffset += 1;
 
-        //Falls nötig, setzt den links oberen Pixel schwarz, damit der Pointer nicht nach links geht
-        if(width1 >= width2)
+        // Falls nötig, setzt den links oberen Pixel schwarz, damit der Pointer nicht
+        // nach links geht
+        if (width1 >= width2)
             paintPixelBlack(width1 + 1);
-        //Iteriert durch die Höhe des ersten Push blocks und setzt die Pixel
-        for(int h = 0; h < height1; h++) {
+        // Iteriert durch die Höhe des ersten Push blocks und setzt die Pixel
+        for (int h = 0; h < height1; h++) {
             paintPixel(width1);
             currentYOffset += 1;
         }
 
-        //Falls nötig, setzt den links unteren bzw. oberen Pixel schwarz, damit der Pointer nicht nach links geht
-        if(width1 > width2)
+        // Falls nötig, setzt den links unteren bzw. oberen Pixel schwarz, damit der
+        // Pointer nicht nach links geht
+        if (width1 > width2)
             paintPixelBlack(width1 + 1);
-        else if(width2 > width1)
+        else if (width2 > width1)
             paintPixelBlack(width2 + 1);
 
-        //Setzt die Leiste zwischen den Push blocks
-        //Richtung der Leiste
+        // Setzt die Leiste zwischen den Push blocks
+        // Richtung der Leiste
         int dir = 1;
-        if(width1 > width2)
+        if (width1 > width2)
             dir = -1;
-        //Iteriert durch die Leiste
-        for(int w = width1; w != width2; w += dir) {
+        // Iteriert durch die Leiste
+        for (int w = width1; w != width2; w += dir) {
             paintPixel(w);
         }
-        //Setzt den letzten Pixel der Leiste
+        // Setzt den letzten Pixel der Leiste
         paintPixel(width2);
         currentYOffset += 1;
 
-        //Iteriert durch die Höhe des zweiten Push blocks und setzt die Pixel
-        for(int h = 0; h < height2; h++) {
+        // Iteriert durch die Höhe des zweiten Push blocks und setzt die Pixel
+        for (int h = 0; h < height2; h++) {
             paintPixel(width2);
             currentYOffset += 1;
         }
 
-        //Falls nötig, setzt den links unteren Pixel schwarz, damit der Pointer nicht nach links geht
-        if(width2 >= width1)
+        // Falls nötig, setzt den links unteren Pixel schwarz, damit der Pointer nicht
+        // nach links geht
+        if (width2 >= width1)
             paintPixelBlack(width2 + 1);
-        //Setzt die Leiste nach dem zweiten Push Block
-        for(int w = width2; w > 0; w--) {
+        // Setzt die Leiste nach dem zweiten Push Block
+        for (int w = width2; w > 0; w--) {
             paintPixel(w);
         }
-        //Setzt den rechten Pixel schwarz, damit der Pointer nicht nach rechts geht
+        // Setzt den rechten Pixel schwarz, damit der Pointer nicht nach rechts geht
         paintPixelBlack(-1);
-        //Der letzte Pixel der Leiste wird nicht gesetzt, da er bei der letzten NOOP Operation gesetzt wird
-        //Dafür muss yOffset nochmal kleiner gemacht werden
+        // Der letzte Pixel der Leiste wird nicht gesetzt, da er bei der letzten NOOP
+        // Operation gesetzt wird
+        // Dafür muss yOffset nochmal kleiner gemacht werden
         currentYOffset -= 1;
     }
 
-    //Passt die aktuelle Farbe an, sodass eine Piet Operation leicht in die passende Farbe übersetzt werden kann
+    // Passt die aktuelle Farbe an, sodass eine Piet Operation leicht in die
+    // passende Farbe übersetzt werden kann
     private void addColor(int hue, int shade) {
-        //Ein Wert wird addiert und es wird der passende Modulo genommen (Die Farben der Operationen sind zyklisch)
+        // Ein Wert wird addiert und es wird der passende Modulo genommen (Die Farben
+        // der Operationen sind zyklisch)
         currentHue = (currentHue + hue) % 6;
         currentShade = (currentShade + shade) % 3;
     }
