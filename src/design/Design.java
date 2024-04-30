@@ -108,7 +108,7 @@ public class Design {
             for (int y = 0; y < height; y++)
                 image.setRGB(x, y, white);
 
-        paintNoBlockPixels();
+        paintNoBlockPixels(blocks);
     }
 
     private void calcImageWidth(LinkedList<Block> blocks) {
@@ -125,7 +125,7 @@ public class Design {
         height = 100;
     }
 
-    private void paintNoBlockPixels() {
+    private void paintNoBlockPixels(LinkedList<Block> blocks) {
         // TODO: Sarah
         // Malt alle Pixel, die nicht zu den Blöcken gehören
         // das sind unten links, oben links und finish oben rechts
@@ -151,56 +151,64 @@ public class Design {
 
         // Block überprüfen
 
-        // for each element in Block
-        // for (Block block : blocks) {
-        // if(block == 0)
-        // erster Block
-        image.setRGB(2, 2, blue);
-        // multiply
-        image.setRGB(3, 2, green);
-        // push 1
-        image.setRGB(4, 2, darkGreen);
-        // subtract
-        image.setRGB(5, 2, lightCyan);
-        // not
-        image.setRGB(6, 2, darkMagenta);
-        // pointer
-        image.setRGB(7, 2, lightGreen);
-        // pop
-        image.setRGB(6, 3, darkGreen);
-        image.setRGB(7, 3, darkGreen);
-        image.setRGB(6, 4, black);
-        // erster Block auf Stack
-        // push 1
-        image.setRGB(3, 3, darkGreen);
-        // turn
-        image.setRGB(3, 4, black);
-        // else
-        // fuer jeden Block nach dem ersten
-        // for(int i=1; i <= blocks.length;i++)
-        image.setRGB(2, 2, blue);
-        // multiply
-        image.setRGB(3, 2, green);
-        // nummer des Blocks zum pushen nach links erweitern
-        // for(j=0; j<=i;j++){
-        // wenn zu weit links eins nach oben
-        // if(j<=2)
-        // image.setRGB((i+(currentBlock*7))-j, 1, green);
-        // else
-        // image.setRGB((i+(currentBlock*7))-j, 0, green);
-        // }
-        // push
-        image.setRGB(4, 2, darkGreen);
-        // subtract
-        image.setRGB(5, 2, lightCyan);
-        // not
-        image.setRGB(6, 2, darkMagenta);
-        // pointer
-        image.setRGB(7, 2, lightGreen);
-        // pop
-        image.setRGB(6, 3, darkGreen);
-        image.setRGB(7, 3, darkGreen);
-        image.setRGB(6, 4, black);
+        for (Block block : blocks) {
+            if (block == blocks.getFirst()) {
+                // erster Block
+                image.setRGB(2, 2, blue);
+                // multiply
+                image.setRGB(3, 2, green);
+                // push 1
+                image.setRGB(4, 2, darkGreen);
+                // subtract
+                image.setRGB(5, 2, lightCyan);
+                // not
+                image.setRGB(6, 2, darkMagenta);
+                // pointer
+                image.setRGB(7, 2, lightGreen);
+                // pop
+                image.setRGB(6, 3, darkGreen);
+                image.setRGB(7, 3, darkGreen);
+                image.setRGB(6, 4, black);
+                // erster Block auf Stack
+                // push 1
+                image.setRGB(3, 3, darkGreen);
+                // turn
+                image.setRGB(3, 4, black);
+            } else {
+                // fuer jeden Block nach dem ersten
+                int blockPosi = block.getNum() * 7;
+
+                image.setRGB(blockPosi + 2, 2, blue);
+                // multiply
+                image.setRGB(blockPosi + 3, 2, green);
+                // nummer des Blocks zum pushen nach links erweitern
+                // aktuell nur bis Block Nr 13
+                for (int j = 0; j <= block.getNum(); j++) {
+                    if (j < 6) {
+                        image.setRGB((blockPosi + 3) - j, 1, green);
+                    } else {
+                        // wenn zu weit links eins nach oben
+                        image.setRGB((blockPosi + 3) - (j % 6), 0, green);
+
+                    }
+                }
+
+                // push
+                image.setRGB(blockPosi + 4, 2, darkGreen);
+                // subtract
+                image.setRGB(blockPosi + 5, 2, lightCyan);
+                // not
+                image.setRGB(blockPosi + 6, 2, darkMagenta);
+                // pointer
+                image.setRGB(blockPosi + 7, 2, lightGreen);
+                // pop
+                image.setRGB(blockPosi + 6, 3, darkGreen);
+                image.setRGB(blockPosi + 7, 3, darkGreen);
+                image.setRGB(blockPosi + 6, 4, black);
+
+            }
+
+        }
 
     }
 
