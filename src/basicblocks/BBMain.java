@@ -72,7 +72,7 @@ public class BBMain {
        *        start++;
        *        
        *    }
-       * }
+       * }y
        */
 
     // Grundlegende Idee ist der rekursive durchlauf durch den Node-Baum
@@ -92,42 +92,32 @@ public class BBMain {
             case BLOCK_STATEMENT:
             // TODO: Es muss unterschieden werden, ob innerhalb des BLOCK_STATEMENTS irgendwelche nicht-atomaren instruktionen 
             // vorkommen, da hierfür die Blockstruktur aufgetrennt werden muss.
-
-                int start = 0;
-                int stop = 0;
-                boolean ifFound = false;
+                ArrayList<Node> nodesForOneBLock = new ArrayList<>();
 
                 for (Node n : rootNode.getBody()) {
                     if (n.getType().equals(NodeTypesEnum.IF_STATEMENT)) {
-
-                        ifFound = true;
+                        if (!nodesForOneBLock.isEmpty()){
+                            BBlock newBlock = new BBlock(iterator++);
+                            newBlock.setBody(nodesForOneBLock);
+                            nodesForOneBLock.clear();
+                        }
 
                         BBlock block = new BBlock(iterator++);
                         //Baue baum von start bis stop
-                        for ( ; start < stop; start++) {
-                           // block.addToBody(rootNode.getBody().get(start);
-                        }
 
                         // Laufe in den If-Block hinein
                         walkTree(n);
-                        start++;
+                    }else{
+                        nodesForOneBLock.add(n);
                     }  
-                    stop++;
                 }
 
-                if (!ifFound) {
-                    if (rootNode.getBody().size() == stop && start != stop) {
-                        stop--;
-                    }
-                    BBlock block = new BBlock(iterator++);
-                    //Baue baum von start bis stop
-                    for ( ; start <= stop; start++) {
-                      //  block.addToBody(rootNode.getBody().get(start);
-                    } 
-
-                } else {
-
+                if (!nodesForOneBLock.isEmpty()){
+                    BBlock newBlock = new BBlock(iterator++);
+                    newBlock.setBody(nodesForOneBLock);
+                    nodesForOneBLock.clear();
                 }
+
             
         
             default:
