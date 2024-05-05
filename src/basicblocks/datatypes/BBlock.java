@@ -7,7 +7,7 @@ import ast.datatypes.Node;
 
 public class BBlock {
 
-    private int next;
+    private Integer next;
 
     // kann der gleiche Listentyp sein wie vom AST-Team
     private ArrayList<Node> body = new ArrayList<>();
@@ -15,14 +15,19 @@ public class BBlock {
 
 
 
-    public BBlock(int next) {
+    public BBlock(Integer next) {
         this.next = next;
     }
 
     public void setBody(ArrayList<Node> body) {
         this.body.addAll(body);
     }
-    public void addToBody(Node node) {
+    public void addNodeToBody(Node node) {
         this.body.add(node);
+    }
+
+    @Override
+    public String toString() {
+       return "Classic Block";
     }
 }

@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class BBMain {
 
     private static ArrayList<BBlock> blockList = new ArrayList<>();
-    private static int iterator = 0;
+    private static int iterator = 1;
 
 
 
@@ -29,6 +29,8 @@ public class BBMain {
       */
 
       /* ----------------------- GEDANKEN-WIESE -------------------------------------------------
+
+            Terminator-Block hat keinen next -> 
        * if (cond1) {
        * 
        *    do;
@@ -73,10 +75,56 @@ public class BBMain {
        *        
        *    }
        * }
+       * 
+       * 
+       * 
+       * 
+       * Prinzipiell benötigen wir für die Basic-Blöcke "nur" 2 Funktionalitäten: Einen Conditional Block anlegen und einen linearen Block spalten.
+       * Der Algorithmus soll rekursiv durch den Baum iterieren.
+       * Wenn der Algorithmus einen Sprung bemerkt, legt er direkt einen neuen Block an und verknüpft sie jeweils.
+       * Wenn der Algorithmus dann bemerkt, dass es sich um ein Conditional handelt, dann "spaltet" er die blöcke erneut auf und legt diesmal eine abgesprochene 4er-Konstellation an
+       * 
+       *                1. split():
+       * 
+       *                    ( B1 ) ==> ( B1 ) -> ( B2 )
+       * 
+       *                2. createConditional():
+       *                    
+       *                                ( Bx+3 ) ----           ( Bx+7 ) -----------              
+       *                                   ^        |               ^               |
+       *                                   |        v               |               v
+       *                    ( Bx ) ==>  ( Bx )      ( Bx+1 ) -> ( Bx + 4 )      ( Bx + 5)
+       *                                   |        ^               |               ^
+       *                                   v        |               v               |
+       *                                ( Bx+2 ) ----            ( Bx+6) -----------
        */
+    private void createCondtitional() {
+
+        // ist ein standard-split am Anfang, der den Start- und End-Block des gesamten Conditional definiert 
+
+        // Je nachdem, ob die Left- und/oder Right-Nodes vergeben sind, müssen zusätzliche splits vom Ursprungsblock aus gemacht werden
+        // Diese Blöcke zeigen dann auf den zuvor angelegten End-Block
+
+
+    }
+
+    private void splitBlock(BBlock block, Node newRoot) {
+
+        // Es muss geprüft werden, ob das Next-element vom block vergeben ist.
+
+        // Wenn es nicht vergeben ist, handelt es sich um einen normalen linearen jump 
+        //  -> neuer block mit iterator + 1, das next vom Ursprungsblock wird auf den iterator gesetzt
+
+        // Wenn das next bereits vergeben wurde, dann handelt es sich um einen jump innerhalb eines Conditionals
+        //  -> Der next-Wert wird in den neuen Basic Block gesetzt, 
+        //      der next-Wert vom alten Block wird mit dem iterator vom neuen Block überschrieben
+    }
 
     // Grundlegende Idee ist der rekursive durchlauf durch den Node-Baum
-    private static void walkTree(Node rootNode) {
+    private static void walkTree(Node rootNode) {}
+
+
+/*
         switch (rootNode.getType()) {
             case WHILE_STATEMENT:
             case IF_STATEMENT:
@@ -97,7 +145,37 @@ public class BBMain {
                 int stop = 0;
                 boolean ifFound = false;
 
+                ArrayList<Node> nodesForOneBlock = new ArrayList<>();
+
                 for (Node n : rootNode.getBody()) {
+
+                    if (!n.getType().equals(NodeTypesEnum.IF_STATEMENT)) {
+                        nodesForOneBlock.add(n);
+
+                    } else {
+
+                        if (!nodesForOneBlock.isEmpty()) {
+                            BBlock block = new BBlock(iterator);
+                            blockList.add(block);
+                            iterator++;
+                        }
+
+                    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     if (n.getType().equals(NodeTypesEnum.IF_STATEMENT)) {
 
                         ifFound = true;
@@ -131,15 +209,18 @@ public class BBMain {
             
         
             default:
-                //faa
+                //füge die Nodes in eine BlockListe
                 break;
         }
     }
 
-
+*/
 
     // Aufruf für die "Interface"-Abfolge.
     public static ArrayList<BBlock> parse(Node rootNode) {
+
+        // Lege einen "großen" Basic Block an
+
         walkTree(rootNode);
 
         return blockList;
