@@ -99,14 +99,24 @@ public class BBMain {
                         if (!nodesForOneBLock.isEmpty()){
                             BBlock newBlock = new BBlock(iterator++);
                             newBlock.setBody(nodesForOneBLock);
+                            blockList.add(newBlock);
                             nodesForOneBLock.clear();
                         }
 
-                        BBlock block = new BBlock(iterator++);
+                        BBlock block = new CondBlock(iterator++);
+                        block.addToBody(n.getCondition());
+                        blockList.add(block);
+                        
                         //Baue baum von start bis stop
-
                         // Laufe in den If-Block hinein
-                        walkTree(n);
+                        walkTree(n.getLeft());
+                        block.addNext2(iterator);
+                        BBlock lastBlockInList = blockList.get(blockList.size()-1);
+                        Node rightArm = n.getRight();
+                        if (rightArm!= null){
+                            walkTree((rightArm));
+                        }
+                        lastBlockInList.setNext(iterator);
                     }else{
                         nodesForOneBLock.add(n);
                     }  
@@ -115,6 +125,7 @@ public class BBMain {
                 if (!nodesForOneBLock.isEmpty()){
                     BBlock newBlock = new BBlock(iterator++);
                     newBlock.setBody(nodesForOneBLock);
+                    blockList.add(newBlock);
                     nodesForOneBLock.clear();
                 }
 
