@@ -45,6 +45,10 @@ public enum NodeTypesEnum {
     /**
      * entry point to a program
      */
-    PROGRAM
+    PROGRAM,
+    /**
+     * end of program and execution
+     */
+    TERMINATOR
 
 }

@@ -19,7 +19,7 @@ public class Node {
     /**
      * The value of leaf-nodes
      */
-    private int value;
+    private String value;
 
     /**
      * Node to the left
@@ -46,62 +46,69 @@ public class Node {
         return type;
     }
 
-    public void setType(NodeTypesEnum type) {
+    public Node setType(NodeTypesEnum type) {
         this.type = type;
+        return this;
     }
 
     public Set<Node> getBody() {
         return body;
     }
 
-    public void setBody(Set<Node> body) {
+    public Node setBody(Set<Node> body) {
         this.body = body;
+        return this;
     }
 
-    public int getValue() {
+    public String getValue() {
         return value;
     }
 
-    public void setValue(int value) {
+    public Node setValue(String value) {
         this.value = value;
+        return this;
     }
 
     public Node getRight() {
         return right;
     }
 
-    public void setRight(Node right) {
+    public Node setRight(Node right) {
         this.right = right;
+        return this;
     }
 
     public Node getCondition() {
         return condition;
     }
 
-    public void setCondition(Node condition) {
+    public Node setCondition(Node condition) {
         this.condition = condition;
+        return this;
     }
 
     public Node getLeft() {
         return left;
     }
 
-    public void setLeft(Node left) {
+    public Node setLeft(Node left) {
         this.left = left;
+        return this;
     }
 
     public String getOperator() {
         return operator;
     }
 
-    public void setOperator(String operator) {
+    public Node setOperator(String operator) {
         this.operator = operator;
+        return this;
     }
 
     /**
      * Constructor for a complete node
      */
-    public Node(NodeTypesEnum type, Set<Node> body, int value, Node left, String operator, Node right, Node condition) {
+    public Node(NodeTypesEnum type, Set<Node> body, String value, Node left, String operator, Node right, Node condition) {
        this.type = type;
        this.body = body;
        this.value = value;
@@ -116,6 +123,6 @@ public class Node {
      * @param type of the node to be created
      */
    public Node(NodeTypesEnum type) {
-       this(type, null, 0, null, "",null, null);
+       this(type, null, "", null, "",null, null);
    }
 }

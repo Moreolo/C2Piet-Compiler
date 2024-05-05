@@ -1,7 +1,9 @@
-package ast.datatypes;
+package ast.lexer;
 
-import java.util.Arrays;
-import java.util.stream.Stream;
+import ast.datatypes.Node;
+import ast.datatypes.NodeTypesEnum;
+
+import java.util.List;
 
 public class AST {
     private Node programRoot = new Node(NodeTypesEnum.PROGRAM);
@@ -48,23 +50,24 @@ public class AST {
      * @param tokens the Array of tokens
      * @return entry Node to tree
      */
-    public Node buildTree(String[] tokens) {
-        Stream<String> tokenStream = Arrays.stream(tokens);
-        tokenStream.forEach(this::buildNode);
-
+    public Node buildTree(List<Token> tokens) {
+        tokens.forEach(this::buildNode);
         return programRoot;
     }
 
     // TODO: dummy method -> implement behaviour
-    private void buildNode(String token) {
-        switch (token) {
-            case "if":
+    // recursive decent parser
+    // CONSUME; LOOK AHEAD
+    // pares if -> parse condition -> parse block -> return back up...
+    private void buildNode(Token token) {
+        switch (token.type) {
+            case IF:
                 //handleIfStatement();
                 break;
-            case "while", "for", "do":
+            case FOR, WHILE, DO:
                 //handleWhileStatement();
                 break;
-            case "=":
+            case EQUAL:
                 //handleAssignmentStatement();
                 break;
             default:

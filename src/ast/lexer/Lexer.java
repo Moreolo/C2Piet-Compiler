@@ -1,6 +1,7 @@
 package ast.lexer;
 
 //import java.io.BufferedReader;
+import ast.parser.Parser;
 import java.io.IOException;
 //import java.io.InputStreamReader;
 import java.nio.charset.Charset;
@@ -35,6 +36,9 @@ private static void run(String source) {
     for (Token token : tokens) {
       System.out.println(token);
     }
+
+    Parser parser = new Parser();
+    parser.parse(tokens);
   }
 
   static void error(int line, String message) {
