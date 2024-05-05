@@ -13,9 +13,19 @@ public class BBlock {
     private ArrayList<Node> body = new ArrayList<>();
 
 
+    public BBlock(){
 
+    }
 
     public BBlock(Integer next) {
+        this.next = next;
+    }
+
+    public Integer getNext(){
+        return this.next;
+    }
+    
+    public void setNext(Integer next){
         this.next = next;
     }
 

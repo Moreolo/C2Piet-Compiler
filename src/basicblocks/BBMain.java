@@ -108,7 +108,20 @@ public class BBMain {
 
     }
 
-    private void splitBlock(BBlock block, Node newRoot) {
+    private void splitBlock(BBlock block, ArrayList<Node> newBody) {
+        //neuen Block erstellen
+        BBlock newBlock = new BBlock(iterator);
+        newBlock.setBody(newBody);
+        //next pointer des alten blocks auslesen
+        Integer oldNext = block.getNext();
+        if (oldNext != null){
+            //nach dem alten Block ist noch ein Block
+            //->wir fügen mitten in der Kette einen neuen Block ein -> pointer umstecken
+            newBlock.setNext(oldNext);
+        }
+        //iterator zeigt auf neu erstellten Block
+        block.setNext(iterator);
+        iterator = iterator + 1;
 
         // Es muss geprüft werden, ob das Next-element vom block vergeben ist.
 
