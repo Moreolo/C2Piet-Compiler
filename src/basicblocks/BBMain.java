@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class BBMain {
 
     private static ArrayList<BBlock> blockList = new ArrayList<>();
-    private static int iterator = 0;
+    private static int iterator = 1;
 
 
 
@@ -86,7 +86,7 @@ public class BBMain {
                 blockList.add(condBlock);
 
                 walkTree(rootNode.getLeft());
-                condBlock.setNext2(iterator);
+                condBlock.setNext2(iterator - 1);
                 BBlock lastBlockInList = blockList.get(blockList.size()-1);
                 // Unterscheidung, ob else-Block benötig wird.
                 if (rootNode.getRight() != null) {
