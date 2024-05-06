@@ -25,4 +25,7 @@ public class BBlock {
     public void addToBody(Node node) {
         this.body.add(node);
     }
+    public void setNext(int next){
+        this.next = next;
+    }
 }

@@ -13,5 +13,8 @@ public class CondBlock extends BBlock {
         super(next);
         this.alt = alt;
     }
+    public void setNext2(int next2){
+        this.alt =next2;
+    }
     
 }

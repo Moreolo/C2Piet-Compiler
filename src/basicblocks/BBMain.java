@@ -81,12 +81,19 @@ public class BBMain {
             case WHILE_STATEMENT:
             case IF_STATEMENT:
 
+                CondBlock condBlock = new CondBlock(iterator++);
+                condBlock.addToBody(rootNode.getCondition());
+                blockList.add(condBlock);
+
                 walkTree(rootNode.getLeft());
+                condBlock.setNext2(iterator);
+                BBlock lastBlockInList = blockList.get(blockList.size()-1);
                 // Unterscheidung, ob else-Block benötig wird.
                 if (rootNode.getRight() != null) {
                     walkTree(rootNode.getRight());
 
                 }
+                lastBlockInList.setNext(iterator);
                 break;
 
             case BLOCK_STATEMENT:
@@ -102,21 +109,7 @@ public class BBMain {
                             blockList.add(newBlock);
                             nodesForOneBLock.clear();
                         }
-
-                        BBlock block = new CondBlock(iterator++);
-                        block.addToBody(n.getCondition());
-                        blockList.add(block);
-                        
-                        //Baue baum von start bis stop
-                        // Laufe in den If-Block hinein
-                        walkTree(n.getLeft());
-                        block.addNext2(iterator);
-                        BBlock lastBlockInList = blockList.get(blockList.size()-1);
-                        Node rightArm = n.getRight();
-                        if (rightArm!= null){
-                            walkTree((rightArm));
-                        }
-                        lastBlockInList.setNext(iterator);
+                        walkTree(n);
                     }else{
                         nodesForOneBLock.add(n);
                     }  
