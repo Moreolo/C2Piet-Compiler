@@ -12,7 +12,7 @@ import javax.imageio.ImageIO;
 import piet.datatypes.*;
 
 public class DesignTest {
-    
+
     @Test
     public void testParse() {
         LinkedList<Block> blocks = new LinkedList<>();
@@ -74,7 +74,7 @@ public class DesignTest {
         try {
             File outFile = new File("manmult.png");
             ImageIO.write(image, "png", outFile);
-        } catch(IOException e) {
+        } catch (IOException e) {
 
         }
     }

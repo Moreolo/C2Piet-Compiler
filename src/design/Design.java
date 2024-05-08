@@ -117,10 +117,10 @@ public class Design {
 
         // mind 11 Pixel (groß genug für 1 Block)
         if (blocks.size() < 1) {
-            width = 11;
+            width = 10;
         } else {
             // (anfang Pixel + ende Pixel = 4) + (7 pro Block)
-            width = 4 + (blocks.size() * 7);
+            width = 3 + (blocks.size() * 7);
         }
 
     }
