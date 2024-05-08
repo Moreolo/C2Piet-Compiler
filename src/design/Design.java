@@ -114,7 +114,15 @@ public class Design {
     private void calcImageWidth(LinkedList<Block> blocks) {
         // TODO
         // calculate the required image width
-        width = 100;
+
+        // mind 11 Pixel (groß genug für 1 Block)
+        if (blocks.size() < 1) {
+            width = 11;
+        } else {
+            // (anfang Pixel + ende Pixel = 4) + (7 pro Block)
+            width = 4 + (blocks.size() * 7);
+        }
+
     }
 
     private void calcImageHeight(LinkedList<Block> blocks) {
