@@ -69,11 +69,12 @@ public class DesignTest {
         block4.addOperation(new Operation(Command.SUBTRACT));
         blocks.add(block4);
 
-        BufferedImage image = Design.parse(blocks);
-
         try {
+            BufferedImage image = Design.parse(blocks);
             File outFile = new File("manmult.png");
             ImageIO.write(image, "png", outFile);
+        } catch (Error e) {
+            
         } catch (IOException e) {
 
         }

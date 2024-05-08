@@ -71,7 +71,11 @@ public class Design {
     BufferedImage image;
 
     // Wandelt eine Block Liste mit Piet Commands in ein Bild um
-    public static BufferedImage parse(LinkedList<Block> blocks) {
+    public static BufferedImage parse(LinkedList<Block> blocks) throws Error {
+        if (blocks.size() > 0)
+            if (blocks.get(0).getNum() > 4)
+                throw new Error("Der erste Block kann nur eine maximale Nummer von 4 haben.");
+
         Design design = new Design(blocks);
         // Iteriert durch die Blöcke
         for (int i = 0; i < blocks.size(); i++) {
@@ -223,16 +227,20 @@ public class Design {
     }
 
     // Setzt die Pixel passend zu der übergebenen Operation
-    private void paintOperation(Operation operation) {
+    private void paintOperation(Operation operation) throws Error {
         // Setzt die Pixel für die vorherige Operation
         // Das muss in dieser Reihenfolge gemacht werden damit die push und pointer
         // Operation richtig gezeichnet werden können
         Command c = operation.getName();
-        if (c == Command.PUSH)
+        if (c == Command.PUSH) {
+            if (operation.getVal1() < 1)
+                throw new Error("Der Push Command braucht einen Wert höher als 0.");
             paintPush(operation.getVal1(), 6);
-        else if (c == Command.POINTER)
+        } else if (c == Command.POINTER) {
+            if (operation.getVal1() < 1 || operation.getVal2() < 1)
+                throw new Error("Der Pointer Command braucht Werte höher als 0.");
             paintPointer(operation.getVal1(), operation.getVal2());
-        else
+        } else
             paintPixel(0);
         // Erhöht den y offset für die Operation
         currentYOffset += 1;
