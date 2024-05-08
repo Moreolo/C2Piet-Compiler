@@ -74,16 +74,16 @@ public class Design {
     public static BufferedImage parse(LinkedList<Block> blocks) {
         Design design = new Design(blocks);
         // Iteriert durch die Blöcke
-        for (Block block : blocks) {
+        for (int i = 0; i < blocks.size(); i++) {
             // Setzt aktuellen Block
-            design.currentBlock = block.getNum();
+            design.currentBlock = i + 1;
             // Setzt y offset zurück
             design.currentYOffset = 0;
             // Setzt Farbe auf dunkelgrün
             design.currentHue = 2;
             design.currentShade = 2;
             // Iteriert durch die Operationen
-            for (Operation op : block.getOperations()) {
+            for (Operation op : blocks.get(i).getOperations()) {
                 design.paintOperation(op);
             }
             // Finale NOOP Operation
