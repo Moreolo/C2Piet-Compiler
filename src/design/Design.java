@@ -111,30 +111,37 @@ public class Design {
         paintNoBlockPixels(blocks);
     }
 
+    // Rechnet die Breite des Bildes aus
     private void calcImageWidth(LinkedList<Block> blocks) {
-        // calculate the required image width
         if (blocks.size() < 1) {
+            // Ist kein Block in der Liste ist die Standardbreite 10
             width = 10;
         } else {
-            // (anfang Pixel + ende Pixel = 4) + (7 pro Block)
+            // Jeder Block ist 7 breit plus 3 fixe Pixel
             width = 3 + (blocks.size() * 7);
         }
 
     }
 
+    // Rechnet die Höhe des Bildes aus
     private void calcImageHeight(LinkedList<Block> blocks) {
         int max_block_height = 0;
         int max_block_num = 0;
+        // Iteriert durch alle Blöcke
         for(Block block: blocks) {
             int block_height = 0;
+            // Rechnet die Höhe aller Operationen im Block zusammen
             for(Operation op: block.getOperations()) {
                 switch (op.getName()) {
                     case PUSH:
                         block_height += 1;
+                        // Die Werte des Push Befehls halten pro Reihe maximal 6 Pixel
                         block_height += (op.getVal1() - 1) / 6;
                         break;
                     case POINTER:
+                        // Der Pointer Befehl hat mindestens Höhe 4
                         block_height += 4;
+                        // Die Werte des Pointer Befehls halten pro Reihe maximal 5 Pixel
                         block_height += (op.getVal1() - 1) / 5;
                         block_height += (op.getVal2() - 1) / 5;
                         break;
@@ -143,26 +150,27 @@ public class Design {
                         break;
                 }
             }
+            // Überschreibt die maximale Blockhöhe falls größer
             max_block_height = Math.max(max_block_height, block_height);
+            // Überschreibt die maximale Blocknummber falls größer
             max_block_num = Math.max(max_block_num, block.getNum());
         }
+        // Rechnet die extra Reihen nach oben aus
+        // Hängt von der Blocknummer ab
         addedRowsTop = Math.max(0, (max_block_num - 2) / 6 - 1);
+        // Rechnet die Höhe zusammen plus 7 fixe Pixel
         height = 7 + addedRowsTop + max_block_height;
     }
 
+    // Setzt alle Pixel die nicht Teil der Piet Commands der Blöcke sind
     private void paintNoBlockPixels(LinkedList<Block> blocks) {
-        // TODO: Sarah
-        // Malt alle Pixel, die nicht zu den Blöcken gehören
-        // das sind unten links, oben links und finish oben rechts
-        // auch Block Leiste oben Überprüfung
-        // start links oben
-
+        // Setzt Start Pixel links oben
         image.setRGB(4, 0, black);
         image.setRGB(0, 1 + addedRowsTop, black);
         image.setRGB(3, 4 + addedRowsTop, black);
         image.setRGB(3, 3 + addedRowsTop, darkGreen);
 
-        // finish rechts oben
+        // Setzt End Pixel rechts oben
         image.setRGB(width - 1, 0 + addedRowsTop, black);
         image.setRGB(width - 2, 1 + addedRowsTop, black);
         image.setRGB(width - 2, 3 + addedRowsTop, black);
@@ -172,36 +180,42 @@ public class Design {
             image.setRGB(width - 1, y + addedRowsTop, red);
         }
 
-        // unten links
+        // Setzt Pixel links unten
+        // Pixel sind notwendig um den Codel Chooser zu korrigieren
         image.setRGB(1, height - 2, black);
         image.setRGB(0, height - 1, green);
         image.setRGB(1, height - 1, green);
 
-        // Block überprüfen
+        // Setzt alle Pixel oberhalb der Blöcke
+        // Die Pixel überprüfen ob die Block Nummer mit dem aktuellen Wert auf dem Stack übereinstimmt
         for (int i = 0; i < blocks.size(); i++) {
+            // Rechnet die Position des Blocks aus
             int blockPosi = i * 7;
 
+            // Erster Pixel
             image.setRGB(blockPosi + 2, 2 + addedRowsTop, blue);
-            // multiply
+            // Duplicate
             image.setRGB(blockPosi + 3, 2 + addedRowsTop, green);
-            // nummer des Blocks zum pushen nach links erweitern
-            // aktuell nur bis Block Nr 13
+            // Holt die Nummer des Blocks
             int blocknum = blocks.get(i).getNum();
+            // Iteriert durch alle zu setzende Pixel durch
             for (int j = 0; j < blocknum - 1; j++) {
+                // Rechnet den x und y Offset aus
                 int xOffset = j % 6;
                 int yOffset = j / 6;
+                // Setzt den Pixel
                 image.setRGB((blockPosi + 3) - xOffset, 1 + addedRowsTop - yOffset, green);
             }
 
-            // push
+            // Push
             image.setRGB(blockPosi + 4, 2 + addedRowsTop, darkGreen);
-            // subtract
+            // Subtract
             image.setRGB(blockPosi + 5, 2 + addedRowsTop, lightCyan);
-            // not
+            // Not
             image.setRGB(blockPosi + 6, 2 + addedRowsTop, darkMagenta);
-            // pointer
+            // Pointer
             image.setRGB(blockPosi + 7, 2 + addedRowsTop, lightGreen);
-            // pop
+            // Pop
             image.setRGB(blockPosi + 6, 3 + addedRowsTop, darkGreen);
             image.setRGB(blockPosi + 7, 3 + addedRowsTop, darkGreen);
             image.setRGB(blockPosi + 6, 4 + addedRowsTop, black);
@@ -209,8 +223,6 @@ public class Design {
         }
 
     }
-
-    // }
 
     // Setzt die Pixel passend zu der übergebenen Operation
     private void paintOperation(Operation operation) {
