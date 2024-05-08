@@ -1,7 +1,6 @@
 package ast.datatypes;
 
-import java.util.Set;
-
+import java.util.List;
 /**
  * Datatype for nodes of the Abstract-Syntax-Tree
  */
@@ -14,7 +13,7 @@ public class Node {
     /**
      * Set of first-level child-nodes contained in this node
      */
-    private Set<Node> body;
+    private List<Node> body;
 
     /**
      * The value of leaf-nodes
@@ -51,11 +50,11 @@ public class Node {
         return this;
     }
 
-    public Set<Node> getBody() {
+    public List<Node> getBody() {
         return body;
     }
 
-    public Node setBody(Set<Node> body) {
+    public Node setBody(List<Node> body) {
         this.body = body;
         return this;
     }
@@ -108,7 +107,7 @@ public class Node {
     /**
      * Constructor for a complete node
      */
-    public Node(NodeTypesEnum type, Set<Node> body, String value, Node left, String operator, Node right, Node condition) {
+    public Node(NodeTypesEnum type, List<Node> body, String value, Node left, String operator, Node right, Node condition) {
        this.type = type;
        this.body = body;
        this.value = value;

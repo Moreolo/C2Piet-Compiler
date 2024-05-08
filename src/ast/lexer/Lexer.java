@@ -37,7 +37,7 @@ private static void run(String source) {
       System.out.println(token);
     }
 
-    Parser parser = new Parser();
+    Parser parser = new Parser(tokens);
     parser.parse(tokens);
   }
 

@@ -4,7 +4,6 @@ import ast.datatypes.Node;
 import ast.datatypes.NodeTypesEnum;
 import ast.lexer.Token;
 import ast.lexer.TokenType;
-
 import java.util.List;
 
 public class Parser {
@@ -15,20 +14,24 @@ public class Parser {
      */
     public List<Token> tokens;
 
-    public void parse(List<Token> tokens) {
+    public Parser(List<Token> tokens) {
+        this.tokens = tokens;
+    }
+
+    public Node parse(List<Token> tokens) {
         for (Token token : tokens) {
             switch (token.getType()) {
                 case IF, SWITCH, CASE:
-                    handleIf(new Node(NodeTypesEnum.IF_STATEMENT));
-                    break;
+                    return handleIf(new Node(NodeTypesEnum.IF_STATEMENT));
                 case FOR, DO, WHILE:
-                    handleFor(new Node(NodeTypesEnum.WHILE_STATEMENT));
-                    break;
-                case RETURN:
-                    break;
-            }
+                    return handleFor(new Node(NodeTypesEnum.WHILE_STATEMENT));
+                default:
+                    // dummy
+                    return new Node(NodeTypesEnum.PROGRAM);
 
+            }
         }
+        return null;
     }
 
     /**
@@ -38,8 +41,9 @@ public class Parser {
     public void consume(TokenType tokenType) {
         if(tokenType == tokens.get(0).getType()) {
             tokens.remove(0);
+            return;
         }
-        throw new RuntimeException("Unexpected token: " + tokenType);
+        throw new RuntimeException("Expected token " + tokenType + " but was " + tokens.get(0).getType());
     }
 
     /**
@@ -48,16 +52,16 @@ public class Parser {
      * @return true if the next token is of supplied type
      */
     public boolean peek(TokenType type) {
-        return tokens.get(1).getType() == type;
+        return tokens.get(0).getType() == type;
     }
 
     /**
      * @return the token on top of the list and delete it
      */
     public Token popToken() {
-        Token res = tokens.get(0);
+        Token token = tokens.get(0);
         tokens.remove(0);
-        return res;
+        return token;
     }
 
     /**
@@ -66,11 +70,16 @@ public class Parser {
      * @return fully initialized If-Node
      */
     public Node handleIf(Node node) {
+        consume(TokenType.IF);
+        // handle condition
         consume(TokenType.LEFT_PAREN);
         node.setCondition(handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION)));
+        consume(TokenType.RIGHT_PAREN);
+        consume(TokenType.LEFT_BRACE);
+        node.setBody(List.of(handleBlock(new Node(NodeTypesEnum.BLOCK_STATEMENT))));
+        consume(TokenType.RIGHT_BRACE);
 
-        //...
-        return handleBlock();
+        return node;
     }
 
     private boolean isOperator(TokenType type) {
@@ -91,8 +100,9 @@ public class Parser {
         } else if (!isOperator(tokens.get(0).getType())) {
             node.setLeft(new Node(NodeTypesEnum.LITERAL).setValue(popToken().getLexeme()));
         }
-
-        node.setOperator(popToken().getLexeme());
+        if (isOperator(tokens.get(0).getType())) {
+            node.setOperator(popToken().getLexeme());
+        }
 
         // if there is a nest on the right side
         if (peek(TokenType.LEFT_PAREN)) {
@@ -107,20 +117,17 @@ public class Parser {
             consume(TokenType.RIGHT_PAREN);
             return node;
         }
-
         return node;
     }
 
     public Node handleFor(Node node) {
 
         //...
-        return handleBlock();
+        return null;
     }
 
-    public Node handleBlock() {
-
-
-        return new Node(NodeTypesEnum.BLOCK_STATEMENT);
+    public Node handleBlock(Node node) {
+        return parse(tokens);
     }
 
 

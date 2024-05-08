@@ -7,7 +7,7 @@ import java.util.Map;
 
 import static ast.lexer.TokenType.*;
 
-class Scan{
+public class Scan{
     private  String source = "";
     private final List<Token> tokens = new ArrayList<>();
     private int start = 0;
@@ -35,11 +35,11 @@ class Scan{
       
     }
   
-    Scan(String source) {
+    public Scan(String source) {
       this.source = source;
     }
 
-    List<Token> scanTokens() {
+    public List<Token> scanTokens() {
         while (!isAtEnd()) {
           // We are at the beginning of the next lexeme.
           start = current;

@@ -60,7 +60,7 @@ public class AST {
     // CONSUME; LOOK AHEAD
     // pares if -> parse condition -> parse block -> return back up...
     private void buildNode(Token token) {
-        switch (token.type) {
+        switch (token.getType()) {
             case IF:
                 //handleIfStatement();
                 break;
