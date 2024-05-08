@@ -1,23 +1,5 @@
 package piet.datatypes;
 
-enum Command {
-    PUSH,
-    POP,
-    ADD,
-    SUBTRACT,
-    MULTIPLY,
-    DIVIDE,
-    MOD,
-    NOT,
-    GREATER,
-    POINTER,
-    SWITCH,
-    DUPLICATE,
-    ROLL,
-    IN,
-    OUT
-}
-
 public class Operation {
     private Command	 name;
     private int val1;

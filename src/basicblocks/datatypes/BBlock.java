@@ -32,6 +32,10 @@ public class BBlock {
     public void setBody(ArrayList<Node> body) {
         this.body.addAll(body);
     }
+
+    public ArrayList<Node> getBody() {
+        return this.body;
+    }
     public void addNodeToBody(Node node) {
         this.body.add(node);
     }
