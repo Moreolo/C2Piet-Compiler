@@ -133,81 +133,53 @@ public class Design {
         // start links oben
 
         image.setRGB(4, 0, black);
-        image.setRGB(0, 1, black);
+        image.setRGB(0, 1 + addedRowsTop, black);
+        image.setRGB(3, 4 + addedRowsTop, black);
+        image.setRGB(3, 3 + addedRowsTop, darkGreen);
 
         // finish rechts oben
-        image.setRGB(width - 1, 0, black);
-        image.setRGB(width - 2, 1, black);
-        image.setRGB(width - 2, 3, black);
-        image.setRGB(width - 1, 4, black);
+        image.setRGB(width - 1, 0 + addedRowsTop, black);
+        image.setRGB(width - 2, 1 + addedRowsTop, black);
+        image.setRGB(width - 2, 3 + addedRowsTop, black);
+        image.setRGB(width - 1, 4 + addedRowsTop, black);
 
         for (int y = 1; y <= 3; y++) {
-            image.setRGB(width - 1, y, red);
+            image.setRGB(width - 1, y + addedRowsTop, red);
         }
 
         // unten links
         image.setRGB(1, height - 2, black);
-        image.setRGB(0, height - 1, lightGreen);
-        image.setRGB(1, height - 1, lightGreen);
+        image.setRGB(0, height - 1, green);
+        image.setRGB(1, height - 1, green);
 
         // Block überprüfen
-
         for (int i = 0; i < blocks.size(); i++) {
-            /*
-             * if (i == 0) {
-             * // erster Block
-             * image.setRGB(2, 2, blue);
-             * // multiply
-             * image.setRGB(3, 2, green);
-             * // push 1
-             * image.setRGB(4, 2, darkGreen);
-             * // subtract
-             * image.setRGB(5, 2, lightCyan);
-             * // not
-             * image.setRGB(6, 2, darkMagenta);
-             * // pointer
-             * image.setRGB(7, 2, lightGreen);
-             * // pop
-             * image.setRGB(6, 3, darkGreen);
-             * image.setRGB(7, 3, darkGreen);
-             * image.setRGB(6, 4, black);
-             * // erster Block auf Stack
-             * // push 1
-             * image.setRGB(3, 3, darkGreen);
-             * // turn
-             * image.setRGB(3, 4, black);
-             * } else {
-             */
-            // fuer jeden Block nach dem Ersten
             int blockPosi = i * 7;
 
-            image.setRGB(blockPosi + 2, 2, blue);
+            image.setRGB(blockPosi + 2, 2 + addedRowsTop, blue);
             // multiply
-            image.setRGB(blockPosi + 3, 2, green);
+            image.setRGB(blockPosi + 3, 2 + addedRowsTop, green);
             // nummer des Blocks zum pushen nach links erweitern
             // aktuell nur bis Block Nr 13
-            for (int j = 0; j <= i; j++) {
-                if (j < 6) {
-                    image.setRGB((blockPosi + 3) - j, 1, green);
-                } else {
-                    // wenn zu weit links eins nach oben
-                    image.setRGB((blockPosi + 3) - (j % 6), 0, green);
-
-                }
+            int blocknum = blocks.get(i).getNum();
+            for (int j = 0; j < blocknum - 1; j++) {
+                int xOffset = j % 6;
+                int yOffset = j / 6;
+                image.setRGB((blockPosi + 3) - xOffset, 1 + addedRowsTop - yOffset, green);
             }
 
             // push
-            image.setRGB(blockPosi + 4, 2, darkGreen);
+            image.setRGB(blockPosi + 4, 2 + addedRowsTop, darkGreen);
             // subtract
-            image.setRGB(blockPosi + 5, 2, lightCyan);
+            image.setRGB(blockPosi + 5, 2 + addedRowsTop, lightCyan);
             // not
-            image.setRGB(blockPosi + 6, 2, darkMagenta);
+            image.setRGB(blockPosi + 6, 2 + addedRowsTop, darkMagenta);
             // pointer
-            image.setRGB(blockPosi + 7, 2, lightGreen);
+            image.setRGB(blockPosi + 7, 2 + addedRowsTop, lightGreen);
             // pop
-            image.setRGB(blockPosi + 6, 3, darkGreen);
-            image.setRGB(blockPosi + 7, 3, darkGreen);
-            image.setRGB(blockPosi + 6, 4, black);
+            image.setRGB(blockPosi + 6, 3 + addedRowsTop, darkGreen);
+            image.setRGB(blockPosi + 7, 3 + addedRowsTop, darkGreen);
+            image.setRGB(blockPosi + 6, 4 + addedRowsTop, black);
 
         }
 
