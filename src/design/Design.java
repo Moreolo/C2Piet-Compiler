@@ -112,10 +112,7 @@ public class Design {
     }
 
     private void calcImageWidth(LinkedList<Block> blocks) {
-        // TODO
         // calculate the required image width
-
-        // mind 11 Pixel (groß genug für 1 Block)
         if (blocks.size() < 1) {
             width = 10;
         } else {
@@ -126,11 +123,31 @@ public class Design {
     }
 
     private void calcImageHeight(LinkedList<Block> blocks) {
-        // TODO
-        // calculate the required image height
-        // aufpassen auf platz nach oben
-        // dafür auch variable anpassen für yoffset oder so
-        height = 100;
+        int max_block_height = 0;
+        int max_block_num = 0;
+        for(Block block: blocks) {
+            int block_height = 0;
+            for(Operation op: block.getOperations()) {
+                switch (op.getName()) {
+                    case PUSH:
+                        block_height += 1;
+                        block_height += (op.getVal1() - 1) / 6;
+                        break;
+                    case POINTER:
+                        block_height += 4;
+                        block_height += (op.getVal1() - 1) / 5;
+                        block_height += (op.getVal2() - 1) / 5;
+                        break;
+                    default:
+                        block_height += 1;
+                        break;
+                }
+            }
+            max_block_height = Math.max(max_block_height, block_height);
+            max_block_num = Math.max(max_block_num, block.getNum());
+        }
+        addedRowsTop = Math.max(0, (max_block_num - 2) / 6 - 1);
+        height = 7 + addedRowsTop + max_block_height;
     }
 
     private void paintNoBlockPixels(LinkedList<Block> blocks) {
