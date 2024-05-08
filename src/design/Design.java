@@ -128,10 +128,10 @@ public class Design {
         int max_block_height = 0;
         int max_block_num = 0;
         // Iteriert durch alle Blöcke
-        for(Block block: blocks) {
+        for (Block block: blocks) {
             int block_height = 0;
             // Rechnet die Höhe aller Operationen im Block zusammen
-            for(Operation op: block.getOperations()) {
+            for (Operation op: block.getOperations()) {
                 switch (op.getName()) {
                     case PUSH:
                         block_height += 1;
@@ -219,9 +219,7 @@ public class Design {
             image.setRGB(blockPosi + 6, 3 + addedRowsTop, darkGreen);
             image.setRGB(blockPosi + 7, 3 + addedRowsTop, darkGreen);
             image.setRGB(blockPosi + 6, 4 + addedRowsTop, black);
-
         }
-
     }
 
     // Setzt die Pixel passend zu der übergebenen Operation
