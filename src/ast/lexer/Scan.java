@@ -16,7 +16,7 @@ public class Scan{
     private static final Map<String, TokenType> keywords;
     
     static {
-        
+      
       keywords = new HashMap<>();
       keywords.put("if",     IF);
       keywords.put("else",   ELSE);
@@ -32,6 +32,11 @@ public class Scan{
       keywords.put("void",    VOID);
       keywords.put("const",    CONST);
       keywords.put("return",    RETURN);
+      keywords.put("int",    INT);
+      keywords.put("float",    FLOAT);
+      keywords.put("double",    DOUBLE);
+      keywords.put("long",    LONG);
+      keywords.put("short",    SHORT);
       
     }
   
@@ -76,8 +81,8 @@ public class Scan{
           case '}': addToken(RIGHT_BRACE); break;
           case ',': addToken(COMMA); break;
           case '.': addToken(DOT); break;
-          case '-': addToken(MINUS); break;
-          case '+': addToken(PLUS); break;
+          case '-': addToken(match('-')? DECREMENT : MINUS); break;
+          case '+': addToken(match('+')? INCREMENT : PLUS); break;
           case ';': addToken(SEMICOLON); break;
           case '*': addToken(STAR); break; 
           case '[': addToken(SQUARE_BRACE_LEFT); break;

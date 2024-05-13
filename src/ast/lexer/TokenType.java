@@ -15,7 +15,9 @@ public enum TokenType {
     LESS, LESS_EQUAL,
   
     // Literals.
-    IDENTIFIER, STRING, NUMBER,
+    IDENTIFIER, STRING, NUMBER, FLOAT, INT, DOUBLE, LONG, SHORT,
+
+    INCREMENT, DECREMENT,
   
     // Keywords.
     IF, ELSE, FOR, DO, WHILE, GOTO, SWITCH, CASE,
