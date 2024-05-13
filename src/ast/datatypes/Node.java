@@ -22,11 +22,13 @@ public class Node {
 
     /**
      * Node to the left
+     * For loops: left contains the init of the counter variable
      */
     private Node left;
 
     /**
      * Node to the right
+     * For loops: right contains the increment
      */
     private Node right;
 
@@ -40,6 +42,10 @@ public class Node {
      */
     private String operator;
 
+    /**
+     * For if-node and branches
+     */
+    private List<Node> alternative;
 
     public NodeTypesEnum getType() {
         return type;
@@ -104,10 +110,18 @@ public class Node {
         return this;
     }
 
+    public List<Node> getAlternative() {
+        return alternative;
+    }
+
+    public void setAlternative(List<Node> alternative) {
+        this.alternative = alternative;
+    }
+
     /**
      * Constructor for a complete node
      */
-    public Node(NodeTypesEnum type, List<Node> body, String value, Node left, String operator, Node right, Node condition) {
+    public Node(NodeTypesEnum type, List<Node> body, String value, Node left, String operator, Node right, Node condition, Node alternative) {
        this.type = type;
        this.body = body;
        this.value = value;
@@ -122,6 +136,6 @@ public class Node {
      * @param type of the node to be created
      */
    public Node(NodeTypesEnum type) {
-       this(type, null, "", null, "",null, null);
+       this(type, null, "", null, "",null, null, null);
    }
 }

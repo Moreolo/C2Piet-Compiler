@@ -23,9 +23,9 @@ public enum NodeTypesEnum {
      */
     BINARY_EXPRESSION,
     /**
-     * assigning a value (literal) to an identifier
+     * Declaring a variable
      */
-    ASSIGNMENT_EXPRESSION,
+    DECLARATION,
     /**
      * call of a function
      */
