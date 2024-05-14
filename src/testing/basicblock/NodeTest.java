@@ -7,8 +7,7 @@ import basicblocks.BBMain;
 import basicblocks.datatypes.BBlock;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+
 
 
 public class NodeTest {
@@ -25,10 +24,10 @@ public class NodeTest {
         Node bs4 = new Node(NodeTypesEnum.BLOCK_STATEMENT);
 
 
-        Set<Node> bs1Body = new HashSet<>();
-        Set<Node> bs2Body = new HashSet<>();
-        Set<Node> bs3Body = new HashSet<>();
-        Set<Node> bs4Body = new HashSet<>();
+        ArrayList<Node> bs1Body = new ArrayList<>();
+        ArrayList<Node> bs2Body = new ArrayList<>();
+        ArrayList<Node> bs3Body = new ArrayList<>();
+        ArrayList<Node> bs4Body = new ArrayList<>();
 
 
         if1.setCondition(new Node(NodeTypesEnum.BINARY_EXPRESSION));
@@ -41,8 +40,10 @@ public class NodeTest {
 
         
 
-
+        bs1Body.add(new Node(NodeTypesEnum.ASSIGNMENT_EXPRESSION));
         bs1Body.add(if2);
+        bs1Body.add(new Node(NodeTypesEnum.ASSIGNMENT_EXPRESSION));
+        bs1Body.add(new Node(NodeTypesEnum.ASSIGNMENT_EXPRESSION));
 
         bs2Body.add(new Node(NodeTypesEnum.ASSIGNMENT_EXPRESSION));
         bs2Body.add(new Node(NodeTypesEnum.ASSIGNMENT_EXPRESSION));
