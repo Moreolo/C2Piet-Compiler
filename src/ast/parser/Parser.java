@@ -29,6 +29,8 @@ public class Parser {
     public Node parse(List<Token> tokens) {
         for (Token token : tokens) {
             switch (token.getType()) {
+                case PROGRAM:
+                    return handleProgram(new Node(NodeTypesEnum.PROGRAM));
                 case IF:
                     return handleIf(new Node(NodeTypesEnum.IF_STATEMENT));
                 case FOR:
@@ -36,15 +38,21 @@ public class Parser {
                 case WHILE:
                     return handleWhile(new Node(NodeTypesEnum.WHILE_STATEMENT));
                 case STRING, INT, FLOAT, DOUBLE, SHORT, LONG:
-                    return handleDeclaration(new Node(NodeTypesEnum.DECLARATION));
-                case IDENTIFIER:
-                    if (tokens.get(1).getType() != TokenType.LEFT_PAREN) {
-                        return handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION));
+                    if (tokens.get(1).getType() == TokenType.IDENTIFIER) {
+                        return handleFunctionDeclaration(new Node(NodeTypesEnum.FUNCTION_DEF));
                     } else {
+                        return handleDeclaration(new Node(NodeTypesEnum.DECLARATION));
+                    }
+                case IDENTIFIER:
+                    if (tokens.get(1).getType() == TokenType.LEFT_PAREN) {
                         return handleFunctionCall(new Node(NodeTypesEnum.FUNCTION_CALL));
+                    } else {
+                        return handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION));
                     }
                 case RETURN:
                     return handleReturn(new Node(NodeTypesEnum.RETURN_STATEMENT));
+                case EOF:
+                    return new Node((NodeTypesEnum.TERMINATOR));
                 default:
                     // delete unknown tokens
                     popToken();
@@ -67,6 +75,17 @@ public class Parser {
     }
 
     /**
+     * Only consume a token if it is the expected type
+     *
+     * @param tokenType the expected tokenType
+     */
+    public void consumeErrorFree(TokenType tokenType) {
+        if (tokenType == tokens.get(0).getType()) {
+            tokens.remove(0);
+        }
+    }
+
+    /**
      * Look ahead at next token
      *
      * @param type the type of the token
@@ -86,6 +105,22 @@ public class Parser {
     }
 
     /**
+     * Entry point -> EVERYTHING will be in the body
+     *
+     * @param node to fill
+     * @return program node with everything in the body
+     */
+    public Node handleProgram(Node node) {
+        consume(TokenType.PROGRAM);
+        List<Node> res = new ArrayList<>();
+        while (!peek(TokenType.EOF)) {
+            res.add(parse(tokens));
+        }
+        node.setBody(res);
+        return node;
+    }
+
+    /**
      * Sets all necessary fields of the If-Node
      *
      * @param node to set values of
@@ -98,16 +133,36 @@ public class Parser {
         node.setCondition(handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION)));
         //consume(TokenType.RIGHT_PAREN);
         consume(TokenType.LEFT_BRACE);
-        node.setBody(handleBlock(new Node(NodeTypesEnum.BLOCK_STATEMENT)));
+        node.setBody(handleBlock());
         consume(TokenType.RIGHT_BRACE);
 
+        List<Node> res = new ArrayList<>();
+        while (peek(TokenType.ELSE_IF)) {
+            res.add(handleElse(new Node(NodeTypesEnum.ELSE_STATEMENT)));
+        }
+
+        if (peek(TokenType.ELSE)) {
+            res.add(handleElse(new Node(NodeTypesEnum.ELSE_STATEMENT)));
+        }
+        node.setAlternative(res);
+
+        return node;
+    }
+
+    private Node handleElse(Node node) {
         if (peek(TokenType.ELSE)) {
             consume(TokenType.ELSE);
             consume(TokenType.LEFT_BRACE);
-            node.setAlternative(handleBlock(new Node(NodeTypesEnum.BLOCK_STATEMENT)));
+            node.setBody(handleBlock());
+            consume(TokenType.RIGHT_BRACE);
+        } else {
+            consume(TokenType.ELSE_IF);
+            consume(TokenType.LEFT_PAREN);
+            node.setCondition(handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION)));
+            consume(TokenType.LEFT_BRACE);
+            node.setBody(handleBlock());
             consume(TokenType.RIGHT_BRACE);
         }
-
         return node;
     }
 
@@ -164,15 +219,41 @@ public class Parser {
             }
 
         }
-
         // end recursion if statement is closed
-        if (peek(TokenType.RIGHT_PAREN)) {
-            consume(TokenType.RIGHT_PAREN);
-        }
+        consumeErrorFree(TokenType.RIGHT_PAREN);
+        consumeErrorFree(TokenType.SEMICOLON);
+        return node;
+    }
 
-        if (peek(TokenType.SEMICOLON)) {
-            consume(TokenType.SEMICOLON);
-        }
+    /**
+     * Handle For loops
+     *
+     * @param node for the loop
+     * @return a node with the first statement in left, second statement in condition and third statement in right
+     */
+    public Node handleFor(Node node) {
+        consume(TokenType.FOR);
+        consume(TokenType.LEFT_PAREN);
+        // init loop variable
+        node.setLeft(handleDeclaration(new Node(NodeTypesEnum.DECLARATION)));
+        // condition
+        node.setCondition(handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION)));
+        // increment
+        node.setRight(handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION)));
+        // body
+        consume(TokenType.LEFT_BRACE);
+        node.setBody(handleBlock());
+        consume(TokenType.RIGHT_BRACE);
+        return node;
+    }
+
+    public Node handleWhile(Node node) {
+        consume(TokenType.WHILE);
+        consume(TokenType.LEFT_PAREN);
+        node.setCondition(handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION)));
+        consume(TokenType.LEFT_BRACE);
+        node.setBody(handleBlock());
+        consume(TokenType.RIGHT_BRACE);
         return node;
     }
 
@@ -197,62 +278,9 @@ public class Parser {
             resNode.setRight(new Node(NodeTypesEnum.BINARY_EXPRESSION, null, null, identifierNode, "-", node1, null, null));
             consume(TokenType.DECREMENT);
         }
-        if (peek(TokenType.RIGHT_PAREN)) {
-            consume(TokenType.RIGHT_PAREN);
-        }
-
-        if (peek(TokenType.SEMICOLON)) {
-            consume(TokenType.SEMICOLON);
-        }
+        consumeErrorFree(TokenType.RIGHT_PAREN);
+        consumeErrorFree(TokenType.SEMICOLON);
         return resNode;
-    }
-
-    /**
-     * Handle For loops
-     *
-     * @param node for the loop
-     * @return a node with the first statement in left, second statement in condition and third statement in right
-     */
-    public Node handleFor(Node node) {
-        consume(TokenType.FOR);
-        consume(TokenType.LEFT_PAREN);
-        // init loop variable
-        node.setLeft(handleDeclaration(new Node(NodeTypesEnum.DECLARATION)));
-        // condition
-        node.setCondition(handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION)));
-        // increment
-        node.setRight(handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION)));
-        // body
-        consume(TokenType.LEFT_BRACE);
-        node.setBody(handleBlock(new Node(NodeTypesEnum.BLOCK_STATEMENT)));
-        consume(TokenType.RIGHT_BRACE);
-        return node;
-    }
-
-
-    public Node handleWhile(Node node) {
-        consume(TokenType.WHILE);
-        consume(TokenType.LEFT_PAREN);
-        node.setCondition(handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION)));
-        consume(TokenType.LEFT_BRACE);
-        node.setBody(handleBlock(new Node(NodeTypesEnum.BLOCK_STATEMENT)));
-        consume(TokenType.RIGHT_BRACE);
-        return node;
-    }
-
-    /**
-     * Continue recursion through parse
-     *
-     * @param node for the block
-     * @return filled block node
-     */
-    public List<Node> handleBlock(Node node) {
-        // check for curly brackets
-        List<Node> res = new ArrayList<>();
-        while (!peek(TokenType.RIGHT_BRACE)) {
-            res.add(parse(tokens));
-        }
-        return res;
     }
 
     /**
@@ -275,14 +303,29 @@ public class Parser {
     }
 
     public Node handleFunctionDeclaration(Node node) {
-        // todo params...
-        node.setBody(handleBlock(new Node(NodeTypesEnum.BLOCK_STATEMENT)));
+        node.setOperator(popToken().getLexeme()); // return type
+        node.setValue(popToken().getLexeme());  // function name
+        List<Node> params = new ArrayList<>();
+        consume(TokenType.LEFT_PAREN);
+        while (!peek(TokenType.RIGHT_PAREN)) {
+            // for each param, a node with param type in operator and value is name of param
+            params.add(new Node(NodeTypesEnum.LITERAL, null, tokens.get(1).getLexeme(), null, tokens.get(0).getLexeme(), null, null, null));
+            popToken();
+            popToken(); // pop type and identifier
+            consumeErrorFree(TokenType.COMMA);
+        }
+        node.setAlternative(params);
+        consume(TokenType.RIGHT_PAREN);
+        consume(TokenType.LEFT_BRACE);
+        node.setBody(handleBlock());
+        consume(TokenType.RIGHT_BRACE);
         return node;
     }
 
 
     /**
      * Handles function calls like add(2,3);
+     *
      * @param node to fill
      * @return node with the block in the body and params in the alternative
      */
@@ -291,12 +334,10 @@ public class Parser {
         consume(TokenType.IDENTIFIER);
         consume(TokenType.LEFT_PAREN);
         List<Node> params = new ArrayList<>();
-        while(!peek(TokenType.RIGHT_PAREN)) {
-            params.add(new Node(NodeTypesEnum.LITERAL, null, tokens.get(0).getLexeme(), null, null ,null, null,null));
+        while (!peek(TokenType.RIGHT_PAREN)) {
+            params.add(new Node(NodeTypesEnum.LITERAL, null, tokens.get(0).getLexeme(), null, null, null, null, null));
             popToken(); // pop param
-            if (peek(TokenType.COMMA)) {
-                consume(TokenType.COMMA);
-            }
+            consumeErrorFree(TokenType.COMMA);
         }
         node.setAlternative(params);
         popToken(); // pop semicolon or right brace
@@ -305,13 +346,30 @@ public class Parser {
 
     /**
      * Handle return statements
+     *
      * @param node to fill
      * @return a return node with the return value in condition
      */
     public Node handleReturn(Node node) {
         consume(TokenType.RETURN);
+        consumeErrorFree(TokenType.LEFT_PAREN);
         node.setCondition(parse(tokens)); // for stuff like: return add(2,3) + 3;
+        consumeErrorFree(TokenType.RIGHT_PAREN);
         return node;
+    }
+
+    /**
+     * Continue recursion through parse
+     *
+     * @return filled block node
+     */
+    public List<Node> handleBlock() {
+        // check for curly brackets
+        List<Node> res = new ArrayList<>();
+        while (!peek(TokenType.RIGHT_BRACE)) {
+            res.add(parse(tokens));
+        }
+        return res;
     }
 
 }

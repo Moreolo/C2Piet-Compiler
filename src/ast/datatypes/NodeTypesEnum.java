@@ -6,6 +6,10 @@ public enum NodeTypesEnum {
      */
     IF_STATEMENT,
     /**
+     * for else parts
+     */
+    ELSE_STATEMENT,
+    /**
      * any block of code
      * i.e. in if's, loops or methods
      */

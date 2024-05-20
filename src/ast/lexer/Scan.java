@@ -20,6 +20,7 @@ public class Scan{
       keywords = new HashMap<>();
       keywords.put("if",     IF);
       keywords.put("else",   ELSE);
+      keywords.put("else if",   ELSE_IF);
       keywords.put("for",    FOR);
       keywords.put("do",    DO);
       keywords.put("while",  WHILE);
@@ -37,7 +38,8 @@ public class Scan{
       keywords.put("double",    DOUBLE);
       keywords.put("long",    LONG);
       keywords.put("short",    SHORT);
-      
+      keywords.put("bool",    BOOL);
+
     }
   
     public Scan(String source) {
@@ -45,6 +47,7 @@ public class Scan{
     }
 
     public List<Token> scanTokens() {
+        addToken(PROGRAM);
         while (!isAtEnd()) {
           // We are at the beginning of the next lexeme.
           start = current;
@@ -196,7 +199,17 @@ public class Scan{
         while (isAlphaNumeric(peek())) advance();
 
         String text = source.substring(start, current);
-        TokenType type = keywords.get(text);
+        String temp = "";
+        if (text.equals("else")) {
+          temp = text + " " + source.substring(current + 1, current + 3);
+        }
+        TokenType type;
+        if (temp.equals("else if")) {
+          type = keywords.get(temp);
+          advance(); advance(); advance();
+        } else {
+          type = keywords.get(text);
+        }
         if (type == null) type = IDENTIFIER;
         addToken(type);
       }

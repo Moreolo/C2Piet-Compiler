@@ -1,7 +1,6 @@
 package ast.parser;
 
 import ast.datatypes.Node;
-import ast.datatypes.NodeTypesEnum;
 import ast.lexer.Scan;
 import ast.lexer.Token;
 import org.junit.Assert;
@@ -19,8 +18,7 @@ public class ParserTest {
         Scan scanner = new Scan("i = (3+4)");
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
-        Node testNode = parser.handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION));
-
+        Node testNode = parser.parse(tokens);
 
         Assert.assertTrue(true);
     }
@@ -30,7 +28,7 @@ public class ParserTest {
      */
     @Test
     public void testIf() {
-        Scan scanner = new Scan("if(3 > 4) { x = 3; y = 4; }");
+        Scan scanner = new Scan("if(3 > 4) { x = 3; y = 4; } else if (a > d) {x + 3} else{ x +4 }");
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
         Node testNode = parser.parse(tokens);
@@ -56,7 +54,7 @@ public class ParserTest {
      */
     @Test
     public void testFor() {
-        Scan scanner = new Scan("for(int i = 0; i < 3; i++) { x = 3; y = 4 + 1; }");
+        Scan scanner = new Scan("for(int i = 0; i < 3; i++) { x = 3; y = (4 + 1); }");
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
         Node testNode = parser.parse(tokens);
@@ -104,7 +102,32 @@ public class ParserTest {
         Assert.assertTrue(true);
     }
 
+    /**
+     * just for inspections for now
+     */
+    @Test
+    public void testFunDef() {
+        Scan scanner = new Scan("int sum(int a, int b) {return (a + b); }");
+        List<Token> tokens = scanner.scanTokens();
+        Parser parser = new Parser(tokens);
+        Node testNode = parser.parse(tokens);
+
+        Assert.assertTrue(true);
+    }
+
+    /**
+     * just for inspections for now
+     */
+    @Test
+    public void testProgram() {
+        Scan scanner = new Scan("int main(int a, int b) {return (a + b); }");
+        List<Token> tokens = scanner.scanTokens();
+        Parser parser = new Parser(tokens);
+        Node testNode = parser.parse(tokens);
+
+        Assert.assertTrue(true);
+    }
+
 }
 
-
-// TODO next: function def, else if, switch
+// TODO next: switch
