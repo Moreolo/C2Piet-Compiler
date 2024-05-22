@@ -51,8 +51,6 @@ public class Parser {
                     }
                 case RETURN:
                     return handleReturn(new Node(NodeTypesEnum.RETURN_STATEMENT));
-                case EOF:
-                    return new Node((NodeTypesEnum.TERMINATOR));
                 default:
                     // delete unknown tokens
                     popToken();
@@ -116,6 +114,7 @@ public class Parser {
         while (!peek(TokenType.EOF)) {
             res.add(parse(tokens));
         }
+        res.add(new Node((NodeTypesEnum.TERMINATOR)));
         node.setBody(res);
         return node;
     }
