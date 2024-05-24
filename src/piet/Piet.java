@@ -14,7 +14,7 @@ public class Piet {
 
     int ProgramCounter = 0;
 
-    public static LinkedList<Block> parse(ArrayList<BBlock> blocks) {
+    public LinkedList<Block> parse(ArrayList<BBlock> blocks) {
         LinkedList<Block> finalBlocks = new LinkedList<>();
         int num = 0;
         for (BBlock block : blocks) {
@@ -26,7 +26,7 @@ public class Piet {
         }
     }
 
-    private static Block parseCondition(BBlock bblock, int num){
+    private Block parseCondition(BBlock bblock, int num){
         /**
         * parseCondition parsed die Condition-BBlocks
         * @param BBlock bblock ist der Condition-BBLock der als input dient
@@ -60,7 +60,7 @@ public class Piet {
         return block;
     }
 
-    private static Block analyseConditionNode(Block block, Node condition){
+    private Block analyseConditionNode(Block block, Node condition){
         /**
         * analyseConditionNode analysiert Condition-Nodes
         * @param Block block ist der Block in dem die Piet-Commands gespeichert werden
@@ -179,9 +179,9 @@ public class Piet {
         return new Block(num);
     }
 
-    private static Block parseBBlock(BBlock block, int num){
+    private Block parseBBlock(BBlock block, int num){
         for (Node node : block.getBody()) {
-            if(node.getType() == NodeTypesEnum.ASSIGNMENT_EXPRESSION) ; //return as ASSIGNMENT_EXPRESSION
+            if(node.getType() == NodeTypesEnum.ASSIGNMENT_EXPRESSION) return parseAssignmentExpression(node, num); //return as ASSIGNMENT_EXPRESSION
             if(node.getType() == NodeTypesEnum.BLOCK_STATEMENT) ; //return as BLOCK_STATEMENT
             if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION) return solveBinaryExpresssion(node, num); //return as BINARY_EXPRESSION
             if(node.getType() == NodeTypesEnum.FUNCTION_CALL) ; //return as FUNCTION_CALL
@@ -189,6 +189,16 @@ public class Piet {
             if(node.getType() == NodeTypesEnum.RETURN_STATEMENT) ; //return as RETURN_STATEMENT
         }
         return new Block(0);
+    }
+
+    private Block parseAssignmentExpression(Node node, int num){
+        Block block = new Block(num);
+        String varString = node.getLeft().getOperator(); // wie zur Hölle soll ich bitten den variablen namen bekommen, weil mit getValue gehts nicht (kommt ja nur int) und sonst gibts ja nichts anderes. 
+        int rightval = node.getRight().getValue();
+        VariablenSpeicher.add(varString);
+        ProgramCounter += 1;
+        block.addOperation(new Operation(Command.PUSH), rightval);
+        return block;
     }
 
 
