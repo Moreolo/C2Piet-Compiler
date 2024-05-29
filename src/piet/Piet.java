@@ -16,21 +16,16 @@ public class Piet {
     int ProgramCounter = 0;
 
     public LinkedList<Block> parse(ArrayList<BBlock> bblocks) {
-        LinkedList<Block> finalBlocks = new LinkedList<>();
-        int num = 0;
-        for (BBlock bblock : bblocks) {
-            if (bblock instanceof CondBlock) parseCondition(bblock, num);
-            if (bblock instanceof FuncBlock) parseFunction(bblock, num);
-            if (bblock instanceof TermBlock) parseTerm(bblock, num);
-            else parseBBlock(bblock, num);  
+        LinkedList<Block> finalBlocks = new LinkedList<>();  
         int num = 1;
-        for (BBlock block : blocks) {
+        for (BBlock block : bblocks) {
             if (block instanceof CondBlock) finalBlocks.add(parseCondition(block, num));
             if (block instanceof FunBlock) finalBlocks.add(parseFunction(block, num));
             if (block instanceof TermBlock) finalBlocks.add(parseTerm(block, num));
             else finalBlocks.add(parseBBlock(block, num));  
             num += 1;
         }
+        return finalBlocks;
     }
 
     private Block parseCondition(BBlock bblock, int num){
@@ -81,7 +76,7 @@ public class Piet {
         var op = condition.getOperator();
 
         if(left.getType() == NodeTypesEnum.LITERAL){
-            block.addOperation(new Operation(Command.PUSH, left.getValue()));
+            block.addOperation(new Operation(Command.PUSH, Integer.parseInt(left.getValue())));
             ProgramCounter += 1;
         }
 
@@ -249,7 +244,7 @@ public class Piet {
         var body = node.getBody();
         for (String param : body.getValue()){
             block = rotateVariable(block, param);
-            VariablenSpeicher.add(param + 'function'); //vlt mit functionsvariablenspeicher machen, dann hat man aber den nachteil mit dem offset=programmcounter
+            VariablenSpeicher.add(param + "function"); //vlt mit functionsvariablenspeicher machen, dann hat man aber den nachteil mit dem offset=programmcounter
         }
         return block;
     }
