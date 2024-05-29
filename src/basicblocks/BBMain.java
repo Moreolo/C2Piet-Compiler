@@ -4,6 +4,7 @@ import basicblocks.datatypes.*;
 import ast.datatypes.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class BBMain {
@@ -32,15 +33,15 @@ public class BBMain {
         }
         return newBlock;
     }
-    private static ArrayList<BBlock> createFork(BBlock oldBBlock, ArrayList<Node> leftPath, ArrayList<Node> rightPath, Node condition){
+    private static ArrayList<BBlock> createFork(BBlock oldBBlock, List<Node> leftPath, List<Node> rightPath, Node condition){
         //alter Block wir mit CondBlock ersetzt und mit condition node befüllt
         //ein bzw. zwei neue Blöcke werden erstellt für true bzw. else Blöcke 
         //diese werden mit den jeweiligen Nodes für diese Blöcke befüllt 
         BBlock leftBlock = new BBlock(++iterator);
         blockList.add(leftBlock);
-        leftBlock.setBody(leftPath);
+        leftBlock.setBody((ArrayList) leftPath);
         CondBlock replaceOld = new CondBlock(oldBBlock.getPositionInArray());
-        replaceOld.addToBody(condition);
+        replaceOld.addNodeToBody(condition);
         int position = oldBBlock.getPositionInArray();
         blockList.set(position, replaceOld);
         replaceOld.setNext(leftBlock.getPositionInArray());
@@ -48,7 +49,7 @@ public class BBMain {
         paths.add(leftBlock);
         if (!rightPath.isEmpty()){
             BBlock rightBlock = new BBlock(++iterator);
-            rightBlock.setBody(rightPath);
+            rightBlock.setBody((ArrayList) rightPath);
             blockList.add(rightBlock);
             replaceOld.setNext2(rightBlock.getPositionInArray());
             paths.add(rightBlock);
@@ -129,6 +130,23 @@ public class BBMain {
             counter = counter + 1;
             switch (currentNode.getType()) {  
                 case WHILE_STATEMENT:
+
+                // behandelt elseif Struktur gegebenenfalls auch mit else am Ende
+                case ELSE_STATEMENT:
+                    Node conditionElseIf = currentNode.getCondition();
+                    //elseif
+                    if (conditionElseIf != null){
+                        nodeList.remove(0);
+                        ArrayList<BBlock> paths = createFork(blockOfCode, currentNode.getBody(), nodeList, conditionElseIf);
+                        for (BBlock path: paths){
+                            walkTree(path);
+                        }
+                    //normales else am Ende
+                    }else{
+                        blockOfCode.setBody( (ArrayList) currentNode.getBody());
+                    }
+                    return;
+
                 case IF_STATEMENT:
                     if (!nodesForOneBasicBlock.isEmpty()){
                         BBlock nextBlockLookInto = splitBlock(blockOfCode, nodesForOneBasicBlock);
