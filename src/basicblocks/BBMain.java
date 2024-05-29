@@ -12,6 +12,49 @@ public class BBMain {
     private static int iterator = 1;
 
 
+    private static BBlock splitBlock(BBlock oldBlock, ArrayList<Node> stayBehind) {
+        //die alten Nodes im alten Block werden aufgeteil:
+        //stayBehind Teil bleibt im alten Block während alle anderen Nodes 
+        //in den neuen Block wandern
+        Integer oldNext = oldBlock.getNext();
+        BBlock newBlock = new BBlock(++iterator);
+        ArrayList<Node> oldBody = oldBlock.getBody();
+        oldBody.removeAll(stayBehind);
+        newBlock.setBody(oldBody);
+        blockList.add(newBlock);
+        oldBlock.setBody(stayBehind);
+        oldBlock.setNext(iterator);
+        //next pointer des alten blocks auslesen
+        if (oldNext != null){
+            //nach dem alten Block ist noch ein Block
+            //->wir fügen mitten in der Kette einen neuen Block ein -> pointer umstecken
+            newBlock.setNext(oldNext);
+        }
+        return newBlock;
+    }
+    private static ArrayList<BBlock> createFork(BBlock oldBBlock, ArrayList<Node> leftPath, ArrayList<Node> rightPath, Node condition){
+        //alter Block wir mit CondBlock ersetzt und mit condition node befüllt
+        //ein bzw. zwei neue Blöcke werden erstellt für true bzw. else Blöcke 
+        //diese werden mit den jeweiligen Nodes für diese Blöcke befüllt 
+        BBlock leftBlock = new BBlock(++iterator);
+        blockList.add(leftBlock);
+        leftBlock.setBody(leftPath);
+        CondBlock replaceOld = new CondBlock(oldBBlock.getPositionInArray());
+        replaceOld.addToBody(condition);
+        int position = oldBBlock.getPositionInArray();
+        blockList.set(position, replaceOld);
+        replaceOld.setNext(leftBlock.getPositionInArray());
+        ArrayList<BBlock> paths = new ArrayList<>();
+        paths.add(leftBlock);
+        if (!rightPath.isEmpty()){
+            BBlock rightBlock = new BBlock(++iterator);
+            rightBlock.setBody(rightPath);
+            blockList.add(rightBlock);
+            replaceOld.setNext2(rightBlock.getPositionInArray());
+            paths.add(rightBlock);
+        }
+        return paths;
+    }
 
     /*
      * Block-Statements
@@ -74,167 +117,80 @@ public class BBMain {
        *        start++;
        *        
        *    }
-       * }
-       * 
-       * 
-       * 
-       * 
-       * Prinzipiell benötigen wir für die Basic-Blöcke "nur" 2 Funktionalitäten: Einen Conditional Block anlegen und einen linearen Block spalten.
-       * Der Algorithmus soll rekursiv durch den Baum iterieren.
-       * Wenn der Algorithmus einen Sprung bemerkt, legt er direkt einen neuen Block an und verknüpft sie jeweils.
-       * Wenn der Algorithmus dann bemerkt, dass es sich um ein Conditional handelt, dann "spaltet" er die blöcke erneut auf und legt diesmal eine abgesprochene 4er-Konstellation an
-       * 
-       *                1. split():
-       * 
-       *                    ( B1 ) ==> ( B1 ) -> ( B2 )
-       * 
-       *                2. createConditional():
-       *                    
-       *                                ( Bx+3 ) ----           ( Bx+7 ) -----------              
-       *                                   ^        |               ^               |
-       *                                   |        v               |               v
-       *                    ( Bx ) ==>  ( Bx )      ( Bx+1 ) -> ( Bx + 4 )      ( Bx + 5)
-       *                                   |        ^               |               ^
-       *                                   v        |               v               |
-       *                                ( Bx+2 ) ----            ( Bx+6) -----------
+       * }y
        */
-    private void createCondtitional() {
-
-        // ist ein standard-split am Anfang, der den Start- und End-Block des gesamten Conditional definiert 
-
-        // Je nachdem, ob die Left- und/oder Right-Nodes vergeben sind, müssen zusätzliche splits vom Ursprungsblock aus gemacht werden
-        // Diese Blöcke zeigen dann auf den zuvor angelegten End-Block
-
-
-    }
-
-    private void splitBlock(BBlock block, ArrayList<Node> newBody) {
-        //neuen Block erstellen
-        BBlock newBlock = new BBlock(iterator);
-        newBlock.setBody(newBody);
-        //next pointer des alten blocks auslesen
-        Integer oldNext = block.getNext();
-        if (oldNext != null){
-            //nach dem alten Block ist noch ein Block
-            //->wir fügen mitten in der Kette einen neuen Block ein -> pointer umstecken
-            newBlock.setNext(oldNext);
-        }
-        //iterator zeigt auf neu erstellten Block
-        block.setNext(iterator);
-        iterator = iterator + 1;
-
-        // Es muss geprüft werden, ob das Next-element vom block vergeben ist.
-
-        // Wenn es nicht vergeben ist, handelt es sich um einen normalen linearen jump 
-        //  -> neuer block mit iterator + 1, das next vom Ursprungsblock wird auf den iterator gesetzt
-
-        // Wenn das next bereits vergeben wurde, dann handelt es sich um einen jump innerhalb eines Conditionals
-        //  -> Der next-Wert wird in den neuen Basic Block gesetzt, 
-        //      der next-Wert vom alten Block wird mit dem iterator vom neuen Block überschrieben
-    }
 
     // Grundlegende Idee ist der rekursive durchlauf durch den Node-Baum
-    private static void walkTree(Node rootNode) {}
-
-
-/*
-        switch (rootNode.getType()) {
-            case WHILE_STATEMENT:
-            case IF_STATEMENT:
-
-                walkTree(rootNode.getLeft());
-                // Unterscheidung, ob else-Block benötig wird.
-                if (rootNode.getRight() != null) {
-                    walkTree(rootNode.getRight());
-
-                }
-                break;
-
-            case BLOCK_STATEMENT:
-            // TODO: Es muss unterschieden werden, ob innerhalb des BLOCK_STATEMENTS irgendwelche nicht-atomaren instruktionen 
-            // vorkommen, da hierfür die Blockstruktur aufgetrennt werden muss.
-
-                int start = 0;
-                int stop = 0;
-                boolean ifFound = false;
-
-                ArrayList<Node> nodesForOneBlock = new ArrayList<>();
-
-                for (Node n : rootNode.getBody()) {
-
-                    if (!n.getType().equals(NodeTypesEnum.IF_STATEMENT)) {
-                        nodesForOneBlock.add(n);
-
-                    } else {
-
-                        if (!nodesForOneBlock.isEmpty()) {
-                            BBlock block = new BBlock(iterator);
-                            blockList.add(block);
-                            iterator++;
-                        }
-
+    private static void walkTree(BBlock blockOfCode) {
+        ArrayList<Node> nodesForOneBasicBlock = new ArrayList<>();
+        ArrayList<Node> nodeList = blockOfCode.getBody();
+        int counter = 0;
+        for(Node currentNode :nodeList){ 
+            counter = counter + 1;
+            switch (currentNode.getType()) {  
+                case WHILE_STATEMENT:
+                case IF_STATEMENT:
+                    if (!nodesForOneBasicBlock.isEmpty()){
+                        BBlock nextBlockLookInto = splitBlock(blockOfCode, nodesForOneBasicBlock);
+                        walkTree(nextBlockLookInto);
+                        return;
+                    }
+                    if (counter != nodeList.size()){
+                        int positionOfOldBlock = blockOfCode.getPositionInArray();
+                        ArrayList<Node> ifBlock = new ArrayList<>();
+                        ifBlock.add(currentNode);
+                        BBlock nextBlockLookInto = splitBlock(blockOfCode, ifBlock);
+                        walkTree(blockList.get(positionOfOldBlock));
+                        walkTree(nextBlockLookInto);
+                        return;
                     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                    if (n.getType().equals(NodeTypesEnum.IF_STATEMENT)) {
-
-                        ifFound = true;
-
-                        BBlock block = new BBlock(iterator++);
-                        //Baue baum von start bis stop
-                        for ( ; start < stop; start++) {
-                           // block.addToBody(rootNode.getBody().get(start);
-                        }
-
-                        // Laufe in den If-Block hinein
-                        walkTree(n);
-                        start++;
-                    }  
-                    stop++;
-                }
-
-                if (!ifFound) {
-                    if (rootNode.getBody().size() == stop && start != stop) {
-                        stop--;
+                    Integer oldNext = blockOfCode.getNext();
+                    Node leftNode = currentNode.getLeft();
+                    Node rightNode = currentNode.getRight();
+                    Node condition = currentNode.getCondition();
+                    ArrayList<BBlock> paths;
+                    if (rightNode != null){
+                        paths = createFork(blockOfCode, leftNode.getBody(), rightNode.getBody(), condition);
+                    }else{
+                        paths = createFork(blockOfCode, leftNode.getBody(), new ArrayList<>(), condition);
                     }
-                    BBlock block = new BBlock(iterator++);
-                    //Baue baum von start bis stop
-                    for ( ; start <= stop; start++) {
-                      //  block.addToBody(rootNode.getBody().get(start);
-                    } 
 
-                } else {
+                    if (oldNext != null){
+                        for (BBlock path: paths){
+                            path.setNext(oldNext);
+                        }
+                    
+                    }
+                    for (BBlock path: paths){
+                        walkTree(path);
+                    }
+                    return;
 
-                }
+
+
+    
+ 
+    
+                
             
-        
-            default:
-                //füge die Nodes in eine BlockListe
-                break;
+                default:
+                    nodesForOneBasicBlock.add(currentNode);
+                    break;
+            }
         }
+
+        
     }
 
-*/
+
 
     // Aufruf für die "Interface"-Abfolge.
     public static ArrayList<BBlock> parse(Node rootNode) {
-
-        // Lege einen "großen" Basic Block an
-
-        walkTree(rootNode);
+        BBlock starterBlock = new BBlock(0);
+        blockList.add(starterBlock);
+        starterBlock.addNodeToBody(rootNode);
+        walkTree(starterBlock);
 
         return blockList;
     }
