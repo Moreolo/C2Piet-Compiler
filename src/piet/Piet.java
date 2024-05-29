@@ -190,6 +190,27 @@ public class Piet {
         block.addOperation(new Operation(Command.ROLL));
         return block;
     }
+
+    private Block typeCheck(Block block, Node node){
+        //Überprüfung ob Condition richiges Format hat (Rechts darf nur Typ IDENTIFIER oder LITERAL sein)
+        if(node.getType() == NodeTypesEnum.LITERAL){
+            //Pushe Wert auf die Spitze des Stacks, um später Vergleich darauf auszuführen
+            block.addOperation(new Operation(Command.PUSH, Integer.parseInt(node.getValue())));
+            ProgramCounter += 1;
+        }
+        else if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION){
+            //lösen der Binary Expression
+            block = solveBinaryExpresssion(block, node);
+        }
+        else if(node.getType() == NodeTypesEnum.IDENTIFIER){
+            //Kopiere Wert der Variable auf die Spitze des Stacks, um später Vergleich darauf auszuführen
+            block = rotateVariable(block, node.getValue());
+        }
+        else{
+            System.err.println("Node must be of Type Identifier or Literal or Binary Expression");
+        }
+        return block;
+    }
     
     private Block parseFunction(BBlock block, int num){
         return new Block(num);
@@ -213,17 +234,17 @@ public class Piet {
     }
 
     private Block parseAssignmentExpression(Block block, Node node){
-        String varString = node.getLeft().getValue();// wie zur Hölle soll ich bitte den variablen namen bekommen, weil mit getValue gehts nicht (kommt ja nur int) und sonst gibts ja nichts anderes. 
+
+        Node left = node.getLeft();
+        String varString = "";
+        if (left.getType() == NodeTypesEnum.IDENTIFIER){
+            varString = left.getValue();
+        }
+        else{
+            System.err.println("Right side of assignment expression must be of Type Identifier");
+        }
         Node right = node.getRight();
-        if (right.getType() == NodeTypesEnum.BINARY_EXPRESSION){
-            solveBinaryExpresssion(block, node);
-        }
-        else if (right.getType() == NodeTypesEnum.LITERAL){
-            block.addOperation(new Operation(Command.PUSH, Integer.valueOf(right.getValue())));
-        }
-        else {
-            System.err.println("Right Part of Assignment must be of Type LITERAL OR BINARY EXPRESSION");
-        }
+        block = typeCheck(block, right);
         if (VariablenSpeicher.contains(varString)){
             int varpos = VariablenSpeicher.indexOf(varString);
             block = rotateVariable(block, varString);
@@ -251,7 +272,8 @@ public class Piet {
         for (int p = 0; p < body.getAlternative().size(); p++){
             Node param = body.getAlternative().get(p);
             String param_name = param_names.get(p);
-            FunktionsVariablenSpeicher.add(param_name); //vlt mit functionsvariablenspeicher machen, dann hat man aber den nachteil mit dem offset=programmcounter
+            FunktionsVariablenSpeicher.add(param_name); // Wie speicher ich die Position der Variablen, weil mit ProgrammCounter geht ja nicht mehr, weil ich ja n offset habe
+            //wenn man mit Variablenspeicher macht, dann hat man aber den nachteil mit dem offset=programmcounter
             if (param.getType() == NodeTypesEnum.LITERAL){
                 block.addOperation(new Operation(Command.PUSH, Integer.valueOf(param.getValue())));
                 ProgramCounter += 1;
