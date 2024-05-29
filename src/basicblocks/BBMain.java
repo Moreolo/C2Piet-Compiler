@@ -12,16 +12,18 @@ public class BBMain {
     private static int iterator = 0;
 
 
-    private static BBlock splitBlock(BBlock block, ArrayList<Node> newBody) {
-        //neuen Block erstellen
-        Integer oldNext = block.getNext();
+    private static BBlock splitBlock(BBlock oldBlock, ArrayList<Node> stayBehind) {
+        //die alten Nodes im alten Block werden aufgeteil:
+        //stayBehind Teil bleibt im alten Block während alle anderen Nodes 
+        //in den neuen Block wandern
+        Integer oldNext = oldBlock.getNext();
         BBlock newBlock = new BBlock(++iterator);
-        ArrayList<Node> oldBody = block.getBody();
-        oldBody.removeAll(newBody);
+        ArrayList<Node> oldBody = oldBlock.getBody();
+        oldBody.removeAll(stayBehind);
         newBlock.setBody(oldBody);
         blockList.add(newBlock);
-        block.setBody(newBody);
-        block.setNext(iterator);
+        oldBlock.setBody(stayBehind);
+        oldBlock.setNext(iterator);
         //next pointer des alten blocks auslesen
         if (oldNext != null){
             //nach dem alten Block ist noch ein Block
@@ -30,11 +32,15 @@ public class BBMain {
         }
         return newBlock;
     }
-    private static ArrayList<BBlock> createFork(BBlock oldBBlock, ArrayList<Node> leftPath, ArrayList<Node> rightPath){
+    private static ArrayList<BBlock> createFork(BBlock oldBBlock, ArrayList<Node> leftPath, ArrayList<Node> rightPath, Node condition){
+        //alter Block wir mit CondBlock ersetzt und mit condition node befüllt
+        //ein bzw. zwei neue Blöcke werden erstellt für true bzw. else Blöcke 
+        //diese werden mit den jeweiligen Nodes für diese Blöcke befüllt 
         BBlock leftBlock = new BBlock(++iterator);
         blockList.add(leftBlock);
         leftBlock.setBody(leftPath);
         CondBlock replaceOld = new CondBlock(oldBBlock.getPositionInArray());
+        replaceOld.addToBody(condition);
         int position = oldBBlock.getPositionInArray();
         blockList.set(position, replaceOld);
         replaceOld.setNext(leftBlock.getPositionInArray());
@@ -115,7 +121,6 @@ public class BBMain {
     // Grundlegende Idee ist der rekursive durchlauf durch den Node-Baum
     private static void walkTree(BBlock blockOfCode) {
         ArrayList<Node> nodesForOneBasicBlock = new ArrayList<>();
-        boolean everythingSimple = true;
         ArrayList<Node> nodeList = blockOfCode.getBody();
         int counter = 0;
         for(Node currentNode :nodeList){ 
@@ -137,15 +142,16 @@ public class BBMain {
                         walkTree(nextBlockLookInto);
                         return;
                     }
-                    everythingSimple = false; //unsicher ob wir das brauchen, wenn nach if noch was kommt
+
                     Integer oldNext = blockOfCode.getNext();
                     Node leftNode = currentNode.getLeft();
                     Node rightNode = currentNode.getRight();
+                    Node condition = currentNode.getCondition();
                     ArrayList<BBlock> paths;
                     if (rightNode != null){
-                        paths = createFork(blockOfCode, leftNode.getBody(), rightNode.getBody());
+                        paths = createFork(blockOfCode, leftNode.getBody(), rightNode.getBody(), condition);
                     }else{
-                        paths = createFork(blockOfCode, leftNode.getBody(), new ArrayList<>());
+                        paths = createFork(blockOfCode, leftNode.getBody(), new ArrayList<>(), condition);
                     }
 
                     if (oldNext != null){
