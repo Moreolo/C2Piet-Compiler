@@ -76,7 +76,7 @@ public class Piet {
         var op = condition.getOperator();
 
         if(left.getType() == NodeTypesEnum.LITERAL){
-            block.addOperation(new Operation(Command.PUSH, Integer.parseInt(left.getValue())));
+            block.addOperation(new Operation(Command.PUSH, Integer.valueOf(left.getValue())));
             ProgramCounter += 1;
         }
 
@@ -96,7 +96,7 @@ public class Piet {
         }
         else if(right.getType() == NodeTypesEnum.BINARY_EXPRESSION){
             //lösen der Binary Expression
-            solveBinaryExpresssion(condition, num);
+            block = solveBinaryExpresssion(block, condition);
         }
         else if(right.getType() == NodeTypesEnum.IDENTIFIER){
             //Kopiere Wert der Variable auf die Spitze des Stacks, um später Vergleich darauf auszuführen
@@ -202,7 +202,7 @@ public class Piet {
     private Block parseBBlock(BBlock bblock, int num){
         var block = new Block(num);
         for (Node node : bblock.getBody()) {
-            if(node.getType() == NodeTypesEnum.ASSIGNMENT_EXPRESSION) return parseAssignmentExpression(block, node); //return as ASSIGNMENT_EXPRESSION
+            //if(node.getType() == NodeTypesEnum.ASSIGNMENT_EXPRESSION) return parseAssignmentExpression(block, node); //return as ASSIGNMENT_EXPRESSION
             if(node.getType() == NodeTypesEnum.BLOCK_STATEMENT) ; //return as BLOCK_STATEMENT
             if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION) return solveBinaryExpresssion(block, node); //return as BINARY_EXPRESSION
             if(node.getType() == NodeTypesEnum.FUNCTION_CALL) return parseFunctionCall(block, node); //return as FUNCTION_CALL
@@ -219,7 +219,7 @@ public class Piet {
             solveBinaryExpresssion(block, node);
         }
         else if (right.getType() == NodeTypesEnum.LITERAL){
-            block.addOperation(new Operation(Command.PUSH, right.getValue()));
+            block.addOperation(new Operation(Command.PUSH, Integer.valueOf(right.getValue())));
         }
         else {
             System.err.println("Right Part of Assignment must be of Type LITERAL OR BINARY EXPRESSION");
@@ -241,10 +241,30 @@ public class Piet {
 
     private Block parseFunctionCall(Block block, Node node){
         // wie sieht ein Function Call als BasicBlock aus???
-        var body = node.getBody();
-        for (String param : body.getValue()){
-            block = rotateVariable(block, param);
-            VariablenSpeicher.add(param + "function"); //vlt mit functionsvariablenspeicher machen, dann hat man aber den nachteil mit dem offset=programmcounter
+        Node body = node.getBody().get(0);
+        if (body.getType() != NodeTypesEnum.FUNCTION_CALL){
+            System.err.println("Function Call muss vom type FUNCTION CALL SEIN");
+            return block;
+        }
+        String function_name = body.getValue();
+        LinkedList<String> param_names = getParamNames(function_name);
+        for (int p = 0; p < body.getAlternative().size(); p++){
+            Node param = body.getAlternative().get(p);
+            String param_name = param_names.get(p);
+            FunktionsVariablenSpeicher.add(param_name); //vlt mit functionsvariablenspeicher machen, dann hat man aber den nachteil mit dem offset=programmcounter
+            if (param.getType() == NodeTypesEnum.LITERAL){
+                block.addOperation(new Operation(Command.PUSH, Integer.valueOf(param.getValue())));
+                ProgramCounter += 1;
+            }
+            else if (param.getType() == NodeTypesEnum.IDENTIFIER){
+                block = rotateVariable(block, param.getValue());
+            }
+            else if (param.getType() == NodeTypesEnum.BINARY_EXPRESSION){
+                block = solveBinaryExpresssion(block, param);
+            }
+            else {
+                System.err.println("Right Side of Condition needs to be Identifier or Literal or Binary Expression");
+            }
         }
         return block;
     }
@@ -259,8 +279,8 @@ public class Piet {
         // temp = 4*8
         // x = x * temp
 
-        int leftValue = node.getLeft().getValue();
-        int rightValue = node.getRight().getValue();
+        int leftValue = node.getLeft().getValue(); // check ob linker value ein identifier, literal oder binary expression ist
+        int rightValue = node.getRight().getValue(); // check ob linker value ein identifier, literal oder binary expression ist
         block.addOperation(new Operation(Command.PUSH, leftValue));
         block.addOperation(new Operation(Command.PUSH, rightValue));
         
@@ -288,10 +308,8 @@ public class Piet {
                 break;
         }
 
-
         if(node.getLeft().getType() != NodeTypesEnum.LITERAL) solveBinaryExpresssion(block, node.getLeft());
         if(node.getRight().getType() != NodeTypesEnum.LITERAL) solveBinaryExpresssion(block, node.getRight());
-        
         
         return new Block(0);
     }
