@@ -1,14 +1,10 @@
-package ast.datatypes;
+package basicblocks.datatypes;
 
 public enum NodeTypesEnum {
     /**
      * for if else constructs
      */
     IF_STATEMENT,
-    /**
-     * for else parts
-     */
-    ELSE_STATEMENT,
     /**
      * any block of code
      * i.e. in if's, loops or methods
@@ -27,9 +23,9 @@ public enum NodeTypesEnum {
      */
     BINARY_EXPRESSION,
     /**
-     * Declaring a variable
+     * assigning a value (literal) to an identifier
      */
-    DECLARATION,
+    ASSIGNMENT_EXPRESSION,
     /**
      * call of a function
      */
@@ -49,10 +45,6 @@ public enum NodeTypesEnum {
     /**
      * entry point to a program
      */
-    PROGRAM,
-    /**
-     * end of program and execution
-     */
-    TERMINATOR
+    PROGRAM
 
 }

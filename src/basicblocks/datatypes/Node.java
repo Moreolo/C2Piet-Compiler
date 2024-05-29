@@ -1,6 +1,7 @@
-package ast.datatypes;
+package basicblocks.datatypes;
 
 import java.util.List;
+
 /**
  * Datatype for nodes of the Abstract-Syntax-Tree
  */
@@ -18,17 +19,15 @@ public class Node {
     /**
      * The value of leaf-nodes
      */
-    private String value;
+    private int value;
 
     /**
      * Node to the left
-     * For loops: left contains the init of the counter variable
      */
     private Node left;
 
     /**
      * Node to the right
-     * For loops: right contains the increment
      */
     private Node right;
 
@@ -42,100 +41,82 @@ public class Node {
      */
     private String operator;
 
-    /**
-     * For if-node and branches
-     */
-    private List<Node> alternative;
 
     public NodeTypesEnum getType() {
         return type;
     }
 
-    public Node setType(NodeTypesEnum type) {
+    public void setType(NodeTypesEnum type) {
         this.type = type;
-        return this;
     }
 
     public List<Node> getBody() {
         return body;
     }
 
-    public Node setBody(List<Node> body) {
+    public void setBody(List<Node> body) {
         this.body = body;
-        return this;
     }
 
-    public String getValue() {
+    public int getValue() {
         return value;
     }
 
-    public Node setValue(String value) {
+    public void setValue(int value) {
         this.value = value;
-        return this;
     }
 
     public Node getRight() {
         return right;
     }
 
-    public Node setRight(Node right) {
+    public void setRight(Node right) {
         this.right = right;
-        return this;
     }
 
     public Node getCondition() {
         return condition;
     }
 
-    public Node setCondition(Node condition) {
+    public void setCondition(Node condition) {
         this.condition = condition;
-        return this;
     }
 
     public Node getLeft() {
         return left;
     }
 
-    public Node setLeft(Node left) {
+    public void setLeft(Node left) {
         this.left = left;
-        return this;
     }
 
     public String getOperator() {
         return operator;
     }
 
-    public Node setOperator(String operator) {
+    public void setOperator(String operator) {
         this.operator = operator;
-        return this;
-    }
-
-    public List<Node> getAlternative() {
-        return alternative;
-    }
-
-    public void setAlternative(List<Node> alternative) {
-        this.alternative = alternative;
     }
 
     /**
      * Constructor for a complete node
      */
-    public Node(NodeTypesEnum type, List<Node> body, String value, Node left, String operator, Node right, Node condition, Node alternative) {
-       this.type = type;
-       this.body = body;
-       this.value = value;
-       this.left = left;
-       this.operator = operator;
-       this.right = right;
-       this.condition = condition;
-   }
+    public Node(NodeTypesEnum type, List<Node> body, int value, Node left, String operator, Node right, Node condition) {
+        this.type = type;
+        this.body = body;
+        this.value = value;
+        this.left = left;
+        this.operator = operator;
+        this.right = right;
+        this.condition = condition;
+    }
 
     /**
      * Creates a blank node of a specific type
      * @param type of the node to be created
      */
-   public Node(NodeTypesEnum type) {
-       this(type, null, "", null, "",null, null, null);
-   }
+    public Node(NodeTypesEnum type) {
+        this(type, null, 0, null, "",null, null);
+    }
 }
+
