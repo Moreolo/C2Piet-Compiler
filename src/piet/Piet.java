@@ -5,22 +5,24 @@ import java.util.LinkedList;
 
 import ast.datatypes.Node;
 import ast.datatypes.NodeTypesEnum;
-import basicblocks.datatypes.BBlock;
-import basicblocks.datatypes.CondBlock;
-import basicblocks.datatypes.FunBlock;
-import basicblocks.datatypes.TermBlock;
-import piet.datatypes.Block;
-import piet.datatypes.Command;
-import piet.datatypes.Operation;
+import basicblocks.datatypes.*;
+import piet.datatypes.*;
 
 public class Piet {
 
     LinkedList<String> VariablenSpeicher = new LinkedList<>();
+    LinkedList<String> FunktionsVariablenSpeicher = new LinkedList<>();
 
     int ProgramCounter = 0;
 
-    public LinkedList<Block> parse(ArrayList<BBlock> blocks) {
+    public LinkedList<Block> parse(ArrayList<BBlock> bblocks) {
         LinkedList<Block> finalBlocks = new LinkedList<>();
+        int num = 0;
+        for (BBlock bblock : bblocks) {
+            if (bblock instanceof CondBlock) parseCondition(bblock, num);
+            if (bblock instanceof FuncBlock) parseFunction(bblock, num);
+            if (bblock instanceof TermBlock) parseTerm(bblock, num);
+            else parseBBlock(bblock, num);  
         int num = 1;
         for (BBlock block : blocks) {
             if (block instanceof CondBlock) finalBlocks.add(parseCondition(block, num));
@@ -29,7 +31,6 @@ public class Piet {
             else finalBlocks.add(parseBBlock(block, num));  
             num += 1;
         }
-        return finalBlocks;
     }
 
     private Block parseCondition(BBlock bblock, int num){
@@ -61,7 +62,7 @@ public class Piet {
             //Condition analysieren -> Block mit commands kommt zurück
             block = analyseConditionNode(block, condition);
             //Pointer Command noch zu Block hinzufügen 
-            block.addOperation(new Operation(Command.POINTER, block.left.getValue(), block.right.getValue()));
+            block.addOperation(new Operation(Command.POINTER, bblock.getNext(), bblock.getAlt())); // für condition bblock bitte noch getAlt function hinzufügen!!!
         }
         return block;
     }
@@ -72,16 +73,17 @@ public class Piet {
         * @param Block block ist der Block in dem die Piet-Commands gespeichert werden
         * @return Node condition ist die condition aus dem Condition-BBlock
         */
+        int num;
 
         //Initialisierung von Variablen
         var left = condition.getLeft();
         var right = condition.getRight();
         var op = condition.getOperator();
 
-        //if(left.getType() == NodeTypesEnum.LITERAL){
-        //    block.addOperation(new Operation(Command.PUSH), left.getValue());
-        //    ProgramCounter += 1;
-        //}
+        if(left.getType() == NodeTypesEnum.LITERAL){
+            block.addOperation(new Operation(Command.PUSH, left.getValue()));
+            ProgramCounter += 1;
+        }
 
         //Überprüfung ob Condition richiges Format hat (Links darf nur Typ IDENTIFIER sein)
         if(left.getType() == NodeTypesEnum.IDENTIFIER){
@@ -97,6 +99,10 @@ public class Piet {
             block.addOperation(new Operation(Command.PUSH, Integer.parseInt(right.getValue())));
             ProgramCounter += 1;
         }
+        else if(right.getType() == NodeTypesEnum.BINARY_EXPRESSION){
+            //lösen der Binary Expression
+            solveBinaryExpresssion(condition, num);
+        }
         else if(right.getType() == NodeTypesEnum.IDENTIFIER){
             //Kopiere Wert der Variable auf die Spitze des Stacks, um später Vergleich darauf auszuführen
             block = rotateVariable(block, right.getValue());
@@ -111,24 +117,32 @@ public class Piet {
             case "==":
                 //Führe erst Größer Check aus
                 block.addOperation(new Operation(Command.GREATER));
+                ProgramCounter -= 1;
                 // Kopiere die WErte die zu vergleichen sind für einen weiteren Check auf die Spitze
                 // Da wir dieses mal kleiner Check durchführen, kopiere Vergleichswerte in anderer Reihenfolge auf Stack
                 if(right.getType() == NodeTypesEnum.LITERAL){
                     block.addOperation(new Operation(Command.PUSH, Integer.parseInt(right.getValue())));
                     ProgramCounter += 1;
                 }
+                else if(right.getType() == NodeTypesEnum.BINARY_EXPRESSION){
+                    //lösen der Binary Expression
+                    block = solveBinaryExpresssion(block, condition);
+                }
                 else if(right.getType() == NodeTypesEnum.IDENTIFIER){
                     block = rotateVariable(block, right.getValue());
                 }
                 block = rotateVariable(block, left.getValue());
                 block.addOperation(new Operation(Command.GREATER));
+                ProgramCounter -= 1;
                 //Addiere die Ergebnisse der beiden Checks -> wenn addition 0 ergibt wissen wird dass == true ist -> noch NOT Command ausführen
                 block.addOperation(new Operation(Command.ADD));
+                ProgramCounter -= 1;
                 block.addOperation(new Operation(Command.NOT));
                 break;
             //Für ">" einfach Greater Command ausführen
             case ">":
                 block.addOperation(new Operation(Command.GREATER));
+                ProgramCounter -= 1;
                 break;
             //Für "<" Vergleichswerte vertauschen und dann Greater Command ausführen
             case "<":
@@ -137,6 +151,7 @@ public class Piet {
                 block.addOperation(new Operation(Command.PUSH, ProgramCounter));
                 block.addOperation(new Operation(Command.ROLL));
                 block.addOperation(new Operation(Command.GREATER));
+                ProgramCounter -= 1;
                 break;
             //Für "<" Vergleichswerte vertauschen und dann Greater Command ausführen und Ergebnis umkehren mit NOT
             case ">=":
@@ -145,11 +160,13 @@ public class Piet {
                 block.addOperation(new Operation(Command.PUSH, ProgramCounter));
                 block.addOperation(new Operation(Command.ROLL));
                 block.addOperation(new Operation(Command.GREATER));
+                ProgramCounter -= 1;
                 block.addOperation(new Operation(Command.NOT));
                 break;
             //Für "<=" Greater Vergleich und Ergebnis mit NOT umkehren
             case "<=":
                 block.addOperation(new Operation(Command.GREATER));
+                ProgramCounter -= 1;
                 block.addOperation(new Operation(Command.NOT));
                 break;
         
@@ -162,7 +179,8 @@ public class Piet {
 
     private Block rotateVariable(Block block, String var2rotate){
         /**
-        * rotateVariable rotiert die gewünschte Variable an die Spitze des Stacks dupliziert den Wert und rotiert die originale Variable wieder an die ursprüngliche Position zurück
+        * rotateVariable rotiert die gewünschte Variable an die Spitze des Stacks dupliziert den Wert 
+            und rotiert die originale Variable wieder an die ursprüngliche Position zurück
         * @param Block block ist der Block in dem die Piet-Commands gespeichert werden
         * @return String var2rotate variable die an die Spitze des Stacks rotiert werden soll
         */
@@ -171,6 +189,7 @@ public class Piet {
         block.addOperation(new Operation(Command.PUSH, ProgramCounter));
         block.addOperation(new Operation(Command.ROLL));
         block.addOperation(new Operation(Command.DUPLICATE));
+        ProgramCounter += 1;
         block.addOperation(new Operation(Command.PUSH, ProgramCounter));
         block.addOperation(new Operation(Command.PUSH, varpos));
         block.addOperation(new Operation(Command.ROLL));
@@ -182,71 +201,104 @@ public class Piet {
     }
     
     private Block parseTerm(BBlock block, int num){
-        return new Block(0);
+        return new Block(num);
     }
 
-    private Block parseBBlock(BBlock block, int num){
-        for (Node node : block.getBody()) {
-            if(node.getType() == NodeTypesEnum.ASSIGNMENT_EXPRESSION) return parseAssignmentExpression(node, num); //return as ASSIGNMENT_EXPRESSION
-            if(node.getType() == NodeTypesEnum.BLOCK_STATEMENT){ BBlock subBlock = new BBlock(num); ArrayList<Node> list = new ArrayList<>(); list.addAll(node.getBody());
-                subBlock.setBody(list);  
-                return parseBBlock(subBlock, num);
-            }
-            if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION) return solveBinaryExpresssion(node, num); //return as BINARY_EXPRESSION
-            if(node.getType() == NodeTypesEnum.FUNCTION_CALL) ; //return as FUNCTION_CALL
+    private Block parseBBlock(BBlock bblock, int num){
+        var block = new Block(num);
+        for (Node node : bblock.getBody()) {
+            if(node.getType() == NodeTypesEnum.ASSIGNMENT_EXPRESSION) return parseAssignmentExpression(block, node); //return as ASSIGNMENT_EXPRESSION
+            if(node.getType() == NodeTypesEnum.BLOCK_STATEMENT) ; //return as BLOCK_STATEMENT
+            if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION) return solveBinaryExpresssion(block, node); //return as BINARY_EXPRESSION
+            if(node.getType() == NodeTypesEnum.FUNCTION_CALL) return parseFunctionCall(block, node); //return as FUNCTION_CALL
             if(node.getType() == NodeTypesEnum.FUNCTION_DEF) ; //return as FUNCTION_DEF
             if(node.getType() == NodeTypesEnum.RETURN_STATEMENT) ; //return as RETURN_STATEMENT
         }
-        return new Block(0);
+        return block;
     }
 
-    private Block parseAssignmentExpression(Node node, int num){
-        Block block = new Block(num);
-        String varString = node.getLeft().getOperator(); // wie zur Hölle soll ich bitten den variablen namen bekommen, weil mit getValue gehts nicht (kommt ja nur int) und sonst gibts ja nichts anderes. 
-        int rightval = Integer.parseInt(node.getRight().getValue());
-        VariablenSpeicher.add(varString);
-        ProgramCounter += 1;
-        block.addOperation(new Operation(Command.PUSH, rightval));
+    private Block parseAssignmentExpression(Block block, Node node){
+        String varString = node.getLeft().getValue();// wie zur Hölle soll ich bitte den variablen namen bekommen, weil mit getValue gehts nicht (kommt ja nur int) und sonst gibts ja nichts anderes. 
+        Node right = node.getRight();
+        if (right.getType() == NodeTypesEnum.BINARY_EXPRESSION){
+            solveBinaryExpresssion(block, node);
+        }
+        else if (right.getType() == NodeTypesEnum.LITERAL){
+            block.addOperation(new Operation(Command.PUSH, right.getValue()));
+        }
+        else {
+            System.err.println("Right Part of Assignment must be of Type LITERAL OR BINARY EXPRESSION");
+        }
+        if (VariablenSpeicher.contains(varString)){
+            int varpos = VariablenSpeicher.indexOf(varString);
+            block = rotateVariable(block, varString);
+            block.addOperation(new Operation(Command.POP));
+            block.addOperation(new Operation(Command.PUSH, ProgramCounter));
+            block.addOperation(new Operation(Command.PUSH, varpos));
+            block.addOperation(new Operation(Command.ROLL));
+        }
+        else{
+            VariablenSpeicher.add(varString);
+            ProgramCounter += 1;
+        }
+        return block;
+    }
+
+    private Block parseFunctionCall(Block block, Node node){
+        // wie sieht ein Function Call als BasicBlock aus???
+        var body = node.getBody();
+        for (String param : body.getValue()){
+            block = rotateVariable(block, param);
+            VariablenSpeicher.add(param + 'function'); //vlt mit functionsvariablenspeicher machen, dann hat man aber den nachteil mit dem offset=programmcounter
+        }
         return block;
     }
 
 
-    private static Block solveBinaryExpresssion(Node node, int num){
-        Block finalBlock = new Block(num);
-        int leftValue = Integer.parseInt(node.getLeft().getValue());
-        int rightValue = Integer.parseInt(node.getRight().getValue());
-        finalBlock.addOperation(new Operation(Command.PUSH, leftValue));
-        finalBlock.addOperation(new Operation(Command.PUSH, rightValue));
+    private static Block solveBinaryExpresssion(Block block, Node node){
+        // WEiß nicht ob wir das einfach so implementieren können 
+        // was ist z.b. mit: x = (2+3)*(4*8) ??
+        // das sind ja mehrere binary expressions ineinander verschachtelt das müssen wir ja iwi auflösen oder nicht 
+        // oder wird das schon von den teams davor aufgelöst in: 
+        // x = 2 + 3
+        // temp = 4*8
+        // x = x * temp
+
+        int leftValue = node.getLeft().getValue();
+        int rightValue = node.getRight().getValue();
+        block.addOperation(new Operation(Command.PUSH, leftValue));
+        block.addOperation(new Operation(Command.PUSH, rightValue));
         
         switch (node.getOperator()) {
+            case "=":
+                block = parseAssignmentExpression(block, node);
+                break;
             case "+":
-                finalBlock.addOperation(new Operation(Command.ADD));
+                block.addOperation(new Operation(Command.ADD));
                 break;
             case "-":
-                finalBlock.addOperation(new Operation(Command.SUBTRACT));
+                block.addOperation(new Operation(Command.SUBTRACT));
                 break;
             case "*":
-                finalBlock.addOperation(new Operation(Command.MULTIPLY));
+                block.addOperation(new Operation(Command.MULTIPLY));
                 break;
             case "/":
-                finalBlock.addOperation(new Operation(Command.DIVIDE));
+                block.addOperation(new Operation(Command.DIVIDE));
                 break;
             case "%":
-                finalBlock.addOperation(new Operation(Command.MOD));
-                break;
-                
+                block.addOperation(new Operation(Command.MOD));
+                break;     
         
             default:
                 break;
         }
 
 
-        if(node.getLeft().getType() != NodeTypesEnum.LITERAL) solveBinaryExpresssion(node.getLeft(), num);
-        if(node.getRight().getType() != NodeTypesEnum.LITERAL) solveBinaryExpresssion(node.getRight(), num);
+        if(node.getLeft().getType() != NodeTypesEnum.LITERAL) solveBinaryExpresssion(block, node.getLeft());
+        if(node.getRight().getType() != NodeTypesEnum.LITERAL) solveBinaryExpresssion(block, node.getRight());
         
         
         return new Block(0);
     }
-
 }
 
