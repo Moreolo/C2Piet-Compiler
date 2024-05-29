@@ -16,7 +16,7 @@ public class Scan{
     private static final Map<String, TokenType> keywords;
     
     static {
-      
+     
       keywords = new HashMap<>();
       keywords.put("if",     IF);
       keywords.put("else",   ELSE);
@@ -39,6 +39,22 @@ public class Scan{
       keywords.put("long",    LONG);
       keywords.put("short",    SHORT);
       keywords.put("bool",    BOOL);
+      keywords.put("auto",   AUTO);
+      keywords.put("char",    CHAR);
+      keywords.put("continue",    CONTINUE);
+      keywords.put("default",    DEFAULT);
+      keywords.put("enum",    ENUM);
+      keywords.put("inline",    INLINE);
+      keywords.put("signed",    SIGNED);
+      keywords.put("sizeof",    SIZEOF);
+      keywords.put("true",    TRUE);
+      keywords.put("false",    FALSE);
+      keywords.put("typedef",    TYPEDEF);
+      keywords.put("typeof",    TYPEOF);
+      keywords.put("union",    UNION);
+      keywords.put("unsigned",    UNSIGNED);
+      keywords.put("volatile",    VOLATILE);
+     
 
     }
   
