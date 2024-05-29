@@ -33,6 +33,10 @@ public class Parser {
                     return handleProgram(new Node(NodeTypesEnum.PROGRAM));
                 case IF:
                     return handleIf(new Node(NodeTypesEnum.IF_STATEMENT));
+                case SWITCH:
+                    return handleSwitch(new Node(NodeTypesEnum.IF_STATEMENT));
+                case BREAK:
+                    return null;
                 case FOR:
                     return handleFor(new Node(NodeTypesEnum.WHILE_STATEMENT));
                 case WHILE:
@@ -54,6 +58,7 @@ public class Parser {
                 default:
                     // delete unknown tokens
                     popToken();
+                    return null;
             }
         }
         return null;
@@ -112,7 +117,10 @@ public class Parser {
         consume(TokenType.PROGRAM);
         List<Node> res = new ArrayList<>();
         while (!peek(TokenType.EOF)) {
-            res.add(parse(tokens));
+            Node temp = parse(tokens);
+            if (temp != null) {
+                res.add(temp);
+            }
         }
         res.add(new Node((NodeTypesEnum.TERMINATOR)));
         node.setBody(res);
@@ -151,17 +159,92 @@ public class Parser {
     private Node handleElse(Node node) {
         if (peek(TokenType.ELSE)) {
             consume(TokenType.ELSE);
-            consume(TokenType.LEFT_BRACE);
-            node.setBody(handleBlock());
-            consume(TokenType.RIGHT_BRACE);
         } else {
             consume(TokenType.ELSE_IF);
             consume(TokenType.LEFT_PAREN);
             node.setCondition(handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION)));
-            consume(TokenType.LEFT_BRACE);
-            node.setBody(handleBlock());
-            consume(TokenType.RIGHT_BRACE);
         }
+        consume(TokenType.LEFT_BRACE);
+        node.setBody(handleBlock());
+        consume(TokenType.RIGHT_BRACE);
+        return node;
+    }
+
+    /**
+     * Handle a switch case construct, puts everything in an if-statement.
+     * First case is in the if, remaining cases and default will be in the alternatives as Else-Nodes.
+     *
+     * @param node to fill
+     * @return filled If_Statement node
+     */
+    private Node handleSwitch(Node node) {
+        consume(TokenType.SWITCH);
+        consume(TokenType.LEFT_PAREN);
+        Object expression = popToken().getLexeme();
+        consume(TokenType.RIGHT_PAREN);
+        consume(TokenType.LEFT_BRACE);
+        consume(TokenType.CASE);
+        node.setCondition(handleSwitchBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION), expression));
+        node.setBody(handleSwitchBody());
+        List<Node> res = new ArrayList<>();
+        while (!peek(TokenType.RIGHT_BRACE)) {
+            if (peek(TokenType.DEFAULT)) {
+                break;
+            }
+            consume(TokenType.CASE);
+            Node temp = new Node(NodeTypesEnum.ELSE_STATEMENT);
+            temp.setCondition(handleSwitchBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION), expression));
+            temp.setBody(handleSwitchBody());
+            res.add(temp);
+        }
+        if (peek(TokenType.DEFAULT)) {
+            consume(TokenType.DEFAULT);
+            consume(TokenType.COLON);
+            res.add(handleDefault(new Node(NodeTypesEnum.ELSE_STATEMENT)));
+        }
+        node.setAlternative(res);
+        //consume(TokenType.RIGHT_BRACE);
+        return node;
+    }
+
+    /**
+     * Handle switch cases.
+     * @param node to fill with binExp
+     * @param expression for the switch declaration
+     * @return binaryExp with expression == case
+     */
+    private Node handleSwitchBinaryExp(Node node, Object expression) {
+        node.setLeft(new Node(NodeTypesEnum.LITERAL, null, String.valueOf(expression), null, null, null, null, null));
+        node.setOperator("==");
+        node.setRight(new Node(NodeTypesEnum.LITERAL, null, String.valueOf(popToken().getLexeme()), null, null, null, null, null));
+        consume(TokenType.COLON);
+        return node;
+    }
+
+    /**
+     * Handle the switch body, putting everything up to the break into the body
+     * @return the filled body node
+     */
+    private List<Node> handleSwitchBody() {
+        List<Node> res = new ArrayList<>();
+        while (!peek(TokenType.BREAK)) {
+            Node temp = parse(tokens);
+            if (temp != null) {
+                res.add(temp);
+            }
+        }
+        consume(TokenType.BREAK);
+        consume(TokenType.SEMICOLON);
+        return res;
+    }
+
+    /**
+     * Handles default cases of switches
+     * @param node ElseNode to fill with
+     * @return filled ElseNode
+     */
+    private Node handleDefault(Node node) {
+        node.setBody(handleBlock());
         return node;
     }
 

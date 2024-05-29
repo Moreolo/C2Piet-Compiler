@@ -246,19 +246,61 @@ public class ParserTest {
     }
 
     /**
+     * Tests a switch case construct
+     */
+    @Test
+    public void testSwitchCase() {
+       Scan scanner = new Scan("switch (days) { case 1: add(x,y); break; case 2: y=3; break; default: x+3; } ");
+        List<Token> tokens = scanner.scanTokens();
+        Parser parser = new Parser(tokens);
+        Node switchh = parser.parse(tokens).getBody().get(0);
+        assertEquals(NodeTypesEnum.IF_STATEMENT, switchh.getType());
+        // assert If statement (1st case)
+        Node case1Condition = switchh.getCondition();
+        assertEquals(NodeTypesEnum.BINARY_EXPRESSION, case1Condition.getType());
+        assertEquals("days", case1Condition.getLeft().getValue());
+        assertEquals("==", case1Condition.getOperator());
+        assertEquals("1", case1Condition.getRight().getValue());
+        Node case1Body = switchh.getBody().get(0);
+        assertEquals(NodeTypesEnum.FUNCTION_CALL, case1Body.getType());
+        assertEquals("add", case1Body.getValue());
+        assertEquals("x", case1Body.getAlternative().get(0).getValue());
+        assertEquals("y", case1Body.getAlternative().get(1).getValue());
+        // assert second case
+        Node case2Condition = switchh.getAlternative().get(0).getCondition();
+        assertEquals(NodeTypesEnum.BINARY_EXPRESSION, case2Condition.getType());
+        assertEquals("days", case2Condition.getLeft().getValue());
+        assertEquals("==", case2Condition.getOperator());
+        assertEquals("2", case2Condition.getRight().getValue());
+        Node case2Body = switchh.getAlternative().get(0).getBody().get(0);
+        assertEquals(NodeTypesEnum.BINARY_EXPRESSION, case2Body.getType());
+        assertEquals("y", case2Body.getLeft().getValue());
+        assertEquals("=", case2Body.getOperator());
+        assertEquals("3", case2Body.getRight().getValue());
+        // assert default
+        Node case3Body = switchh.getAlternative().get(1).getBody().get(0);
+        assertEquals(NodeTypesEnum.BINARY_EXPRESSION, case3Body.getType());
+        assertEquals("x", case3Body.getLeft().getValue());
+        assertEquals("+", case3Body.getOperator());
+        assertEquals("3", case3Body.getRight().getValue());
+    }
+
+    /**
      * just for inspections for now
      */
     @Test
     public void testProgram() {
-        Scan scanner = new Scan("int main(int a, int b) {return (a + b); }");
+        Scan scanner = new Scan("switch (days) { case 1: add(x,y); break; case 2: y=3; default: 3+2; } ");
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
         Node testNode = parser.parse(tokens);
-        
 
         Assert.assertTrue(true);
     }
 
 }
 
-// TODO next: switch
+// TODO next: += and stuff (<<), booleans?
+// TODO (precedence)
+// TODO #inlude -> find file, parse it, and paste it on top
+//      #define constants
