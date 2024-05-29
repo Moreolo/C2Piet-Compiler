@@ -21,7 +21,7 @@ public class Piet {
 
     public LinkedList<Block> parse(ArrayList<BBlock> blocks) {
         LinkedList<Block> finalBlocks = new LinkedList<>();
-        int num = 0;
+        int num = 1;
         for (BBlock block : blocks) {
             if (block instanceof CondBlock) finalBlocks.add(parseCondition(block, num));
             if (block instanceof FunBlock) finalBlocks.add(parseFunction(block, num));
@@ -94,7 +94,7 @@ public class Piet {
         //Überprüfung ob Condition richiges Format hat (Rechts darf nur Typ IDENTIFIER oder LITERAL sein)
         if(right.getType() == NodeTypesEnum.LITERAL){
             //Pushe Wert auf die Spitze des Stacks, um später Vergleich darauf auszuführen
-            block.addOperation(new Operation(Command.PUSH, right.getValue()));
+            block.addOperation(new Operation(Command.PUSH, Integer.parseInt(right.getValue())));
             ProgramCounter += 1;
         }
         else if(right.getType() == NodeTypesEnum.IDENTIFIER){
@@ -114,7 +114,7 @@ public class Piet {
                 // Kopiere die WErte die zu vergleichen sind für einen weiteren Check auf die Spitze
                 // Da wir dieses mal kleiner Check durchführen, kopiere Vergleichswerte in anderer Reihenfolge auf Stack
                 if(right.getType() == NodeTypesEnum.LITERAL){
-                    block.addOperation(new Operation(Command.PUSH, right.getValue()));
+                    block.addOperation(new Operation(Command.PUSH, Integer.parseInt(right.getValue())));
                     ProgramCounter += 1;
                 }
                 else if(right.getType() == NodeTypesEnum.IDENTIFIER){
@@ -203,7 +203,7 @@ public class Piet {
     private Block parseAssignmentExpression(Node node, int num){
         Block block = new Block(num);
         String varString = node.getLeft().getOperator(); // wie zur Hölle soll ich bitten den variablen namen bekommen, weil mit getValue gehts nicht (kommt ja nur int) und sonst gibts ja nichts anderes. 
-        int rightval = node.getRight().getValue();
+        int rightval = Integer.parseInt(node.getRight().getValue());
         VariablenSpeicher.add(varString);
         ProgramCounter += 1;
         block.addOperation(new Operation(Command.PUSH, rightval));
@@ -213,8 +213,8 @@ public class Piet {
 
     private static Block solveBinaryExpresssion(Node node, int num){
         Block finalBlock = new Block(num);
-        int leftValue = node.getLeft().getValue();
-        int rightValue = node.getRight().getValue();
+        int leftValue = Integer.parseInt(node.getLeft().getValue());
+        int rightValue = Integer.parseInt(node.getRight().getValue());
         finalBlock.addOperation(new Operation(Command.PUSH, leftValue));
         finalBlock.addOperation(new Operation(Command.PUSH, rightValue));
         
