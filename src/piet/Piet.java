@@ -5,8 +5,13 @@ import java.util.LinkedList;
 
 import ast.datatypes.Node;
 import ast.datatypes.NodeTypesEnum;
-import basicblocks.datatypes.*;
-import piet.datatypes.*;
+import basicblocks.datatypes.BBlock;
+import basicblocks.datatypes.CondBlock;
+import basicblocks.datatypes.FunBlock;
+import basicblocks.datatypes.TermBlock;
+import piet.datatypes.Block;
+import piet.datatypes.Command;
+import piet.datatypes.Operation;
 
 public class Piet {
 
@@ -18,12 +23,13 @@ public class Piet {
         LinkedList<Block> finalBlocks = new LinkedList<>();
         int num = 0;
         for (BBlock block : blocks) {
-            if (block instanceof CondBlock) parseCondition(block, num);
-            if (block instanceof FuncBlock) parseFunction(block, num);
-            if (block instanceof TermBlock) parseTerm(block, num);
-            else parseBBlock(block, num);  
+            if (block instanceof CondBlock) finalBlocks.add(parseCondition(block, num));
+            if (block instanceof FunBlock) finalBlocks.add(parseFunction(block, num));
+            if (block instanceof TermBlock) finalBlocks.add(parseTerm(block, num));
+            else finalBlocks.add(parseBBlock(block, num));  
             num += 1;
         }
+        return finalBlocks;
     }
 
     private Block parseCondition(BBlock bblock, int num){
@@ -88,7 +94,7 @@ public class Piet {
         //Überprüfung ob Condition richiges Format hat (Rechts darf nur Typ IDENTIFIER oder LITERAL sein)
         if(right.getType() == NodeTypesEnum.LITERAL){
             //Pushe Wert auf die Spitze des Stacks, um später Vergleich darauf auszuführen
-            block.addOperation(new Operation(Command.PUSH), right.getValue());
+            block.addOperation(new Operation(Command.PUSH, right.getValue()));
             ProgramCounter += 1;
         }
         else if(right.getType() == NodeTypesEnum.IDENTIFIER){
@@ -108,7 +114,7 @@ public class Piet {
                 // Kopiere die WErte die zu vergleichen sind für einen weiteren Check auf die Spitze
                 // Da wir dieses mal kleiner Check durchführen, kopiere Vergleichswerte in anderer Reihenfolge auf Stack
                 if(right.getType() == NodeTypesEnum.LITERAL){
-                    block.addOperation(new Operation(Command.PUSH), right.getValue());
+                    block.addOperation(new Operation(Command.PUSH, right.getValue()));
                     ProgramCounter += 1;
                 }
                 else if(right.getType() == NodeTypesEnum.IDENTIFIER){
@@ -161,12 +167,12 @@ public class Piet {
         * @return String var2rotate variable die an die Spitze des Stacks rotiert werden soll
         */
         var varpos = VariablenSpeicher.indexOf(var2rotate);
-        block.addOperation(new Operation(Command.PUSH), varpos);
-        block.addOperation(new Operation(Command.PUSH), ProgramCounter);
+        block.addOperation(new Operation(Command.PUSH, varpos));
+        block.addOperation(new Operation(Command.PUSH, ProgramCounter));
         block.addOperation(new Operation(Command.ROLL));
         block.addOperation(new Operation(Command.DUPLICATE));
-        block.addOperation(new Operation(Command.PUSH), ProgramCounter);
-        block.addOperation(new Operation(Command.PUSH), varpos);
+        block.addOperation(new Operation(Command.PUSH, ProgramCounter));
+        block.addOperation(new Operation(Command.PUSH, varpos));
         block.addOperation(new Operation(Command.ROLL));
         return block;
     }
@@ -176,13 +182,16 @@ public class Piet {
     }
     
     private Block parseTerm(BBlock block, int num){
-        return new Block(num);
+        return new Block(0);
     }
 
     private Block parseBBlock(BBlock block, int num){
         for (Node node : block.getBody()) {
             if(node.getType() == NodeTypesEnum.ASSIGNMENT_EXPRESSION) return parseAssignmentExpression(node, num); //return as ASSIGNMENT_EXPRESSION
-            if(node.getType() == NodeTypesEnum.BLOCK_STATEMENT) ; //return as BLOCK_STATEMENT
+            if(node.getType() == NodeTypesEnum.BLOCK_STATEMENT){ BBlock subBlock = new BBlock(num); ArrayList<Node> list = new ArrayList<>(); list.addAll(node.getBody());
+                subBlock.setBody(list);  
+                return parseBBlock(subBlock, num);
+            }
             if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION) return solveBinaryExpresssion(node, num); //return as BINARY_EXPRESSION
             if(node.getType() == NodeTypesEnum.FUNCTION_CALL) ; //return as FUNCTION_CALL
             if(node.getType() == NodeTypesEnum.FUNCTION_DEF) ; //return as FUNCTION_DEF
@@ -197,7 +206,7 @@ public class Piet {
         int rightval = node.getRight().getValue();
         VariablenSpeicher.add(varString);
         ProgramCounter += 1;
-        block.addOperation(new Operation(Command.PUSH), rightval);
+        block.addOperation(new Operation(Command.PUSH, rightval));
         return block;
     }
 
@@ -232,11 +241,12 @@ public class Piet {
         }
 
 
-        if(node.getLeft().getType() != NodeTypesEnum.LITERAL) solveBinaryExpresssion(node.getLeft());
-        if(node.getRight().getType() != NodeTypesEnum.LITERAL) solveBinaryExpresssion(node.getRight());
+        if(node.getLeft().getType() != NodeTypesEnum.LITERAL) solveBinaryExpresssion(node.getLeft(), num);
+        if(node.getRight().getType() != NodeTypesEnum.LITERAL) solveBinaryExpresssion(node.getRight(), num);
         
         
         return new Block(0);
     }
+
 }
 

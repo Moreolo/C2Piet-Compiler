@@ -4,14 +4,17 @@ import java.util.LinkedList;
 
 public class Block {
     private int num;
-    private LinkedList<Operation> operations;
+    private LinkedList<Operation> operations = new LinkedList<>();
 
     public Block(int num) {
         this.num = num;
     }
 
     public void addOperation(Operation operation) {
-        this.operations.add(operation);
+        
+        if (!operation.equals(null)) {
+            this.operations.add(operation);
+        }
     }
 
     public int getNum() {
