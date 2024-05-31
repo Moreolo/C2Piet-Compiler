@@ -33,7 +33,7 @@ public class BBlock {
         return this.body;
     }
 
-    public BBlock(int positionInArray, int next) {
+    public BBlock(int positionInArray, Integer next) {
         this.next = next;
         this.positionInArray = positionInArray;
     }

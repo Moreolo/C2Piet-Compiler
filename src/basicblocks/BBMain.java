@@ -10,7 +10,7 @@ import java.util.List;
 public class BBMain {
 
     private static ArrayList<BBlock> blockList = new ArrayList<>();
-    private static int iterator = 1;
+    private static int iterator = 0;
 
 
     private static BBlock splitBlock(BBlock oldBlock, ArrayList<Node> stayBehind) {
@@ -53,6 +53,11 @@ public class BBMain {
             blockList.add(rightBlock);
             replaceOld.setNext2(rightBlock.getPositionInArray());
             paths.add(rightBlock);
+        }else{
+            Integer oldNext = oldBBlock.getNext();
+            if (oldNext != null){
+                replaceOld.setNext2(oldBBlock.getNext());
+            }
         }
         return paths;
     }
@@ -130,6 +135,36 @@ public class BBMain {
             counter = counter + 1;
             switch (currentNode.getType()) {  
                 case WHILE_STATEMENT:
+                    //wenn normaler Code vor While -> Trennen: Code vor While - restlicher Code
+                    if (!nodesForOneBasicBlock.isEmpty()){
+                        BBlock nextBlockLookInto = splitBlock(blockOfCode, nodesForOneBasicBlock);
+                        walkTree(nextBlockLookInto);
+                        return;
+                    }
+
+                    //wenn normaler Code nach While -> Trennen: While - restlicher Code nach WHile
+                    if (counter != nodeList.size()){
+                        int positionOfOldBlock = blockOfCode.getPositionInArray();
+                        ArrayList<Node> whileBlock = new ArrayList<>();
+                        whileBlock.add(currentNode);
+                        BBlock nextBlockLookInto = splitBlock(blockOfCode, whileBlock);
+                        walkTree(blockList.get(positionOfOldBlock));
+                        walkTree(nextBlockLookInto);
+                        return;
+                    }
+
+                    // in diesem Fall hat man nur ein While ohne Code davor und danach vorliegen
+                    Node whileCondition = currentNode.getCondition();
+                    ArrayList<Node> whileBody = (ArrayList) currentNode.getBody();
+                    ArrayList<BBlock> whileBodyBB;
+                    whileBodyBB = createFork(blockOfCode, whileBody, new ArrayList<>(), whileCondition);
+                    for (BBlock basicBlock: whileBodyBB){
+                        basicBlock.setNext(blockOfCode.getPositionInArray());
+                        walkTree(basicBlock);
+                    }
+                    return;
+
+
 
                 // behandelt elseif Struktur gegebenenfalls auch mit else am Ende
                 case ELSE_STATEMENT:

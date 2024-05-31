@@ -14,7 +14,7 @@ public class NodeTest {
 
     int a = 0;
     @Test
-    public void testNode() {
+    public void testIf() {
 
         Node if1 = new Node(NodeTypesEnum.IF_STATEMENT);
         Node if2 = new Node(NodeTypesEnum.IF_STATEMENT);
@@ -40,17 +40,17 @@ public class NodeTest {
 
         
 
-        bs1Body.add(new Node(NodeTypesEnum.ASSIGNMENT_EXPRESSION));
+        bs1Body.add(new Node(NodeTypesEnum.DECLARATION));
         bs1Body.add(if2);
-        bs1Body.add(new Node(NodeTypesEnum.ASSIGNMENT_EXPRESSION));
-        bs1Body.add(new Node(NodeTypesEnum.ASSIGNMENT_EXPRESSION));
+        bs1Body.add(new Node(NodeTypesEnum.DECLARATION));
+        bs1Body.add(new Node(NodeTypesEnum.DECLARATION));
 
-        bs2Body.add(new Node(NodeTypesEnum.ASSIGNMENT_EXPRESSION));
-        bs2Body.add(new Node(NodeTypesEnum.ASSIGNMENT_EXPRESSION));
+        bs2Body.add(new Node(NodeTypesEnum.DECLARATION));
+        bs2Body.add(new Node(NodeTypesEnum.DECLARATION));
 
-        bs3Body.add(new Node(NodeTypesEnum.ASSIGNMENT_EXPRESSION));
+        bs3Body.add(new Node(NodeTypesEnum.DECLARATION));
 
-        bs4Body.add(new Node(NodeTypesEnum.ASSIGNMENT_EXPRESSION));
+        bs4Body.add(new Node(NodeTypesEnum.DECLARATION));
 
 
         bs1.setBody(bs1Body);
@@ -80,6 +80,47 @@ public class NodeTest {
         ArrayList<BBlock> TestList = BBMain.parse(if1);
 
         System.out.println(TestList);
+
+    }
+
+    @Test
+    public void testWhile() {
+        /* Test Case:
+        while(condition){
+            Declaration
+            while(condition){
+                Declaration
+            }
+            Declaration
+        }
+        */
+        Node while1 = new Node(NodeTypesEnum.WHILE_STATEMENT);
+        Node while2 = new Node(NodeTypesEnum.WHILE_STATEMENT);
+        Node dec1 = new Node(NodeTypesEnum.DECLARATION);
+        Node dec2 = new Node(NodeTypesEnum.DECLARATION);
+        Node dec3 = new Node(NodeTypesEnum.DECLARATION);
+        Node condition1 = new Node(NodeTypesEnum.BINARY_EXPRESSION);
+        Node condition2 = new Node(NodeTypesEnum.BINARY_EXPRESSION);
+
+        while1.setCondition(condition1);
+        while2.setCondition(condition2);
+
+        ArrayList<Node> while1Body = new ArrayList<>();
+        ArrayList<Node> while2Body = new ArrayList<>();
+        while1.setBody(while1Body);
+        while2.setBody(while2Body);
+
+        while1Body.add(dec1);
+        while1Body.add(while2);
+        while1Body.add(dec3);
+
+        while2Body.add(dec2);
+
+        ArrayList<BBlock> TestList = BBMain.parse(while1);
+
+        System.out.println(TestList);
+    
+
 
     }
     

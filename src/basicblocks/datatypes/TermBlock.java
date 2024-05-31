@@ -2,8 +2,8 @@ package basicblocks.datatypes;
 
 public class TermBlock extends BBlock{
 
-    public TermBlock() {
-        super(null);
+    public TermBlock(int positionInArray) {
+        super(positionInArray, null);
     }
 
     public String toString() {
