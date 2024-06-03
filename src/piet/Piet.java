@@ -13,7 +13,8 @@ import piet.datatypes.*;
 public class Piet {
 
     LinkedList<String> VariablenSpeicher = new LinkedList<>();
-    LinkedList<String> FunktionsVariablenSpeicher = new LinkedList<>();
+    //LinkedList<String> FunktionsVariablenSpeicher = new LinkedList<>();
+    Dictionary<String, Integer> functionVariableSpeicher = new Hashtable<>(); // key ist der param name und der wert ist die position auf dem stack
     Dictionary<String, LinkedList<String>> functionsDict = new Hashtable<>();
 
     int ProgramCounter = 0;
@@ -230,7 +231,7 @@ public class Piet {
             if(node.getType() == NodeTypesEnum.BLOCK_STATEMENT) ; //return as BLOCK_STATEMENT
             if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION) return solveBinaryExpresssion(block, node); //return as BINARY_EXPRESSION
             if(node.getType() == NodeTypesEnum.FUNCTION_CALL) return parseFunctionCall(block, node); //return as FUNCTION_CALL
-            if(node.getType() == NodeTypesEnum.FUNCTION_DEF) ; //return as FUNCTION_DEF
+            if(node.getType() == NodeTypesEnum.FUNCTION_DEF) parseFunctionDef(node); //return as FUNCTION_DEF
             if(node.getType() == NodeTypesEnum.RETURN_STATEMENT) ; //return as RETURN_STATEMENT
         }
         return block;
@@ -263,7 +264,7 @@ public class Piet {
         return block;
     }
 
-    private void parseFunctionDef(Block block, Node node){
+    private void parseFunctionDef(Node node){
         Node func = node.getBody().get(0);
         if (func.getType() != NodeTypesEnum.FUNCTION_DEF){
             System.err.println("Node must be of Type FUNCTION_DEF");
@@ -293,7 +294,7 @@ public class Piet {
         for (int p = 0; p < body.getAlternative().size(); p++){
             Node param = body.getAlternative().get(p);
             String param_name = param_names.get(p);
-            FunktionsVariablenSpeicher.add(param_name); // Wie speicher ich die Position der Variablen, weil mit ProgrammCounter geht ja nicht mehr, weil ich ja n offset habe
+            //FunktionsVariablenSpeicher.add(param_name); // Wie speicher ich die Position der Variablen, weil mit ProgrammCounter geht ja nicht mehr, weil ich ja n offset habe
             //wenn man mit Variablenspeicher macht, dann hat man aber den nachteil mit dem offset=programmcounter
             if (param.getType() == NodeTypesEnum.LITERAL){
                 block.addOperation(new Operation(Command.PUSH, Integer.valueOf(param.getValue())));
@@ -308,12 +309,14 @@ public class Piet {
             else {
                 System.err.println("Right Side of Condition needs to be Identifier or Literal or Binary Expression");
             }
+            functionVariableSpeicher.put(param_name, ProgramCounter); // param wird auf top des stacks gepusht und diese position wird im dictionary mit dem param name(key) gespeichert
         }
+        // wie kann ich an den block verlinken der dann die Funktion ausführt. Da müsste im block was mitgegeben werden
         return block;
     }
-    
 
-    private static Block solveBinaryExpresssion(Block block, Node node){
+
+    private Block solveBinaryExpresssion(Block block, Node node){
         // WEiß nicht ob wir das einfach so implementieren können 
         // was ist z.b. mit: x = (2+3)*(4*8) ??
         // das sind ja mehrere binary expressions ineinander verschachtelt das müssen wir ja iwi auflösen oder nicht 
@@ -322,8 +325,8 @@ public class Piet {
         // temp = 4*8
         // x = x * temp
 
-        int leftValue = node.getLeft().getValue(); // check ob linker value ein identifier, literal oder binary expression ist
-        int rightValue = node.getRight().getValue(); // check ob linker value ein identifier, literal oder binary expression ist
+        int leftValue = Integer.parseInt(node.getLeft().getValue()); // check ob linker value ein identifier, literal oder binary expression ist
+        int rightValue = Integer.parseInt(node.getRight().getValue()); // check ob linker value ein identifier, literal oder binary expression ist
         block.addOperation(new Operation(Command.PUSH, leftValue));
         block.addOperation(new Operation(Command.PUSH, rightValue));
         
