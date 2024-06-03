@@ -1,6 +1,8 @@
 package piet;
 
 import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.LinkedList;
 
 import ast.datatypes.Node;
@@ -12,6 +14,7 @@ public class Piet {
 
     LinkedList<String> VariablenSpeicher = new LinkedList<>();
     LinkedList<String> FunktionsVariablenSpeicher = new LinkedList<>();
+    Dictionary<String, LinkedList<String>> functionsDict = new Hashtable<>();
 
     int ProgramCounter = 0;
 
@@ -260,6 +263,24 @@ public class Piet {
         return block;
     }
 
+    private void parseFunctionDef(Block block, Node node){
+        Node func = node.getBody().get(0);
+        if (func.getType() != NodeTypesEnum.FUNCTION_DEF){
+            System.err.println("Node must be of Type FUNCTION_DEF");
+            return;
+        }
+        String functionName = func.getValue();
+        LinkedList<String> params = new LinkedList<>();
+        for (int p=0; p < func.getAlternative().size(); p++){
+            String param_name = func.getAlternative().get(p).getValue();
+            params.add(param_name);
+        }
+        functionsDict.put(functionName, params);
+        // macht das wirklich sinn den code von der function hier direkt zu parsen??? Also so ists zumindest gerade im ast team gemacht
+        // macht iwi weniger sinn. würde tbh mehr sinn machen abzuspeichern zu welchem block gesprungen werden soll wenn die function aufgerufen wird
+        return;
+    }
+
     private Block parseFunctionCall(Block block, Node node){
         // wie sieht ein Function Call als BasicBlock aus???
         Node body = node.getBody().get(0);
@@ -268,7 +289,7 @@ public class Piet {
             return block;
         }
         String function_name = body.getValue();
-        LinkedList<String> param_names = getParamNames(function_name);
+        LinkedList<String> param_names = functionsDict.get(function_name);
         for (int p = 0; p < body.getAlternative().size(); p++){
             Node param = body.getAlternative().get(p);
             String param_name = param_names.get(p);
@@ -290,7 +311,7 @@ public class Piet {
         }
         return block;
     }
-
+    
 
     private static Block solveBinaryExpresssion(Block block, Node node){
         // WEiß nicht ob wir das einfach so implementieren können 
