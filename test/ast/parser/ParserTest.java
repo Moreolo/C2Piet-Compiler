@@ -22,11 +22,11 @@ public class ParserTest {
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
         Node testNode = parser.parse(tokens);
-        Node program =  testNode.getBody().get(0);
+        Node program = testNode.getBody().get(0);
         assertEquals(NodeTypesEnum.BINARY_EXPRESSION, program.getType());
         assertEquals("i", program.getLeft().getValue());
         assertEquals("=", program.getOperator());
-        Node binExp  = program.getRight();
+        Node binExp = program.getRight();
         assertEquals(NodeTypesEnum.BINARY_EXPRESSION, binExp.getType());
         assertEquals("3", binExp.getLeft().getValue());
         assertEquals("+", binExp.getOperator());
@@ -44,7 +44,7 @@ public class ParserTest {
         Node program = parser.parse(tokens).getBody().get(0);
         assertEquals(NodeTypesEnum.IF_STATEMENT, program.getType());
         // test if condition
-        Node ifCondtion  = program.getCondition();
+        Node ifCondtion = program.getCondition();
         assertEquals(NodeTypesEnum.BINARY_EXPRESSION, ifCondtion.getType());
         assertEquals("3", ifCondtion.getLeft().getValue());
         assertEquals(">", ifCondtion.getOperator());
@@ -73,7 +73,7 @@ public class ParserTest {
         assertEquals(NodeTypesEnum.BINARY_EXPRESSION, elseIfBody.getType());
         assertEquals("y", elseIfBody.getLeft().getValue());
         assertEquals("=", elseIfBody.getOperator());
-        Node binExp  = elseIfBody.getRight();
+        Node binExp = elseIfBody.getRight();
         assertEquals(NodeTypesEnum.BINARY_EXPRESSION, binExp.getType());
         assertEquals("x", binExp.getLeft().getValue());
         assertEquals("+", binExp.getOperator());
@@ -85,7 +85,7 @@ public class ParserTest {
         assertEquals(NodeTypesEnum.BINARY_EXPRESSION, else1Body.getType());
         assertEquals("x", else1Body.getLeft().getValue());
         assertEquals("=", else1Body.getOperator());
-        Node binExp2  = else1Body.getRight();
+        Node binExp2 = else1Body.getRight();
         assertEquals(NodeTypesEnum.BINARY_EXPRESSION, binExp.getType());
         assertEquals("x", binExp2.getLeft().getValue());
         assertEquals("+", binExp2.getOperator());
@@ -104,11 +104,30 @@ public class ParserTest {
         assertEquals(NodeTypesEnum.BINARY_EXPRESSION, program.getType());
         assertEquals("i", program.getLeft().getValue());
         assertEquals("=", program.getOperator());
-        Node binExp  = program.getRight();
+        Node binExp = program.getRight();
         assertEquals(NodeTypesEnum.BINARY_EXPRESSION, binExp.getType());
         assertEquals("i", binExp.getLeft().getValue());
         assertEquals("+", binExp.getOperator());
         assertEquals("1", binExp.getRight().getValue());
+    }
+
+    /**
+     * Tests constructs like += and -=
+     */
+    @Test
+    public void testOpEqual() {
+        Scan scanner = new Scan("x -= y ;"); // x = (x - y);
+        List<Token> tokens = scanner.scanTokens();
+        Parser parser = new Parser(tokens);
+        Node program = parser.parse(tokens).getBody().get(0);
+        assertEquals(NodeTypesEnum.BINARY_EXPRESSION, program.getType());
+        assertEquals("x", program.getLeft().getValue());
+        assertEquals("=", program.getOperator());
+        Node binExp = program.getRight();
+        assertEquals(NodeTypesEnum.BINARY_EXPRESSION, binExp.getType());
+        assertEquals("x", binExp.getLeft().getValue());
+        assertEquals("-", binExp.getOperator());
+        assertEquals("y", binExp.getRight().getValue());
     }
 
     /**
@@ -132,14 +151,14 @@ public class ParserTest {
         assertEquals("=", initCon.getOperator());
         assertEquals("0", initCon.getRight().getValue());
         // test condition
-        Node condtion  = program.getCondition();
+        Node condtion = program.getCondition();
         assertEquals(NodeTypesEnum.BINARY_EXPRESSION, condtion.getType());
         // test increment
         Node inc = program.getRight();
         assertEquals(NodeTypesEnum.BINARY_EXPRESSION, inc.getType());
         assertEquals("i", inc.getLeft().getValue());
         assertEquals("=", inc.getOperator());
-        Node binExp  = inc.getRight();
+        Node binExp = inc.getRight();
         assertEquals(NodeTypesEnum.BINARY_EXPRESSION, binExp.getType());
         assertEquals("i", binExp.getLeft().getValue());
         assertEquals("-", binExp.getOperator());
@@ -250,7 +269,7 @@ public class ParserTest {
      */
     @Test
     public void testSwitchCase() {
-       Scan scanner = new Scan("switch (days) { case 1: add(x,y); break; case 2: y=3; break; default: x+3; } ");
+        Scan scanner = new Scan("switch (days) { case 1: add(x,y); break; case 2: y=3; break; default: x+3; } ");
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
         Node switchh = parser.parse(tokens).getBody().get(0);
@@ -287,7 +306,7 @@ public class ParserTest {
 
 
     /**
-     * just for inspections for now
+     * Tests #include
      */
     @Test
     public void testInclude() {
@@ -295,13 +314,21 @@ public class ParserTest {
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
         Node testNode = parser.parse(tokens);
-
-        Assert.assertTrue(true);
+        // check that the first node is the included function definition
+        Node inclFunDef = testNode.getBody().get(0);
+        assertEquals(inclFunDef.getType(), NodeTypesEnum.FUNCTION_DEF);
+        assertEquals(inclFunDef.getBody().size(), 6);
+        // assert that the rest follows
+        Node whileNode = testNode.getBody().get(1);
+        assertEquals(whileNode.getType(), NodeTypesEnum.WHILE_STATEMENT);
+        Node funDef = testNode.getBody().get(2);
+        assertEquals(funDef.getType(), NodeTypesEnum.FUNCTION_DEF);
+        assertEquals(funDef.getBody().size(), 1);
     }
 
 
     /**
-     * just for inspections for now
+     * Tests constants definition
      */
     @Test
     public void testDefine() {
@@ -309,9 +336,18 @@ public class ParserTest {
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
         Node testNode = parser.parse(tokens);
-
-        Assert.assertTrue(true);
+        Node node1 = testNode.getBody().get(0);
+        assertEquals(NodeTypesEnum.BINARY_EXPRESSION, node1.getType());
+        assertEquals("MAX", node1.getLeft().getValue());
+        assertEquals("=", node1.getOperator());
+        assertEquals("3", node1.getRight().getValue());
+        Node node2 = testNode.getBody().get(1);
+        assertEquals(NodeTypesEnum.BINARY_EXPRESSION, node2.getType());
+        assertEquals("MIN", node2.getLeft().getValue());
+        assertEquals("=", node2.getOperator());
+        assertEquals("4", node2.getRight().getValue());
     }
+
 
     /**
      * just for inspections for now
@@ -328,5 +364,5 @@ public class ParserTest {
 
 }
 
-// TODO next: += and stuff (<<), booleans?
+// TODO next: (<<)
 // TODO (precedence)

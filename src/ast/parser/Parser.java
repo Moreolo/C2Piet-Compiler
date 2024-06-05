@@ -5,9 +5,10 @@ import ast.datatypes.NodeTypesEnum;
 import ast.lexer.Lexer;
 import ast.lexer.Token;
 import ast.lexer.TokenType;
-import java.io.File;
+
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Parser {
 
@@ -34,7 +35,7 @@ public class Parser {
                 case PROGRAM:
                     return handleProgram(programmNode);
                 case HASHTAG:
-                    if(tokens.get(1).getType() == TokenType.INCLUDE) {
+                    if (tokens.get(1).getType() == TokenType.INCLUDE) {
                         programmNode.setBody(handleInclude());
                         return programmNode;
                     } else if (tokens.get(1).getType() == TokenType.DEFINE) {
@@ -59,6 +60,8 @@ public class Parser {
                 case IDENTIFIER:
                     if (tokens.get(1).getType() == TokenType.LEFT_PAREN) {
                         return handleFunctionCall(new Node(NodeTypesEnum.FUNCTION_CALL));
+                    } else if (tokens.get(1).getType() == TokenType.PLUS_EQUAL || tokens.get(1).getType() == TokenType.MINUS_EQUAL) {
+                        return handleOpEqual();
                     } else {
                         return handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION));
                     }
@@ -129,19 +132,16 @@ public class Parser {
         consume(TokenType.PROGRAM);
         List<Node> res = new ArrayList<>();
         while (!peek(TokenType.EOF)) {
-            Node temp = parse(tokens);
-            if(temp != null) {
+            Node curNode = parse(tokens);
+            if (curNode != null) {
                 // handle included files
-                // -> extract their body and prepend to original node
-                if (temp.getType() == NodeTypesEnum.PROGRAM) {
-                    List<Node> t =  temp.getBody();
-                    t.remove(t.size()-1); // remove terminator
-                   for (Node n : t) {
-                       res.add(n);
-                   }
-                }
-               else {
-                    res.add(temp);
+                // -> extract their body and prepend to program node
+                if (curNode.getType() == NodeTypesEnum.PROGRAM) {
+                    List<Node> t = curNode.getBody();
+                    t.remove(t.size() - 1); // remove terminator
+                    res.addAll(t);
+                } else {
+                    res.add(curNode);
                 }
             }
         }
@@ -151,26 +151,22 @@ public class Parser {
     }
 
     /**
+     * Handle #include "file.c".
+     * We can only handle locally stored c files.
+     * The input from the file will be pasted into the original file
      *
-     * #include <stdlib>  -> cannot parse find locally
-     * #inlcude "cFolder/myFolder/myFile.c" -> in local dir
-     *
-     *
-     * @return
+     * @return a list of nodes (body of the parsed program node)
      */
     private List<Node> handleInclude() {
         consume(TokenType.HASHTAG);
         consume(TokenType.INCLUDE);
         String path = popToken().getLexeme();
-        path = path.replace("\"", ""); // remove qutoes
-        File file;
+        path = path.replace("\"", ""); // remove quotes
         // path specified
         if (path.contains("/") || path.contains("\\")) {
-            file = new File(path);
         } else {
             // if nothing else specified
             String userPath = System.getProperty("user.dir");
-            file = new File(userPath + File.separator + path);
         }
         try {
             Node include = Lexer.runFile(path);
@@ -181,11 +177,10 @@ public class Parser {
     }
 
     /**
+     * Constant definitions like #define MAX 5.
+     * Will simply be stored as variables.
      *
-     * #define MAX 5
-     * ....
-     * y = MAX * 3;
-     *
+     * @return a BinEpx node with the value and name
      */
     private Node handleDefine() {
         consume(TokenType.HASHTAG);
@@ -279,7 +274,8 @@ public class Parser {
 
     /**
      * Handle switch cases.
-     * @param node to fill with binExp
+     *
+     * @param node       to fill with binExp
      * @param expression for the switch declaration
      * @return binaryExp with expression == case
      */
@@ -293,6 +289,7 @@ public class Parser {
 
     /**
      * Handle the switch body, putting everything up to the break into the body
+     *
      * @return the filled body node
      */
     private List<Node> handleSwitchBody() {
@@ -310,6 +307,7 @@ public class Parser {
 
     /**
      * Handles default cases of switches
+     *
      * @param node ElseNode to fill with
      * @return filled ElseNode
      */
@@ -434,6 +432,32 @@ public class Parser {
         consumeErrorFree(TokenType.SEMICOLON);
         return resNode;
     }
+
+    private Node handleOpEqual() {
+        Node resNode = new Node(NodeTypesEnum.BINARY_EXPRESSION);
+        // for example x += y; --> x = (x + y)
+        String identifier1 = popToken().getLexeme();
+        Node identifierNode1 = new Node(NodeTypesEnum.IDENTIFIER, null, identifier1, null, null, null, null, null);
+
+        String identifier2 = tokens.get(1).getLexeme();
+        Node identifierNode2 = new Node(NodeTypesEnum.IDENTIFIER, null, identifier2, null, null, null, null, null);
+
+        resNode.setLeft(identifierNode1);
+        resNode.setOperator("=");
+        if (peek(TokenType.PLUS_EQUAL)) {
+            resNode.setRight(new Node(NodeTypesEnum.BINARY_EXPRESSION, null, null, identifierNode1, "+", identifierNode2, null, null));
+            consume(TokenType.PLUS_EQUAL);
+            popToken();
+        } else {
+            resNode.setRight(new Node(NodeTypesEnum.BINARY_EXPRESSION, null, null, identifierNode1, "-", identifierNode2, null, null));
+            consume(TokenType.MINUS_EQUAL);
+            popToken();
+        }
+        consumeErrorFree(TokenType.RIGHT_PAREN);
+        consumeErrorFree(TokenType.SEMICOLON);
+        return resNode;
+    }
+
 
     /**
      * Handle declarations like int x; and int y = 3 + 3;

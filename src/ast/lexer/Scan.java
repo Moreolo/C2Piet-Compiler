@@ -100,8 +100,13 @@ public class Scan{
           case '}': addToken(RIGHT_BRACE); break;
           case ',': addToken(COMMA); break;
           case '.': addToken(DOT); break;
-          case '-': addToken(match('-')? DECREMENT : MINUS); break;
-          case '+': addToken(match('+')? INCREMENT : PLUS); break;
+          case '-': if(match('=')) {
+            addToken(MINUS_EQUAL);
+            break;
+          }else {addToken(match('-')? DECREMENT : MINUS); break;}
+          case '+': if(match('=')){
+            addToken(PLUS_EQUAL); break;
+          }else{addToken(match('+')? INCREMENT : PLUS); break;}
           case ';': addToken(SEMICOLON); break;
           case '*': addToken(STAR); break; 
           case '[': addToken(SQUARE_BRACE_LEFT); break;
