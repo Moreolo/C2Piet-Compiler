@@ -72,7 +72,6 @@ public class Piet {
         * @param Block block ist der Block in dem die Piet-Commands gespeichert werden
         * @return Node condition ist die condition aus dem Condition-BBlock
         */
-        int num;
 
         //Initialisierung von Variablen
         var left = condition.getLeft();
@@ -196,6 +195,13 @@ public class Piet {
     }
 
     private Block typeCheck(Block block, Node node){
+        /**
+        * typeCheck checkt ob node von richtigem Type ist und befördert direkt Wert des Nodes an die Spitze des Stacks
+        * @param Block block ist der Block in dem die Piet-Commands gespeichert werden
+        * @param Node node ist die Node der Assignment Expression
+        * @return Block block der mit Commands erweiterte block wird returned
+        */
+
         //Überprüfung ob Condition richiges Format hat (Rechts darf nur Typ IDENTIFIER oder LITERAL sein)
         if(node.getType() == NodeTypesEnum.LITERAL){
             //Pushe Wert auf die Spitze des Stacks, um später Vergleich darauf auszuführen
@@ -238,7 +244,14 @@ public class Piet {
     }
 
     private Block parseAssignmentExpression(Block block, Node node){
+        /**
+        * parseAssignmentExpression parsed Assignment Expressions
+        * @param Block block ist der Block in dem die Piet-Commands gespeichert werden
+        * @param Node node ist die Node der Assignment Expression
+        * @return Block block der mit Commands erweiterte block wird returned
+        */
 
+        // Check ob linke seite vom Type IDENTIFIER ist
         Node left = node.getLeft();
         String varString = "";
         if (left.getType() == NodeTypesEnum.IDENTIFIER){
@@ -247,9 +260,15 @@ public class Piet {
         else{
             System.err.println("Right side of assignment expression must be of Type Identifier");
         }
+
+        // Check ob rechte seite der assignment expression richtigen typ hat
         Node right = node.getRight();
+        // pushe werte der rechten Seite auf den Stack
         block = typeCheck(block, right);
+
+        // Check ob variable schon auf Stack gespeichert ist
         if (VariablenSpeicher.contains(varString)){
+            // wenn Variable schon auf Stack liegt -> rotiere Variable zur Spitze des Stacks und update Wert
             int varpos = VariablenSpeicher.indexOf(varString);
             block = rotateVariable(block, varString);
             block.addOperation(new Operation(Command.POP));
@@ -258,24 +277,36 @@ public class Piet {
             block.addOperation(new Operation(Command.ROLL));
         }
         else{
+            // wenn Variable noch nicht auf Stack liegt -> assigne Variable zum Wert an der Spitze des Stacks (Wert der rechten Seite der Assignment Expression)
             VariablenSpeicher.add(varString);
-            ProgramCounter += 1;
         }
         return block;
     }
 
     private void parseFunctionDef(Node node){
+        /**
+        * parseFunctionDef parsed Functions Definitionen
+        * @param Node node ist die Node der Function Definition
+        * @return Block block der mit Commands erweiterte block wird returned
+        */
+
+        //Überprüfung ob Node vom Type FUNCTION_DEF ist
         Node func = node.getBody().get(0);
         if (func.getType() != NodeTypesEnum.FUNCTION_DEF){
             System.err.println("Node must be of Type FUNCTION_DEF");
             return;
         }
+
         String functionName = func.getValue();
+        // Initialisiere Linked List in der die Namen der Parameter der Funktion gespeichert werden
         LinkedList<String> params = new LinkedList<>();
+        // Loope über alle Parameter der Funktion
         for (int p=0; p < func.getAlternative().size(); p++){
+            // Füge Parametername zu LinkedList hinzu
             String param_name = func.getAlternative().get(p).getValue();
             params.add(param_name);
         }
+        // erstelle neuen Eintrag im Functions Dictionary -> dort wird der Funktionsname + die zugehörigen Parameternamen gespeichert
         functionsDict.put(functionName, params);
         // macht das wirklich sinn den code von der function hier direkt zu parsen??? Also so ists zumindest gerade im ast team gemacht
         // macht iwi weniger sinn. würde tbh mehr sinn machen abzuspeichern zu welchem block gesprungen werden soll wenn die function aufgerufen wird
@@ -283,14 +314,25 @@ public class Piet {
     }
 
     private Block parseFunctionCall(Block block, Node node){
-        // wie sieht ein Function Call als BasicBlock aus???
+        /**
+        * parseFunctionCall parsed FunctionCalls
+        * @param Block block ist der Block in dem die Piet-Commands gespeichert werden
+        * @param Node node ist die Node dem Function Call
+        * @return Block block der mit Commands erweiterte block wird returned
+        */
+
+        //Überprüfung ob Node vom Type FUNCTION_CALL ist
         Node body = node.getBody().get(0);
         if (body.getType() != NodeTypesEnum.FUNCTION_CALL){
             System.err.println("Function Call muss vom type FUNCTION CALL SEIN");
             return block;
         }
+        // Get Funktionsname
         String function_name = body.getValue();
+        // Get Paramternamen der Funktion
         LinkedList<String> param_names = functionsDict.get(function_name);
+
+        //Loope über alle Parameter der Funktion
         for (int p = 0; p < body.getAlternative().size(); p++){
             Node param = body.getAlternative().get(p);
             String param_name = param_names.get(p);
