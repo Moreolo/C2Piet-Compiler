@@ -6,60 +6,11 @@ import java.util.LinkedList;
 import piet.datatypes.*;
 
 public class Design {
-
-    // Farben
-    // Rot
-    int red = (255 << 16) | (0 << 8) | 0;
-    int lightRed = (255 << 16) | (192 << 8) | 192;
-    int darkRed = (192 << 16) | (0 << 8) | 0;
-
-    // Gelb
-    int yellow = (255 << 16) | (255 << 8) | 0;
-    int lightYellow = (255 << 16) | (255 << 8) | 192;
-    int darkYellow = (192 << 16) | (192 << 8) | 0;
-
-    // Grün
-    int green = (0 << 16) | (255 << 8) | 0;
-    int lightGreen = (192 << 16) | (255 << 8) | 192;
-    int darkGreen = (0 << 16) | (192 << 8) | 0;
-
-    // Cyan
-    int cyan = (0 << 16) | (255 << 8) | 255;
-    int lightCyan = (192 << 16) | (255 << 8) | 255;
-    int darkCyan = (0 << 16) | (192 << 8) | 192;
-
-    // Blau
-    int blue = (0 << 16) | (0 << 8) | 255;
-    int lightBlue = (192 << 16) | (192 << 8) | 255;
-    int darkBlue = (0 << 16) | (0 << 8) | 192;
-
-    // Magenta
-    int magenta = (255 << 16) | (0 << 8) | 255;
-    int lightMagenta = (255 << 16) | (192 << 8) | 255;
-    int darkMagenta = (192 << 16) | (0 << 8) | 192;
-
-    // Weiß
-    int white = (255 << 16) | (255 << 8) | 255;
-
-    // Schwarz
-    int black = (0 << 16) | (0 << 8) | 0;
-
-    // verschachteltes FarbenArray
-    int[][] matrixOfColor = {
-            { lightRed, red, darkRed },
-            { lightYellow, yellow, darkYellow },
-            { lightGreen, green, darkGreen },
-            { lightCyan, cyan, darkCyan },
-            { lightBlue, blue, darkBlue },
-            { lightMagenta, magenta, darkMagenta },
-
-    };
-
     // Die Breite und Höhe des Bilds
     int width, height;
     // Die akutelle Farbe (auch aktuelle Operation, weil der Pixel noch gesetzt
     // werden muss)
-    int currentHue, currentShade;
+    PietColor currentColor;
     // Der aktuelle Block
     int currentBlock;
     // Die aktuelle Reihe innerhalb des Blocks
@@ -84,8 +35,7 @@ public class Design {
             // Setzt y offset zurück
             design.currentYOffset = 0;
             // Setzt Farbe auf dunkelgrün
-            design.currentHue = 2;
-            design.currentShade = 2;
+            design.currentColor = new PietColor(2, 2);
             // Iteriert durch die Operationen
             for (Operation op : blocks.get(i).getOperations()) {
                 design.paintOperation(op);
@@ -99,8 +49,7 @@ public class Design {
 
     // Initialisiert alle Variablen und setzt die konstanten Pixel
     public Design(LinkedList<Block> blocks) {
-        currentHue = 0;
-        currentShade = 0;
+        currentColor = new PietColor(0, 0);
         currentBlock = 1;
         currentYOffset = 0;
         calcImageWidth(blocks);
@@ -110,7 +59,7 @@ public class Design {
         // Setzt alle Pixel auf weiß
         for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++)
-                image.setRGB(x, y, white);
+                image.setRGB(x, y, PietColor.white);
 
         paintNoBlockPixels(blocks);
     }
@@ -169,26 +118,26 @@ public class Design {
     // Setzt alle Pixel die nicht Teil der Piet Commands der Blöcke sind
     private void paintNoBlockPixels(LinkedList<Block> blocks) {
         // Setzt Start Pixel links oben
-        image.setRGB(4, 0, black);
-        image.setRGB(0, 1 + addedRowsTop, black);
-        image.setRGB(3, 4 + addedRowsTop, black);
-        image.setRGB(3, 3 + addedRowsTop, darkGreen);
+        image.setRGB(4, 0, PietColor.black);
+        image.setRGB(0, 1 + addedRowsTop, PietColor.black);
+        image.setRGB(3, 4 + addedRowsTop, PietColor.black);
+        image.setRGB(3, 3 + addedRowsTop, PietColor.darkGreen);
 
         // Setzt End Pixel rechts oben
-        image.setRGB(width - 1, 0 + addedRowsTop, black);
-        image.setRGB(width - 2, 1 + addedRowsTop, black);
-        image.setRGB(width - 2, 3 + addedRowsTop, black);
-        image.setRGB(width - 1, 4 + addedRowsTop, black);
+        image.setRGB(width - 1, 0 + addedRowsTop, PietColor.black);
+        image.setRGB(width - 2, 1 + addedRowsTop, PietColor.black);
+        image.setRGB(width - 2, 3 + addedRowsTop, PietColor.black);
+        image.setRGB(width - 1, 4 + addedRowsTop, PietColor.black);
 
         for (int y = 1; y <= 3; y++) {
-            image.setRGB(width - 1, y + addedRowsTop, red);
+            image.setRGB(width - 1, y + addedRowsTop, PietColor.red);
         }
 
         // Setzt Pixel links unten
         // Pixel sind notwendig um den Codel Chooser zu korrigieren
-        image.setRGB(1, height - 2, black);
-        image.setRGB(0, height - 1, green);
-        image.setRGB(1, height - 1, green);
+        image.setRGB(1, height - 2, PietColor.black);
+        image.setRGB(0, height - 1, PietColor.green);
+        image.setRGB(1, height - 1, PietColor.green);
 
         // Setzt alle Pixel oberhalb der Blöcke
         // Die Pixel überprüfen ob die Block Nummer mit dem aktuellen Wert auf dem Stack übereinstimmt
@@ -197,9 +146,9 @@ public class Design {
             int blockPosi = i * 7;
 
             // Erster Pixel
-            image.setRGB(blockPosi + 2, 2 + addedRowsTop, blue);
+            image.setRGB(blockPosi + 2, 2 + addedRowsTop, PietColor.blue);
             // Duplicate
-            image.setRGB(blockPosi + 3, 2 + addedRowsTop, green);
+            image.setRGB(blockPosi + 3, 2 + addedRowsTop, PietColor.green);
             // Holt die Nummer des Blocks
             int blocknum = blocks.get(i).getNum();
             // Iteriert durch alle zu setzende Pixel durch
@@ -208,21 +157,21 @@ public class Design {
                 int xOffset = j % 6;
                 int yOffset = j / 6;
                 // Setzt den Pixel
-                image.setRGB((blockPosi + 3) - xOffset, 1 + addedRowsTop - yOffset, green);
+                image.setRGB((blockPosi + 3) - xOffset, 1 + addedRowsTop - yOffset, PietColor.green);
             }
 
             // Push
-            image.setRGB(blockPosi + 4, 2 + addedRowsTop, darkGreen);
+            image.setRGB(blockPosi + 4, 2 + addedRowsTop, PietColor.darkGreen);
             // Subtract
-            image.setRGB(blockPosi + 5, 2 + addedRowsTop, lightCyan);
+            image.setRGB(blockPosi + 5, 2 + addedRowsTop, PietColor.lightCyan);
             // Not
-            image.setRGB(blockPosi + 6, 2 + addedRowsTop, darkMagenta);
+            image.setRGB(blockPosi + 6, 2 + addedRowsTop, PietColor.darkMagenta);
             // Pointer
-            image.setRGB(blockPosi + 7, 2 + addedRowsTop, lightGreen);
+            image.setRGB(blockPosi + 7, 2 + addedRowsTop, PietColor.lightGreen);
             // Pop
-            image.setRGB(blockPosi + 6, 3 + addedRowsTop, darkGreen);
-            image.setRGB(blockPosi + 7, 3 + addedRowsTop, darkGreen);
-            image.setRGB(blockPosi + 6, 4 + addedRowsTop, black);
+            image.setRGB(blockPosi + 6, 3 + addedRowsTop, PietColor.darkGreen);
+            image.setRGB(blockPosi + 7, 3 + addedRowsTop, PietColor.darkGreen);
+            image.setRGB(blockPosi + 6, 4 + addedRowsTop, PietColor.black);
         }
     }
 
@@ -247,55 +196,55 @@ public class Design {
         // Verändert den Farbwert für den nächsten Pixel für die Operation
         switch (c) {
             case PUSH:
-                addColor(0, 1);
+                currentColor.add(0, 1);
                 break;
             case POP:
-                addColor(0, 2);
+                currentColor.add(0, 2);
                 break;
             case ADD:
-                addColor(1, 0);
+                currentColor.add(1, 0);
                 break;
             case SUBTRACT:
-                addColor(1, 1);
+                currentColor.add(1, 1);
                 break;
             case MULTIPLY:
-                addColor(1, 2);
+                currentColor.add(1, 2);
                 break;
             case DIVIDE:
-                addColor(2, 0);
+                currentColor.add(2, 0);
                 break;
             case MOD:
-                addColor(2, 1);
+                currentColor.add(2, 1);
                 break;
             case NOT:
-                addColor(2, 2);
+                currentColor.add(2, 2);
                 break;
             case GREATER:
-                addColor(3, 0);
+                currentColor.add(3, 0);
                 break;
             case POINTER:
                 // Die Farbe wird bereits in der paintPointer Funktion angepasst
                 break;
             case SWITCH:
-                addColor(3, 2);
+                currentColor.add(3, 2);
                 break;
             case DUPLICATE:
-                addColor(4, 0);
+                currentColor.add(4, 0);
                 break;
             case ROLL:
-                addColor(4, 1);
+                currentColor.add(4, 1);
                 break;
             case INNUMBER:
-                addColor(4, 2);
+                currentColor.add(4, 2);
                 break;
             case INCHAR:
-                addColor(5, 0);
+                currentColor.add(5, 0);
                 break;
             case OUTNUMBER:
-                addColor(5, 1);
+                currentColor.add(5, 1);
                 break;
             case OUTCHAR:
-                addColor(5, 2);
+                currentColor.add(5, 2);
                 break;
             default:
                 break;
@@ -307,12 +256,12 @@ public class Design {
         // xPos muss innerhalb des Blocks liegen
         if (xPos >= 0 && xPos <= 5)
             image.setRGB(currentBlock * 7 - xPos, 5 + addedRowsTop + currentYOffset,
-                    matrixOfColor[currentHue][currentShade]);
+                    currentColor.get());
     }
 
     // Setzt den Pixel mit der x Position im Block schwarz
     private void paintPixelBlack(int xPos) {
-        image.setRGB(currentBlock * 7 - xPos, 5 + addedRowsTop + currentYOffset, black);
+        image.setRGB(currentBlock * 7 - xPos, 5 + addedRowsTop + currentYOffset, PietColor.black);
     }
 
     // Setzt alle Pixel für die push Operation
@@ -338,7 +287,7 @@ public class Design {
         // Pixel von vorher setzen und current auf pointer Operation setzen
         paintPixel(0);
         currentYOffset += 1;
-        addColor(3, 1);
+        currentColor.add(3, 1);
 
         // val1 setzen
         paintPush(val1, 5);
@@ -354,7 +303,7 @@ public class Design {
         int height2 = (val2 - 1) / 5 + 1;
         // yOffset zurücksetzen und Operation auf push setzen
         currentYOffset = startYOffset;
-        addColor(0, 1);
+        currentColor.add(0, 1);
         // Setzt den oberen Pixel schwarz, damit Pointer nicht nach oben geht
         paintPixelBlack(width1);
         currentYOffset += 1;
@@ -409,14 +358,5 @@ public class Design {
         // Operation gesetzt wird
         // Dafür muss yOffset nochmal kleiner gemacht werden
         currentYOffset -= 1;
-    }
-
-    // Passt die aktuelle Farbe an, sodass eine Piet Operation leicht in die
-    // passende Farbe übersetzt werden kann
-    private void addColor(int hue, int shade) {
-        // Ein Wert wird addiert und es wird der passende Modulo genommen (Die Farben
-        // der Operationen sind zyklisch)
-        currentHue = (currentHue + hue) % 6;
-        currentShade = (currentShade + shade) % 3;
     }
 }
