@@ -54,8 +54,8 @@ public class Scan{
       keywords.put("union",    UNION);
       keywords.put("unsigned",    UNSIGNED);
       keywords.put("volatile",    VOLATILE);
-     
-
+      keywords.put("include",    INCLUDE);
+      keywords.put("define",    DEFINE);
     }
   
     public Scan(String source) {
@@ -108,6 +108,7 @@ public class Scan{
           case ']': addToken(SQUARE_BRACE_RIGHT); break;
           case ':': addToken(COLON); break;
           case '~': addToken(TILDA); break;
+          case '#': addToken(HASHTAG); break;
           case '&': addToken(match('&')? LOGICAL_AND : AND); break;
           case '|': addToken(match('|')? LOGICAL_OR : PIPE); break;
           case '!': addToken(match('=') ? BANG_EQUAL : BANG); break;

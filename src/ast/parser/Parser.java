@@ -2,11 +2,12 @@ package ast.parser;
 
 import ast.datatypes.Node;
 import ast.datatypes.NodeTypesEnum;
+import ast.lexer.Lexer;
 import ast.lexer.Token;
 import ast.lexer.TokenType;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 public class Parser {
 
@@ -27,10 +28,18 @@ public class Parser {
      * @return the entry node to the program
      */
     public Node parse(List<Token> tokens) {
+        Node programmNode = new Node(NodeTypesEnum.PROGRAM);
         for (Token token : tokens) {
             switch (token.getType()) {
                 case PROGRAM:
-                    return handleProgram(new Node(NodeTypesEnum.PROGRAM));
+                    return handleProgram(programmNode);
+                case HASHTAG:
+                    if(tokens.get(1).getType() == TokenType.INCLUDE) {
+                        programmNode.setBody(handleInclude());
+                        return programmNode;
+                    } else if (tokens.get(1).getType() == TokenType.DEFINE) {
+                        return handleDefine();
+                    }
                 case IF:
                     return handleIf(new Node(NodeTypesEnum.IF_STATEMENT));
                 case SWITCH:
@@ -42,7 +51,7 @@ public class Parser {
                 case WHILE:
                     return handleWhile(new Node(NodeTypesEnum.WHILE_STATEMENT));
                 case STRING, INT, FLOAT, DOUBLE, SHORT, LONG:
-                    if (tokens.get(1).getType() == TokenType.IDENTIFIER) {
+                    if (tokens.get(1).getType() == TokenType.IDENTIFIER && tokens.get(2).getType() == TokenType.LEFT_PAREN) {
                         return handleFunctionDeclaration(new Node(NodeTypesEnum.FUNCTION_DEF));
                     } else {
                         return handleDeclaration(new Node(NodeTypesEnum.DECLARATION));
@@ -61,7 +70,7 @@ public class Parser {
                     return null;
             }
         }
-        return null;
+        return programmNode;
     }
 
     /**
@@ -69,8 +78,9 @@ public class Parser {
      *
      * @param tokenType the expected tokenType
      */
-    public void consume(TokenType tokenType) {
+    private void consume(TokenType tokenType) {
         if (tokenType == tokens.get(0).getType()) {
+            System.out.println("consumed: " + tokens.get(0));
             tokens.remove(0);
             return;
         }
@@ -82,8 +92,9 @@ public class Parser {
      *
      * @param tokenType the expected tokenType
      */
-    public void consumeErrorFree(TokenType tokenType) {
+    private void consumeErrorFree(TokenType tokenType) {
         if (tokenType == tokens.get(0).getType()) {
+            System.out.println("consumed: " + tokens.get(0));
             tokens.remove(0);
         }
     }
@@ -94,15 +105,16 @@ public class Parser {
      * @param type the type of the token
      * @return true if the next token is of supplied type
      */
-    public boolean peek(TokenType type) {
+    private boolean peek(TokenType type) {
         return tokens.get(0).getType() == type;
     }
 
     /**
      * @return the token on top of the list and delete it
      */
-    public Token popToken() {
+    private Token popToken() {
         Token token = tokens.get(0);
+        System.out.println("consumed: " + tokens.get(0));
         tokens.remove(0);
         return token;
     }
@@ -113,13 +125,24 @@ public class Parser {
      * @param node to fill
      * @return program node with everything in the body
      */
-    public Node handleProgram(Node node) {
+    private Node handleProgram(Node node) {
         consume(TokenType.PROGRAM);
         List<Node> res = new ArrayList<>();
         while (!peek(TokenType.EOF)) {
             Node temp = parse(tokens);
-            if (temp != null) {
-                res.add(temp);
+            if(temp != null) {
+                // handle included files
+                // -> extract their body and prepend to original node
+                if (temp.getType() == NodeTypesEnum.PROGRAM) {
+                    List<Node> t =  temp.getBody();
+                    t.remove(t.size()-1); // remove terminator
+                   for (Node n : t) {
+                       res.add(n);
+                   }
+                }
+               else {
+                    res.add(temp);
+                }
             }
         }
         res.add(new Node((NodeTypesEnum.TERMINATOR)));
@@ -128,12 +151,59 @@ public class Parser {
     }
 
     /**
+     *
+     * #include <stdlib>  -> cannot parse find locally
+     * #inlcude "cFolder/myFolder/myFile.c" -> in local dir
+     *
+     *
+     * @return
+     */
+    private List<Node> handleInclude() {
+        consume(TokenType.HASHTAG);
+        consume(TokenType.INCLUDE);
+        String path = popToken().getLexeme();
+        path = path.replace("\"", ""); // remove qutoes
+        File file;
+        // path specified
+        if (path.contains("/") || path.contains("\\")) {
+            file = new File(path);
+        } else {
+            // if nothing else specified
+            String userPath = System.getProperty("user.dir");
+            file = new File(userPath + File.separator + path);
+        }
+        try {
+            Node include = Lexer.runFile(path);
+            return include.getBody();
+        } catch (final IOException e) {
+            throw new RuntimeException("Unable to find file " + path + " to include");
+        }
+    }
+
+    /**
+     *
+     * #define MAX 5
+     * ....
+     * y = MAX * 3;
+     *
+     */
+    private Node handleDefine() {
+        consume(TokenType.HASHTAG);
+        consume(TokenType.DEFINE);
+        String name = popToken().getLexeme();
+        Node leftNode = new Node(NodeTypesEnum.IDENTIFIER, null, name, null, null, null, null, null);
+        Node rightNode = new Node(NodeTypesEnum.LITERAL, null, popToken().getLexeme(), null, null, null, null, null);
+        return new Node(NodeTypesEnum.BINARY_EXPRESSION, null, null, leftNode, "=", rightNode, null, null);
+    }
+
+
+    /**
      * Sets all necessary fields of the If-Node
      *
      * @param node to set values of
      * @return fully initialized If-Node
      */
-    public Node handleIf(Node node) {
+    private Node handleIf(Node node) {
         consume(TokenType.IF);
         // handle condition
         consume(TokenType.LEFT_PAREN);
@@ -203,7 +273,7 @@ public class Parser {
             res.add(handleDefault(new Node(NodeTypesEnum.ELSE_STATEMENT)));
         }
         node.setAlternative(res);
-        //consume(TokenType.RIGHT_BRACE);
+        consume(TokenType.RIGHT_BRACE);
         return node;
     }
 
@@ -265,7 +335,7 @@ public class Parser {
      * @param node the node to attach the binExp to
      * @return the node with the binExp attached
      */
-    public Node handleBinaryExp(Node node) {
+    private Node handleBinaryExp(Node node) {
         // if there is a nest on the left side
         if (peek(TokenType.LEFT_PAREN)) {
             consume(TokenType.LEFT_PAREN);
@@ -313,7 +383,7 @@ public class Parser {
      * @param node for the loop
      * @return a node with the first statement in left, second statement in condition and third statement in right
      */
-    public Node handleFor(Node node) {
+    private Node handleFor(Node node) {
         consume(TokenType.FOR);
         consume(TokenType.LEFT_PAREN);
         // init loop variable
@@ -329,7 +399,7 @@ public class Parser {
         return node;
     }
 
-    public Node handleWhile(Node node) {
+    private Node handleWhile(Node node) {
         consume(TokenType.WHILE);
         consume(TokenType.LEFT_PAREN);
         node.setCondition(handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION)));
@@ -344,7 +414,7 @@ public class Parser {
      *
      * @return Binary expression like i = i + 1;
      */
-    public Node handleCrement() {
+    private Node handleCrement() {
         Node resNode = new Node(NodeTypesEnum.BINARY_EXPRESSION);
         // for i++ the identifier would be i
         String identifier = popToken().getLexeme();
@@ -371,7 +441,7 @@ public class Parser {
      * @param node for the Declaration
      * @return node with the name as value (and initialization as condition)
      */
-    public Node handleDeclaration(Node node) {
+    private Node handleDeclaration(Node node) {
         // delete string, int, long...
         popToken();
         // store name of variable in value
@@ -384,7 +454,7 @@ public class Parser {
         return node;
     }
 
-    public Node handleFunctionDeclaration(Node node) {
+    private Node handleFunctionDeclaration(Node node) {
         node.setOperator(popToken().getLexeme()); // return type
         node.setValue(popToken().getLexeme());  // function name
         List<Node> params = new ArrayList<>();
@@ -411,7 +481,7 @@ public class Parser {
      * @param node to fill
      * @return node with the block in the body and params in the alternative
      */
-    public Node handleFunctionCall(Node node) {
+    private Node handleFunctionCall(Node node) {
         node.setValue(tokens.get(0).getLexeme());
         consume(TokenType.IDENTIFIER);
         consume(TokenType.LEFT_PAREN);
@@ -432,7 +502,7 @@ public class Parser {
      * @param node to fill
      * @return a return node with the return value in condition
      */
-    public Node handleReturn(Node node) {
+    private Node handleReturn(Node node) {
         consume(TokenType.RETURN);
         consumeErrorFree(TokenType.LEFT_PAREN);
         node.setCondition(parse(tokens)); // for stuff like: return add(2,3) + 3;
@@ -445,7 +515,7 @@ public class Parser {
      *
      * @return filled block node
      */
-    public List<Node> handleBlock() {
+    private List<Node> handleBlock() {
         // check for curly brackets
         List<Node> res = new ArrayList<>();
         while (!peek(TokenType.RIGHT_BRACE)) {

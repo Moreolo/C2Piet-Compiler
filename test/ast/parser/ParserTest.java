@@ -285,12 +285,40 @@ public class ParserTest {
         assertEquals("3", case3Body.getRight().getValue());
     }
 
+
+    /**
+     * just for inspections for now
+     */
+    @Test
+    public void testInclude() {
+        Scan scanner = new Scan("#include \"hello.c\"; while(i < 3) { x = 3; } int sum(int a, int b) {return (a + b); }");
+        List<Token> tokens = scanner.scanTokens();
+        Parser parser = new Parser(tokens);
+        Node testNode = parser.parse(tokens);
+
+        Assert.assertTrue(true);
+    }
+
+
+    /**
+     * just for inspections for now
+     */
+    @Test
+    public void testDefine() {
+        Scan scanner = new Scan("#define MAX 3 #define MIN 4");
+        List<Token> tokens = scanner.scanTokens();
+        Parser parser = new Parser(tokens);
+        Node testNode = parser.parse(tokens);
+
+        Assert.assertTrue(true);
+    }
+
     /**
      * just for inspections for now
      */
     @Test
     public void testProgram() {
-        Scan scanner = new Scan("switch (days) { case 1: add(x,y); break; case 2: y=3; default: 3+2; } ");
+        Scan scanner = new Scan("int main() {int x = 3;int y = 5;int z = (x + y);if (z > 4) {return x; }}");
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
         Node testNode = parser.parse(tokens);
@@ -302,5 +330,3 @@ public class ParserTest {
 
 // TODO next: += and stuff (<<), booleans?
 // TODO (precedence)
-// TODO #inlude -> find file, parse it, and paste it on top
-//      #define constants
