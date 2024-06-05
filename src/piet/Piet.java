@@ -222,8 +222,17 @@ public class Piet {
         return block;
     }
     
-    private Block parseFunction(BBlock block, int num){
-        return new Block(num);
+    private Block parseFunction(BBlock bblock, int num){
+        var block = new Block(num);
+        for (Node node : bblock.getBody()) {
+            //if(node.getType() == NodeTypesEnum.ASSIGNMENT_EXPRESSION) return parseAssignmentExpression(block, node); //return as ASSIGNMENT_EXPRESSION
+            if(node.getType() == NodeTypesEnum.BLOCK_STATEMENT) ; //return as BLOCK_STATEMENT
+            if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION) return solveBinaryExpresssion(block, node); //return as BINARY_EXPRESSION
+            if(node.getType() == NodeTypesEnum.FUNCTION_CALL) return parseFunctionCall(block, node); //return as FUNCTION_CALL
+            if(node.getType() == NodeTypesEnum.FUNCTION_DEF) return parseFunctionDef(block, node); //return as FUNCTION_DEF
+            if(node.getType() == NodeTypesEnum.RETURN_STATEMENT) ; //return as RETURN_STATEMENT
+        }
+        return block;
     }
     
     private Block parseTerm(BBlock block, int num){
@@ -237,7 +246,7 @@ public class Piet {
             if(node.getType() == NodeTypesEnum.BLOCK_STATEMENT) ; //return as BLOCK_STATEMENT
             if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION) return solveBinaryExpresssion(block, node); //return as BINARY_EXPRESSION
             if(node.getType() == NodeTypesEnum.FUNCTION_CALL) return parseFunctionCall(block, node); //return as FUNCTION_CALL
-            if(node.getType() == NodeTypesEnum.FUNCTION_DEF) parseFunctionDef(node); //return as FUNCTION_DEF
+            //if(node.getType() == NodeTypesEnum.FUNCTION_DEF) return parseFunctionDef(block, node); //return as FUNCTION_DEF
             if(node.getType() == NodeTypesEnum.RETURN_STATEMENT) ; //return as RETURN_STATEMENT
         }
         return block;
@@ -283,7 +292,7 @@ public class Piet {
         return block;
     }
 
-    private void parseFunctionDef(Node node){
+    private Block parseFunctionDef(Block block, Node node){
         /**
         * parseFunctionDef parsed Functions Definitionen
         * @param Node node ist die Node der Function Definition
@@ -294,7 +303,7 @@ public class Piet {
         Node func = node.getBody().get(0);
         if (func.getType() != NodeTypesEnum.FUNCTION_DEF){
             System.err.println("Node must be of Type FUNCTION_DEF");
-            return;
+            return block;
         }
 
         String functionName = func.getValue();
@@ -310,7 +319,11 @@ public class Piet {
         functionsDict.put(functionName, params);
         // macht das wirklich sinn den code von der function hier direkt zu parsen??? Also so ists zumindest gerade im ast team gemacht
         // macht iwi weniger sinn. würde tbh mehr sinn machen abzuspeichern zu welchem block gesprungen werden soll wenn die function aufgerufen wird
-        return;
+        
+        var nodes = func.getBody();
+        parseFunctionBlock(block, node);
+        
+        return block;
     }
 
     private Block parseFunctionCall(Block block, Node node){
@@ -320,7 +333,7 @@ public class Piet {
         * @param Node node ist die Node dem Function Call
         * @return Block block der mit Commands erweiterte block wird returned
         */
-
+        
         //Überprüfung ob Node vom Type FUNCTION_CALL ist
         Node body = node.getBody().get(0);
         if (body.getType() != NodeTypesEnum.FUNCTION_CALL){
@@ -357,8 +370,42 @@ public class Piet {
         return block;
     }
 
+    private Block solveBinaryExpression(Block block, Node node){
+        //x = (2+3)*(4*8)
+        String operator = node.getOperator();
+        if (operator == "="){
+            parseAssignmentExpression(block, node);
+        }
+        else {
+            Node left = node.getLeft();
+            block = typeCheck(block, left);
+            Node right = node.getRight();
+            block = typeCheck(block, right);
+            switch (node.getOperator()) {
+                case "+":
+                    block.addOperation(new Operation(Command.ADD));
+                    break;
+                case "-":
+                    block.addOperation(new Operation(Command.SUBTRACT));
+                    break;
+                case "*":
+                    block.addOperation(new Operation(Command.MULTIPLY));
+                    break;
+                case "/":
+                    block.addOperation(new Operation(Command.DIVIDE));
+                    break;
+                case "%":
+                    block.addOperation(new Operation(Command.MOD));
+                    break;     
+            
+                default:
+                    break;
+            }
+        }
+        return block;
+    }
 
-    private Block solveBinaryExpresssion(Block block, Node node){
+    private Block solveBinaryExpresssion2(Block block, Node node){
         // WEiß nicht ob wir das einfach so implementieren können 
         // was ist z.b. mit: x = (2+3)*(4*8) ??
         // das sind ja mehrere binary expressions ineinander verschachtelt das müssen wir ja iwi auflösen oder nicht 
