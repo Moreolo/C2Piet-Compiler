@@ -57,13 +57,35 @@ public class PietColor {
         this.shade = shade;
     }
 
+    public PietColor(boolean white, boolean black) {
+        if(white)
+            setWhite();
+        else if(black)
+            setBlack();
+    }
+
     public void set(int hue, int shade) {
         this.hue = hue;
         this.shade = shade;
     }
 
+    public void setWhite() {
+        this.hue = -1;
+        this.shade = 0;
+    }
+
+    public void setBlack() {
+        this.hue = 0;
+        this.shade = -1;
+    }
+
     public int get() {
-        return matrixOfColor[hue][shade];
+        if(hue == -1)
+            return white;
+        else if(shade == -1)
+            return black;
+        else
+            return matrixOfColor[hue][shade];
     }
 
     // Passt die aktuelle Farbe an, sodass eine Piet Operation leicht in die
