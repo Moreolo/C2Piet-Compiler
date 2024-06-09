@@ -27,6 +27,22 @@ public class BlockGenerator {
 
     }
 
+    private void generatePushToLeft() {
+
+    }
+
+    private void generatePush(int firstRowSize) {
+
+    }
+
+    private boolean colorColision(int pixelBehind, int pixelFront) {
+        return true;
+    }
+
+    private void generatePointer() {
+
+    }
+
     public int getHeight() {
         return 0;
     }
