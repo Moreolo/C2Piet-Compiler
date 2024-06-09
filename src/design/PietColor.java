@@ -88,6 +88,10 @@ public class PietColor {
             return matrixOfColor[hue][shade];
     }
 
+    public PietColor getCopy() {
+        return new PietColor(this.hue, this.shade);
+    }
+
     // Passt die aktuelle Farbe an, sodass eine Piet Operation leicht in die
     // passende Farbe übersetzt werden kann
     public void add(int hue, int shade) {
