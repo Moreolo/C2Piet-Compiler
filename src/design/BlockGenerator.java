@@ -10,9 +10,6 @@ import piet.datatypes.Operation;
 public class BlockGenerator {
     public static int blockWidth = 6;
 
-    private static PietColor white = new PietColor(true, false);
-    private static PietColor black = new PietColor(false, true);
-
     private LinkedList<PietColor[]> chooser;
     private LinkedList<PietColor[]> block;
 
@@ -22,7 +19,6 @@ public class BlockGenerator {
 
     public BlockGenerator(Block block) {
         this.chooser = new LinkedList<>();
-        this.block = new LinkedList<>();
         generateChooser(block.getNum());
         generateBlock(block.getOperations());
     }
@@ -32,9 +28,14 @@ public class BlockGenerator {
     }
 
     private void generateBlock(LinkedList<Operation> operations) {
+        this.block = new LinkedList<>();
+
         pos = 2;
         color = new PietColor(2, 2);
         row = new PietColor[blockWidth - 1];
+        for(int i = 0; i < row.length; i++) {
+            row[i] = new PietColor(true, false);
+        }
 
         for(Operation operation: operations) {
             // Setzt die Pixel für die vorherige Operation
@@ -109,46 +110,45 @@ public class BlockGenerator {
             }
         }
         generateOtherOperation();
+        block.add(row);
     }
 
     //Generiert die Operation außer Push und Pointer
     private void generateOtherOperation() {
-        //Erstellt Kopie der aktuellen Farbe
-        PietColor copiedColor = color.getCopy();
         if(pos < blockWidth - 2) {
             //0-3
             //Generiert Operation
-            row[blockWidth - 2 - pos] = copiedColor;
+            row[blockWidth - 2 - pos].set(color);
         } else if(pos == blockWidth - 1) {
             //4
             //Generiert 3er-Block Operation plus schwarz
             //Pusht 2 Reihen
-            row[0] = copiedColor;
+            row[0].set(color);
             pushRow();
-            row[0] = copiedColor;
+            row[0].set(color);
             for(int i = 1; i < blockWidth - 1; i++) {
-                row[i] = black;
+                row[i].setBlack();
             }
             pushRow();
-            row[0] = copiedColor;
+            row[0].set(color);
         } else if(pos < blockWidth * 2 - 4) {
             //5-7
             //Generiert Operation
-            row[pos - blockWidth + 2] = copiedColor;
+            row[pos - blockWidth + 2].set(color);
         } else if(pos == blockWidth * 2 - 4) {
             //8
             //Generiert Operation
             //Pusht Reihe
-            row[blockWidth - 2] = copiedColor;
+            row[blockWidth - 2].set(color);
             pushRow();
         } else if(pos == blockWidth * 2 - 3) {
             //9
             //Generiert schwarz plus Operation
             //Pusht Reihe
             for(int i = 0; i < blockWidth - 2; i++) {
-                row[i] = black;
+                row[i].setBlack();
             }
-            row[blockWidth - 2] = copiedColor;
+            row[blockWidth - 2].set(color);
             pushRow();
         }
         //Erhöht Position der Operation
@@ -188,6 +188,9 @@ public class BlockGenerator {
     private void pushRow() {
         block.add(row);
         row = new PietColor[blockWidth - 1];
+        for(int i = 0; i < row.length; i++) {
+            row[i] = new PietColor(true, false);
+        }
     }
 
     public int getHeight() {

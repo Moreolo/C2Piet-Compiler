@@ -69,6 +69,11 @@ public class PietColor {
         this.shade = shade;
     }
 
+    public void set(PietColor color) {
+        this.hue = color.hue;
+        this.shade = color.shade;
+    }
+
     public void setWhite() {
         this.hue = -1;
         this.shade = 0;
