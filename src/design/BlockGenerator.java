@@ -13,9 +13,12 @@ public class BlockGenerator {
     private LinkedList<PietColor[]> chooser;
     private LinkedList<PietColor[]> block;
 
-    private int pos = 2;
+    private int pos;
     private PietColor color;
     private PietColor[] row;
+    private PietColor[] spacer;
+
+    private LinkedList<Operation> pushBlock;
 
     public BlockGenerator(Block block) {
         this.chooser = new LinkedList<>();
@@ -33,102 +36,116 @@ public class BlockGenerator {
         pos = 2;
         color = new PietColor(2, 2);
         row = new PietColor[blockWidth - 1];
-        for(int i = 0; i < row.length; i++) {
+        spacer = new PietColor[blockWidth - 3];
+
+        for(int i = 0; i < row.length; i++)
             row[i] = new PietColor(true, false);
-        }
+        for(int i = 0; i < spacer.length; i++)
+            spacer[i] = new PietColor(false, true);
+
+        pushBlock = new LinkedList<>();
 
         for(Operation operation: operations) {
-            // Setzt die Pixel für die vorherige Operation
-            // Das muss in dieser Reihenfolge gemacht werden damit die push und pointer
-            // Operation richtig gezeichnet werden können
-            Command c = operation.getName();
-            if (c == Command.PUSH) {
-                if (operation.getVal1() < 1)
-                    throw new Error("Der Push Command braucht einen Wert höher als 0.");
-                generatePush(operation.getVal1());
-            } else if (c == Command.POINTER) {
-                if (operation.getVal1() < 1 || operation.getVal2() < 1)
-                    throw new Error("Der Pointer Command braucht Werte höher als 0.");
-                generatePointer(operation.getVal1(), operation.getVal2());
-            } else
-                generateOtherOperation();
-            // Verändert den Farbwert für den nächsten Pixel für die Operation
-            switch (c) {
-                case PUSH:
-                    color.add(0, 1);
-                    break;
-                case POP:
-                    color.add(0, 2);
-                    break;
-                case ADD:
-                    color.add(1, 0);
-                    break;
-                case SUBTRACT:
-                    color.add(1, 1);
-                    break;
-                case MULTIPLY:
-                    color.add(1, 2);
-                    break;
-                case DIVIDE:
-                    color.add(2, 0);
-                    break;
-                case MOD:
-                    color.add(2, 1);
-                    break;
-                case NOT:
-                    color.add(2, 2);
-                    break;
-                case GREATER:
-                    color.add(3, 0);
-                    break;
-                case POINTER:
-                    color.add(3, 1);
-                    break;
-                case SWITCH:
-                    color.add(3, 2);
-                    break;
-                case DUPLICATE:
-                    color.add(4, 0);
-                    break;
-                case ROLL:
-                    color.add(4, 1);
-                    break;
-                case INNUMBER:
-                    color.add(4, 2);
-                    break;
-                case INCHAR:
-                    color.add(5, 0);
-                    break;
-                case OUTNUMBER:
-                    color.add(5, 1);
-                    break;
-                case OUTCHAR:
-                    color.add(5, 2);
-                    break;
-                default:
-                    break;
-            }
+            generateOperation(operation);
+            while(!pushBlock.isEmpty())
+                generateOperation(pushBlock.pop());
         }
         generateOtherOperation();
         block.add(row);
     }
 
+    private void generateOperation(Operation operation) {
+        // Setzt die Pixel für die vorherige Operation
+        // Das muss in dieser Reihenfolge gemacht werden damit die push und pointer
+        // Operation richtig gezeichnet werden können
+        Command c = operation.getName();
+        if (c == Command.PUSH)
+            generatePush(operation.getVal1());
+        else if (c == Command.POINTER) {
+            if (operation.getVal1() < 1 || operation.getVal2() < 1)
+                throw new Error("Der Pointer Command braucht Werte höher als 0.");
+            generatePointer(operation.getVal1(), operation.getVal2());
+        } else
+            generateOtherOperation();
+        // Verändert den Farbwert für den nächsten Pixel für die Operation
+        switch (c) {
+            case PUSH:
+                color.add(0, 1);
+                break;
+            case POP:
+                color.add(0, 2);
+                break;
+            case ADD:
+                color.add(1, 0);
+                break;
+            case SUBTRACT:
+                color.add(1, 1);
+                break;
+            case MULTIPLY:
+                color.add(1, 2);
+                break;
+            case DIVIDE:
+                color.add(2, 0);
+                break;
+            case MOD:
+                color.add(2, 1);
+                break;
+            case NOT:
+                color.add(2, 2);
+                break;
+            case GREATER:
+                color.add(3, 0);
+                break;
+            case POINTER:
+                color.add(3, 1);
+                break;
+            case SWITCH:
+                color.add(3, 2);
+                break;
+            case DUPLICATE:
+                color.add(4, 0);
+                break;
+            case ROLL:
+                color.add(4, 1);
+                break;
+            case INNUMBER:
+                color.add(4, 2);
+                break;
+            case INCHAR:
+                color.add(5, 0);
+                break;
+            case OUTNUMBER:
+                color.add(5, 1);
+                break;
+            case OUTCHAR:
+                color.add(5, 2);
+                break;
+            default:
+                break;
+        }
+    }
+
     //Generiert die Operation außer Push und Pointer
     private void generateOtherOperation() {
+        //Setzt Spacer bei neuer Zeile zurück
+        if(pos == 0)
+            for(int i = 0; i < spacer.length; i++)
+                spacer[i].setBlack();
+
         if(pos < blockWidth - 2) {
             //0-3
             //Generiert Operation
             row[blockWidth - 2 - pos].set(color);
         } else if(pos == blockWidth - 1) {
             //4
-            //Generiert 3er-Block Operation plus schwarz
+            //Generiert 3er-Block Operation plus Spacer
             //Pusht 2 Reihen
             row[0].set(color);
             pushRow();
             row[0].set(color);
-            for(int i = 1; i < blockWidth - 1; i++) {
-                row[i].setBlack();
-            }
+            //Fügt Spacer ein
+            for(int i = 1; i < blockWidth - 1; i++)
+                row[i].set(spacer[i - 1]);
             pushRow();
             row[0].set(color);
         } else if(pos < blockWidth * 2 - 4) {
@@ -145,9 +162,8 @@ public class BlockGenerator {
             //9
             //Generiert schwarz plus Operation
             //Pusht Reihe
-            for(int i = 0; i < blockWidth - 2; i++) {
+            for(int i = 0; i < blockWidth - 2; i++)
                 row[i].setBlack();
-            }
             row[blockWidth - 2].set(color);
             pushRow();
         }
@@ -156,6 +172,26 @@ public class BlockGenerator {
     }
 
     private void generatePush(int val) {
+        //Teilt den Push Block in Multiplikationen auf
+        if(val == 0) {
+            val = 1;
+            pushBlock.add(new Operation(Command.NOT));
+        } else if(val > 19) {
+            LinkedList<Integer> split = new LinkedList<>();
+            while(val > 19) {
+                split.addFirst(val % 10);
+                val /= 10;
+            }
+            while(!split.isEmpty()) {
+                pushBlock.add(new Operation(Command.PUSH, 10));
+                pushBlock.add(new Operation(Command.MULTIPLY));
+                int num = split.pop();
+                if(num != 0) {
+                    pushBlock.add(new Operation(Command.PUSH, num));
+                    pushBlock.add(new Operation(Command.ADD));
+                }
+            }
+        }
 
     }
 
@@ -176,6 +212,10 @@ public class BlockGenerator {
         //1-2, 3-9 (-6)
     }
 
+    private void generatePushToRight() {
+
+    }
+
     private boolean colorColision(int pixelBehind, int pixelFront) {
         return true;
     }
@@ -188,9 +228,8 @@ public class BlockGenerator {
     private void pushRow() {
         block.add(row);
         row = new PietColor[blockWidth - 1];
-        for(int i = 0; i < row.length; i++) {
+        for(int i = 0; i < row.length; i++)
             row[i] = new PietColor(true, false);
-        }
     }
 
     public int getHeight() {

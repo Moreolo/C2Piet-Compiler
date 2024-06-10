@@ -84,6 +84,14 @@ public class PietColor {
         this.shade = -1;
     }
 
+    public boolean isWhite() {
+        return this.hue == -1;
+    }
+
+    public boolean isBlack() {
+        return this.shade == -1;
+    }
+
     public int get() {
         if(hue == -1)
             return white;
