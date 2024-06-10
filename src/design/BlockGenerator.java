@@ -18,7 +18,9 @@ public class BlockGenerator {
     private PietColor[] row;
     private PietColor[] spacer;
 
-    private LinkedList<Operation> pushBlock;
+    private LinkedList<Operation> operations;
+
+    private int collision;
 
     public BlockGenerator(Block block) {
         this.chooser = new LinkedList<>();
@@ -43,13 +45,12 @@ public class BlockGenerator {
         for(int i = 0; i < spacer.length; i++)
             spacer[i] = new PietColor(false, true);
 
-        pushBlock = new LinkedList<>();
+        this.operations = operations;
 
-        for(Operation operation: operations) {
-            generateOperation(operation);
-            while(!pushBlock.isEmpty())
-                generateOperation(pushBlock.pop());
-        }
+        collision = -1;
+
+        while(!operations.isEmpty())
+            generateOperation(operations.pop());
         generateOtherOperation();
         block.add(row);
     }
@@ -67,62 +68,11 @@ public class BlockGenerator {
             generatePointer(operation.getVal1(), operation.getVal2());
         } else
             generateOtherOperation();
+
+        //TODO: 9 möglicherweise auf 0 setzen wenn keine Kollision
+        //TODO: bei 9 wird ein Kollisionswert gesetzt für Pushblöcke bei 9
         // Verändert den Farbwert für den nächsten Pixel für die Operation
-        switch (c) {
-            case PUSH:
-                color.add(0, 1);
-                break;
-            case POP:
-                color.add(0, 2);
-                break;
-            case ADD:
-                color.add(1, 0);
-                break;
-            case SUBTRACT:
-                color.add(1, 1);
-                break;
-            case MULTIPLY:
-                color.add(1, 2);
-                break;
-            case DIVIDE:
-                color.add(2, 0);
-                break;
-            case MOD:
-                color.add(2, 1);
-                break;
-            case NOT:
-                color.add(2, 2);
-                break;
-            case GREATER:
-                color.add(3, 0);
-                break;
-            case POINTER:
-                color.add(3, 1);
-                break;
-            case SWITCH:
-                color.add(3, 2);
-                break;
-            case DUPLICATE:
-                color.add(4, 0);
-                break;
-            case ROLL:
-                color.add(4, 1);
-                break;
-            case INNUMBER:
-                color.add(4, 2);
-                break;
-            case INCHAR:
-                color.add(5, 0);
-                break;
-            case OUTNUMBER:
-                color.add(5, 1);
-                break;
-            case OUTCHAR:
-                color.add(5, 2);
-                break;
-            default:
-                break;
-        }
+        color.add(c);
     }
 
     //Generiert die Operation außer Push und Pointer
@@ -175,7 +125,7 @@ public class BlockGenerator {
         //Teilt den Push Block in Multiplikationen auf
         if(val == 0) {
             val = 1;
-            pushBlock.add(new Operation(Command.NOT));
+            operations.addFirst(new Operation(Command.NOT));
         } else if(val > 19) {
             LinkedList<Integer> split = new LinkedList<>();
             while(val > 19) {
@@ -183,16 +133,47 @@ public class BlockGenerator {
                 val /= 10;
             }
             while(!split.isEmpty()) {
-                pushBlock.add(new Operation(Command.PUSH, 10));
-                pushBlock.add(new Operation(Command.MULTIPLY));
+                operations.addFirst(new Operation(Command.PUSH, 10));
+                operations.addFirst(new Operation(Command.MULTIPLY));
                 int num = split.pop();
                 if(num != 0) {
-                    pushBlock.add(new Operation(Command.PUSH, num));
-                    pushBlock.add(new Operation(Command.ADD));
+                    operations.addFirst(new Operation(Command.PUSH, num));
+                    operations.addFirst(new Operation(Command.ADD));
                 }
             }
         }
 
+        if(pos == 0)
+            generatePushDown(val);
+        if(pos < blockWidth - 1)
+            generatePushToLeft();
+        else if(pos < blockWidth * 2 - 1)
+            generatePushToRight();
+        else
+            generatePushDown(val);
+    }
+
+    private void generatePushDown(int val) {
+        int x = 0;
+        boolean xAsPos = true;
+        while(val > 0) {
+            if(x == collision) {
+                x = 0;
+                collision = -1;
+                pushRow();
+            }
+            row[blockWidth - 1 - x].set(color);
+            val--;
+            x = (x + 1) % (blockWidth - 1);
+            if(x == 0) {
+                pushRow();
+                xAsPos = false;
+            }
+        }
+        if(xAsPos)
+            pos = x;
+        else
+            pos = 9;
     }
 
     private void generatePushToLeft() {
@@ -216,7 +197,7 @@ public class BlockGenerator {
 
     }
 
-    private boolean colorColision(int pixelBehind, int pixelFront) {
+    private boolean colorColision(int pixelBehind, int pixelFront, boolean single) {
         return true;
     }
 

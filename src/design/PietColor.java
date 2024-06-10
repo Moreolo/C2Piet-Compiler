@@ -1,5 +1,7 @@
 package design;
 
+import piet.datatypes.Command;
+
 public class PietColor {
 
     // Farben
@@ -105,6 +107,67 @@ public class PietColor {
         return new PietColor(this.hue, this.shade);
     }
 
+    public boolean is(PietColor color) {
+        return this.hue == color.hue && this.shade == color.shade;
+    }
+
+    public void add(Command command) {
+        switch (command) {
+            case PUSH:
+                add(0, 1);
+                break;
+            case POP:
+                add(0, 2);
+                break;
+            case ADD:
+                add(1, 0);
+                break;
+            case SUBTRACT:
+                add(1, 1);
+                break;
+            case MULTIPLY:
+                add(1, 2);
+                break;
+            case DIVIDE:
+                add(2, 0);
+                break;
+            case MOD:
+                add(2, 1);
+                break;
+            case NOT:
+                add(2, 2);
+                break;
+            case GREATER:
+                add(3, 0);
+                break;
+            case POINTER:
+                add(3, 1);
+                break;
+            case SWITCH:
+                add(3, 2);
+                break;
+            case DUPLICATE:
+                add(4, 0);
+                break;
+            case ROLL:
+                add(4, 1);
+                break;
+            case INNUMBER:
+                add(4, 2);
+                break;
+            case INCHAR:
+                add(5, 0);
+                break;
+            case OUTNUMBER:
+                add(5, 1);
+                break;
+            case OUTCHAR:
+                add(5, 2);
+                break;
+            default:
+                break;
+        }
+    }
     // Passt die aktuelle Farbe an, sodass eine Piet Operation leicht in die
     // passende Farbe übersetzt werden kann
     public void add(int hue, int shade) {
