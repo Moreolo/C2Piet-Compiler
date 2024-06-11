@@ -21,6 +21,10 @@ public class BBlock {
         return this.positionInArray;
     }
 
+    public void setPositionInArray(Integer position){
+        this.positionInArray = position;
+    }
+
     public Integer getNext(){
         return this.next;
     }

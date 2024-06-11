@@ -4,16 +4,26 @@ import basicblocks.datatypes.*;
 import ast.datatypes.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 
 public class BBMain {
 
-    private static ArrayList<BBlock> blockList = new ArrayList<>();
-    private static int iterator = 0;
+    private ArrayList<BBlock> blockList = new ArrayList<>();
+    private int iterator = 0;
+    HashMap<String, ArrayList<BBlock>> allFunctionDefinitions;
+
+    public BBMain(){
+        this.allFunctionDefinitions = new HashMap<>();
+    }
+
+    public BBMain(HashMap<String, ArrayList<BBlock>> storesFunctionDefinitions){
+        this.allFunctionDefinitions = storesFunctionDefinitions;
+    }
 
 
-    private static BBlock splitBlock(BBlock oldBlock, ArrayList<Node> stayBehind) {
+    private BBlock splitBlock(BBlock oldBlock, ArrayList<Node> stayBehind) {
         //die alten Nodes im alten Block werden aufgeteil:
         //stayBehind Teil bleibt im alten Block während alle anderen Nodes 
         //in den neuen Block wandern
@@ -33,7 +43,7 @@ public class BBMain {
         }
         return newBlock;
     }
-    private static ArrayList<BBlock> createFork(BBlock oldBBlock, List<Node> leftPath, List<Node> rightPath, Node condition){
+    private ArrayList<BBlock> createFork(BBlock oldBBlock, List<Node> leftPath, List<Node> rightPath, Node condition){
         //alter Block wir mit CondBlock ersetzt und mit condition node befüllt
         //ein bzw. zwei neue Blöcke werden erstellt für true bzw. else Blöcke 
         //diese werden mit den jeweiligen Nodes für diese Blöcke befüllt 
@@ -61,6 +71,19 @@ public class BBMain {
         }
         return paths;
     }
+
+    //die Funktion fügt einen BasicBlock VOR einem anderen BasicBlock ein
+    private void addBefore(BBlock addBlock, BBlock oldBBlock){
+        int position = oldBBlock.getPositionInArray();
+        addBlock.setPositionInArray(position);
+        blockList.set(position, addBlock);
+        blockList.add(oldBBlock);
+        iterator = iterator+1;
+        oldBBlock.setPositionInArray(iterator);
+        addBlock.setNext(iterator);
+    }
+
+ 
 
     /*
      * Block-Statements
@@ -127,13 +150,96 @@ public class BBMain {
        */
 
     // Grundlegende Idee ist der rekursive durchlauf durch den Node-Baum
-    private static void walkTree(BBlock blockOfCode) {
+    private void walkTree(BBlock blockOfCode) {
         ArrayList<Node> nodesForOneBasicBlock = new ArrayList<>();
         ArrayList<Node> nodeList = blockOfCode.getBody();
         int counter = 0;
         for(Node currentNode :nodeList){ 
             counter = counter + 1;
-            switch (currentNode.getType()) {  
+            switch (currentNode.getType()) {
+                //Function Call Node wird in Function Call Block umgewandelt
+                case FUNCTION_CALL:
+                    if (!nodesForOneBasicBlock.isEmpty()){
+                        BBlock nextBlockLookInto = splitBlock(blockOfCode, nodesForOneBasicBlock);
+                        walkTree(nextBlockLookInto);
+                        return;
+                    }
+                    
+                    if (counter != nodeList.size()){
+                        int positionOfOldBlock = blockOfCode.getPositionInArray();
+                        ArrayList<Node> funCallBlock = new ArrayList<>();
+                        funCallBlock.add(currentNode);
+                        BBlock nextBlockLookInto = splitBlock(blockOfCode, funCallBlock);
+                        walkTree(blockList.get(positionOfOldBlock));
+                        walkTree(nextBlockLookInto);
+                        return;
+                    }
+                    //Ausgangslage des Funktion Calls:
+                    // doSOmething( add(5,3))
+                    
+                    //wird verwandelt in:
+                    //x = add(5,3)
+                    //doSOmething(x)
+                    SearchFunCall searcher = new SearchFunCall();
+                    searcher.searchCallsOriginFun(currentNode);
+                    ArrayList<funCallInfo> funCallInfos = searcher.getFunCallInfos();
+                    for(funCallInfo funInfo: funCallInfos){
+                        FunCallBlock callFunction = new FunCallBlock(-1, funInfo.getParameterList(), funInfo.getFunctionName(), funInfo.getReturnTempVar());
+                        addBefore(callFunction, blockOfCode);
+
+                    }
+                    FunCallBlock callFunction = new FunCallBlock(blockOfCode.getPositionInArray(), (ArrayList) currentNode.getAlternative(), currentNode.getValue(), null);
+                    blockList.set(iterator, callFunction);
+                    return;
+                
+                //Ausgangslage der Binary Expression:
+                // x= doSOmething() + 4
+                
+                //wird verwandelt in:
+                // y = doSOmething()
+                //x = y + 4
+                case BINARY_EXPRESSION:
+                    //zuerst schauen, ob da überhaupt mind. ein funktionsaufruf dinnen ist
+                    SearchFunCall binSearcher = new SearchFunCall();
+                    binSearcher.searchCallsOriginBin(currentNode);
+                    ArrayList<funCallInfo> binCallInfos = binSearcher.getFunCallInfos();
+                    if (binCallInfos.size() != 0){
+
+                        //wenn ja, dann muss man davor abtrennen und danach
+                        if (!nodesForOneBasicBlock.isEmpty()){
+                            BBlock nextBlockLookInto = splitBlock(blockOfCode, nodesForOneBasicBlock); //neuer wichtiger block
+                            blockOfCode = nextBlockLookInto;
+                            nodesForOneBasicBlock.clear();
+                        }
+
+                        //alle Funktionen werden vor die Binary Expression geschrieben
+                        for(funCallInfo funInfo: binCallInfos){
+                            FunCallBlock callFun = new FunCallBlock(-1, funInfo.getParameterList(), funInfo.getFunctionName(), funInfo.getReturnTempVar());
+                            addBefore(callFun, blockOfCode);
+    
+                        }
+                        
+                        }
+                    nodesForOneBasicBlock.add(currentNode);
+                    break;
+
+                
+                //Function Definition Node -> Code der Funktion wird wie ein normales Programm abgearbeitet
+                //die Basic Blocks einer Funktion werden in einer Liste gespeichert
+                //diese Liste kommt in eine HashList, in der alle Funktionsdefinitionen gespeichert sind
+                //der Funktionsname (string) ist der key
+                case FUNCTION_DEF:
+                    //function def node muss evtl. entfernt werden aus bb; wenn dann nix mehr drin ist -> komplett löschen
+                    BBMain parseFunction = new BBMain(this.allFunctionDefinitions);
+                    ArrayList<Node> codeInFunction = (ArrayList) currentNode.getBody();
+                    BBlock blockForFunctionCode = new BBlock(parseFunction.iterator);
+                    blockForFunctionCode.setBody(codeInFunction);
+                    parseFunction.blockList.add(blockForFunctionCode);
+                    parseFunction.walkTree(blockForFunctionCode);
+                    ArrayList<BBlock> functionAsBlocks = parseFunction.blockList;
+                    this.allFunctionDefinitions.put(currentNode.getValue(), functionAsBlocks); //erster Parameter ist der Funktionsname
+                    break;
+
                 case WHILE_STATEMENT:
                     //wenn normaler Code vor While -> Trennen: Code vor While - restlicher Code
                     if (!nodesForOneBasicBlock.isEmpty()){
@@ -239,7 +345,7 @@ public class BBMain {
 
 
     // Aufruf für die "Interface"-Abfolge.
-    public static ArrayList<BBlock> parse(Node rootNode) {
+    public ArrayList<BBlock> parse(Node rootNode) {
         BBlock starterBlock = new BBlock(0);
         blockList.add(starterBlock);
         starterBlock.addNodeToBody(rootNode);

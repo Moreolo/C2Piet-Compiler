@@ -4,15 +4,21 @@ import java.util.ArrayList;
 
 import ast.datatypes.Node;
 
+/*
+das normale next des FunCallBlock (geerbt von BBlock) zeigt auf die "return Adress"
+mit nameOfFunction (String - als key) kann der Coder der Funktion aus einer HashListe geholt werden
+returnObjekt soll die Variable darstellen, in die der return value gelegt wird
+ */
+
 public class FunCallBlock extends BBlock {
-    // hat bisher keine besondere Funktionalitäten, wird nur bei Paramenterverwendung und bei return values interessantc
-    Integer returnAdress; // kann auch null sein
     ArrayList<Node> parameterList;
-    public FunCallBlock(int next, Integer returnAdress, Node NodewithFunctionCall, ArrayList<Node> parameterList) {
-        super(next);
-        this.returnAdress = returnAdress;
-        this.addNodeToBody(NodewithFunctionCall);
+    String nameOfFunction;
+    FunctionTempReturn returnObject;
+    public FunCallBlock(Integer positionInArray, ArrayList<Node> parameterList, String functionName, FunctionTempReturn funReturn) {
+        super(positionInArray);
         this.parameterList = parameterList;
+        this.nameOfFunction = functionName;
+        this.returnObject = funReturn;
     }
     
 }

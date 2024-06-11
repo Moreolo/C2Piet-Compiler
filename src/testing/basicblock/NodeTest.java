@@ -76,8 +76,8 @@ public class NodeTest {
         }
                                     // Block 6 TERM
         */
-
-        ArrayList<BBlock> TestList = BBMain.parse(if1);
+        BBMain basicBlockMaker = new BBMain();
+        ArrayList<BBlock> TestList = basicBlockMaker.parse(if1);
 
         System.out.println(TestList);
 
@@ -116,12 +116,72 @@ public class NodeTest {
 
         while2Body.add(dec2);
 
-        ArrayList<BBlock> TestList = BBMain.parse(while1);
+        BBMain basicBlockMaker = new BBMain();
+        ArrayList<BBlock> TestList = basicBlockMaker.parse(while1);
 
         System.out.println(TestList);
     
 
 
+    }
+    @Test
+    public void testFuncDef() {
+        /*
+        AST-Ausgangslage:
+        eine Function definition, die nur eine Deklaration im Inneren hat 
+        */
+        Node func1 = new Node(NodeTypesEnum.FUNCTION_DEF);
+        func1.setValue("normalFunction"); //function Name
+        ArrayList<Node> funcBody = new ArrayList<>();
+        Node dec1 = new Node(NodeTypesEnum.DECLARATION);
+        funcBody.add(dec1);
+        func1.setBody(funcBody);
+
+        BBMain basicBlockMaker = new BBMain();
+        ArrayList<BBlock> TestList = basicBlockMaker.parse(func1);
+        System.out.println(TestList);
+
+
+    }
+    @Test
+    public void testFunCall1() {
+        /*
+        AST-Ausgangslage:
+        function call, der eine binary expression als parameter hat, in der 
+        wieder ein function call ist (im rechten Ast der binary expression)
+        */
+        Node funcCall1 = new Node(NodeTypesEnum.FUNCTION_CALL);
+        funcCall1.setValue("normalFunction"); //function Name
+        ArrayList<Node> parameters = new ArrayList<>();
+        Node bin1 = new Node(NodeTypesEnum.BINARY_EXPRESSION);
+        bin1.setLeft(new Node(NodeTypesEnum.LITERAL));
+        Node funcCall2 = new Node(NodeTypesEnum.FUNCTION_CALL);
+        funcCall2.setValue("secondFunction");
+        funcCall2.setAlternative(new ArrayList<>());
+        bin1.setRight(funcCall2);
+        parameters.add(bin1);
+        funcCall1.setAlternative(parameters);
+
+        BBMain basicBlockMaker = new BBMain();
+        ArrayList<BBlock> TestList = basicBlockMaker.parse(funcCall1);
+        System.out.println(TestList);
+    }
+
+    @Test
+    public void testFunCall2() {
+        /*
+        AST-Ausgangslage:
+        eine Binary Expression, die im rechten Ast einen Funktionsaufruf hat
+        */
+        Node bin1 = new Node(NodeTypesEnum.BINARY_EXPRESSION);
+        bin1.setLeft(new Node(NodeTypesEnum.LITERAL));
+        Node funcCall1 = new Node(NodeTypesEnum.FUNCTION_CALL);
+        funcCall1.setValue("FunctionCall");
+        funcCall1.setAlternative(new ArrayList<>());
+        bin1.setRight(funcCall1);
+        BBMain basicBlockMaker = new BBMain();
+        ArrayList<BBlock> TestList = basicBlockMaker.parse(bin1);
+        System.out.println(TestList);
     }
     
 
