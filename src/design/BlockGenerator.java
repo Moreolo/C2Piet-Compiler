@@ -69,10 +69,39 @@ public class BlockGenerator {
         } else
             generateOtherOperation();
 
-        //TODO: 9 möglicherweise auf 0 setzen wenn keine Kollision
-        //TODO: bei 9 wird ein Kollisionswert gesetzt für Pushblöcke bei 9
         // Verändert den Farbwert für den nächsten Pixel für die Operation
         color.add(c);
+        //Überprüft Kollision bei pos = 9
+        //Setzt Kollisionswert für Pushblock
+        //Bei keiner Kollision und schwarzen Pixel bei 0: pos = 0
+        if(pos == 9 && !operations.isEmpty()) {
+            PietColor futureColor = color.getCopy();
+            int pushLeft = 1;
+            int opIndex = 1;
+            Operation futureOp = operations.getFirst();
+            futureColor.add(futureOp.getName());
+            if(futureOp.getName() == Command.PUSH) {
+                pushLeft = futureOp.getVal1();
+            }
+            int opSize = operations.size();
+            for(int x = 1; x < blockWidth - 1 && opIndex < opSize; x++) {
+                if(pushLeft > 1) {
+                    pushLeft--;
+                } else {
+                    futureOp = operations.get(opIndex++);
+                    futureColor.add(futureOp.getName());
+                    if(futureOp.getName() == Command.PUSH) {
+                        pushLeft = futureOp.getVal1();
+                    }
+                }
+                if(futureColor.is(block.getLast()[blockWidth - 2 - x])) {
+                    collision = x;
+                    break;
+                }
+            }
+            if(block.getLast()[0].isBlack() && collision == -1)
+                pos = 0;
+        }
     }
 
     //Generiert die Operation außer Push und Pointer
@@ -154,8 +183,11 @@ public class BlockGenerator {
     }
 
     private void generatePushDown(int val) {
+        generatePushDown(val, true);
+    }
+
+    private void generatePushDown(int val, boolean xAsPos) {
         int x = 0;
-        boolean xAsPos = true;
         while(val > 0) {
             if(x == collision) {
                 x = 0;
