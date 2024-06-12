@@ -22,12 +22,25 @@ public class BlockGenerator {
     private int collision;
 
     public BlockGenerator(Block block) {
-        this.chooser = new LinkedList<>();
         generateChooser(block.getNum());
         generateBlock(block.getOperations());
     }
 
     private void generateChooser(int blockNum) {
+        this.chooser = new LinkedList<>();
+
+        color = new PietColor(4, 1);
+        row = new PietColor[blockWidth - 1];
+
+        row[0] = new PietColor(true, false);
+        row[1] = new PietColor(true, false);
+        row[2] = color;
+        row[3] = color;
+        row[4] = new PietColor(false, true);
+
+        // erste 2 Zeilen
+        // blockNum push
+        // letzte 2 Zeilen
 
     }
 
@@ -38,14 +51,14 @@ public class BlockGenerator {
         color = new PietColor(2, 2);
         row = new PietColor[blockWidth - 1];
 
-        for(int i = 0; i < row.length; i++)
+        for (int i = 0; i < row.length; i++)
             row[i] = new PietColor(true, false);
 
         this.operations = operations;
 
         collision = -1;
 
-        while(!operations.isEmpty())
+        while (!operations.isEmpty())
             generateOperation(operations.pop());
         generateOtherOperation();
         block.add(row);
@@ -67,93 +80,93 @@ public class BlockGenerator {
 
         // Verändert den Farbwert für den nächsten Pixel für die Operation
         color.add(c);
-        //Überprüft Kollision bei pos = 9
-        //Setzt Kollisionswert für Pushblock
-        //Bei keiner Kollision und schwarzen Pixel bei 0: pos = 0
-        if(pos == 9 && !operations.isEmpty()) {
+        // Überprüft Kollision bei pos = 9
+        // Setzt Kollisionswert für Pushblock
+        // Bei keiner Kollision und schwarzen Pixel bei 0: pos = 0
+        if (pos == 9 && !operations.isEmpty()) {
             collision = -1;
             PietColor futureColor = color.getCopy();
             int pushLeft = 1;
             int opIndex = 1;
             Operation futureOp = operations.getFirst();
             futureColor.add(futureOp.getName());
-            if(futureOp.getName() == Command.PUSH) {
+            if (futureOp.getName() == Command.PUSH) {
                 pushLeft = futureOp.getVal1();
             }
             int opSize = operations.size();
-            for(int x = 1; x < blockWidth - 1 && opIndex < opSize; x++) {
-                if(pushLeft > 1) {
+            for (int x = 1; x < blockWidth - 1 && opIndex < opSize; x++) {
+                if (pushLeft > 1) {
                     pushLeft--;
                 } else {
                     futureOp = operations.get(opIndex++);
                     futureColor.add(futureOp.getName());
-                    if(futureOp.getName() == Command.PUSH) {
+                    if (futureOp.getName() == Command.PUSH) {
                         pushLeft = futureOp.getVal1();
                     }
                 }
-                if(futureColor.is(block.getLast()[blockWidth - 2 - x])) {
+                if (futureColor.is(block.getLast()[blockWidth - 2 - x])) {
                     collision = x;
                     break;
                 }
             }
-            if(block.getLast()[0].isBlack() && collision == -1)
+            if (block.getLast()[0].isBlack() && collision == -1)
                 pos = 0;
         }
-        if(pos != 9)
+        if (pos != 9)
             collision = -1;
     }
 
-    //Generiert die Operation außer Push und Pointer
+    // Generiert die Operation außer Push und Pointer
     private void generateOtherOperation() {
-        if(pos < blockWidth - 2) {
-            //0-3
-            //Generiert Operation
+        if (pos < blockWidth - 2) {
+            // 0-3
+            // Generiert Operation
             row[blockWidth - 2 - pos].set(color);
-        } else if(pos == blockWidth - 1) {
-            //4
-            //Generiert 3er-Block Operation plus schwarz
-            //Pusht 2 Reihen
+        } else if (pos == blockWidth - 1) {
+            // 4
+            // Generiert 3er-Block Operation plus schwarz
+            // Pusht 2 Reihen
             row[0].set(color);
             pushRowToBlock();
             row[0].set(color);
-            //Fügt schwarz ein
-            for(int i = 1; i < blockWidth - 1; i++)
+            // Fügt schwarz ein
+            for (int i = 1; i < blockWidth - 1; i++)
                 row[i].setBlack();
             pushRowToBlock();
             row[0].set(color);
-        } else if(pos < blockWidth * 2 - 4) {
-            //5-7
-            //Generiert Operation
+        } else if (pos < blockWidth * 2 - 4) {
+            // 5-7
+            // Generiert Operation
             row[pos - blockWidth + 2].set(color);
-        } else if(pos == blockWidth * 2 - 4) {
-            //8
-            //Generiert Operation
-            //Pusht Reihe
+        } else if (pos == blockWidth * 2 - 4) {
+            // 8
+            // Generiert Operation
+            // Pusht Reihe
             row[blockWidth - 2].set(color);
             pushRowToBlock();
-        } else if(pos == blockWidth * 2 - 3) {
-            //9
-            //Generiert schwarz plus Operation
-            //Pusht Reihe
-            for(int i = 0; i < blockWidth - 2; i++)
+        } else if (pos == blockWidth * 2 - 3) {
+            // 9
+            // Generiert schwarz plus Operation
+            // Pusht Reihe
+            for (int i = 0; i < blockWidth - 2; i++)
                 row[i].setBlack();
             row[blockWidth - 2].set(color);
             pushRowToBlock();
         }
-        //Erhöht Position der Operation
+        // Erhöht Position der Operation
         pos = (pos + 1) % (blockWidth * 2 - 2);
     }
 
     private void generatePush(int val) {
-        //Teilt den Push Block in Multiplikationen auf
-        if(val == 0) {
+        // Teilt den Push Block in Multiplikationen auf
+        if (val == 0) {
             val = 1;
             operations.addFirst(new Operation(Command.NOT));
         }
 
-        while(val > 19) {
+        while (val > 19) {
             int num = val % 10;
-            if(num != 0) {
+            if (num != 0) {
                 operations.addFirst(new Operation(Command.ADD));
                 operations.addFirst(new Operation(Command.PUSH, num));
             }
@@ -162,11 +175,11 @@ public class BlockGenerator {
             val /= 10;
         }
 
-        if(pos == 0)
+        if (pos == 0)
             generatePushDown(val, true);
-        if(pos < blockWidth - 1)
+        if (pos < blockWidth - 1)
             generatePushToLeft();
-        else if(pos < blockWidth * 2 - 1)
+        else if (pos < blockWidth * 2 - 1)
             generatePushToRight(val);
         else
             generatePushDown(val, true);
@@ -174,8 +187,8 @@ public class BlockGenerator {
 
     private void generatePushDown(int val, boolean xAsPos) {
         int x = 0;
-        while(val > 0) {
-            if(x == collision) {
+        while (val > 0) {
+            if (x == collision) {
                 x = 0;
                 collision = -1;
                 pushRowToBlock();
@@ -183,28 +196,28 @@ public class BlockGenerator {
             row[blockWidth - 1 - x].set(color);
             val--;
             x = (x + 1) % (blockWidth - 1);
-            if(x == 0) {
+            if (x == 0) {
                 pushRowToBlock();
                 xAsPos = false;
             }
         }
-        if(xAsPos)
+        if (xAsPos)
             pos = x;
         else
             pos = 9;
     }
 
     private void generatePushToLeft() {
-        
+
     }
 
     private void generatePushToRight(int val) {
-        while(pos < blockWidth * 2 - 3 && val > 0) {
+        while (pos < blockWidth * 2 - 3 && val > 0) {
             row[pos - blockWidth + 2].set(color);
-            val --;
-            pos ++;
+            val--;
+            pos++;
         }
-        if(val != 0) {
+        if (val != 0) {
             generatePushDown(val, false);
         }
     }
@@ -217,19 +230,19 @@ public class BlockGenerator {
 
     }
 
-    //Pusht die Reihe auf den Block
+    // Pusht die Reihe auf den Block
     private void pushRowToBlock() {
         block.add(row);
         row = new PietColor[blockWidth - 1];
-        for(int i = 0; i < row.length; i++)
+        for (int i = 0; i < row.length; i++)
             row[i] = new PietColor(false, true);
     }
 
-    //Pusht die Reihe auf den Block
+    // Pusht die Reihe auf den Block
     private void pushRowToChooser() {
         chooser.add(row);
         row = new PietColor[blockWidth - 1];
-        for(int i = 0; i < row.length; i++)
+        for (int i = 0; i < row.length; i++)
             row[i] = new PietColor(false, true);
     }
 
