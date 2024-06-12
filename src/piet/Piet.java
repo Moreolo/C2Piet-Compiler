@@ -265,6 +265,8 @@ public class Piet {
             //if(node.getType() == NodeTypesEnum.FUNCTION_DEF) return parseFunctionDef(block, node); //return as FUNCTION_DEF
             if(node.getType() == NodeTypesEnum.RETURN_STATEMENT) ; //return as RETURN_STATEMENT
         }
+        // Set Pointer for next Block
+        block.addOperation(new Operation(Command.POINTER, bblock.getNext())); // für condition bblock bitte noch getAlt function hinzufügen!!!
         return block;
     }
 
@@ -380,10 +382,23 @@ public class Piet {
                 block = solveBinaryExpresssion(block, param);
             }
             else {
-                System.err.println("Right Side of Condition needs to be Identifier or Literal or Binary Expression");
+                System.err.println("Parameter needs to be Identifier or Literal or Binary Expression");
             }
             functionVariableSpeicher.put(param_name, ProgramCounter); // param wird auf top des stacks gepusht und diese position wird im dictionary mit dem param name(key) gespeichert
         }
+
+        // check ob function return wert hat
+        // wenn ja lege top spot of stack als tmp fest in der der wert der 
+
+        // --> hashmap in der die funktionsdefinition gespeichert sind (wir müssen dann neue id an diese blocks verteilen und diese auch untereinander weiter verbinden)
+        // --> mit neuer funktion die funktionsdefinition auflösen und in neuen blöcken abspeichern
+    
+        
+        // --> mit next von block (in dem der function call ist) dann auf weiteren normalen programmablauf verlinken
+
+
+        // funktionsaufruf wird aus block vorgezogen und durch tmp var mit typ FUNCTION RETURN replacet, der dann den return wert hat
+
         // wie kann ich an den block verlinken der dann die Funktion ausführt. Da müsste im block was mitgegeben werden
         return block;
     }
