@@ -17,13 +17,15 @@ public class Piet {
     Dictionary<String, Integer> functionVariableSpeicher = new Hashtable<>(); // key ist der param name und der wert ist die position auf dem stack
     Dictionary<String, LinkedList<String>> functionsDict = new Hashtable<>();
 
+    
+
     int ProgramCounter = 0;
 
     public LinkedList<Block> parse(ArrayList<BBlock> bblocks) {
         LinkedList<Block> finalBlocks = new LinkedList<>();  
         int num = 1;
         for (BBlock block : bblocks) {
-            if (block instanceof CondBlock) finalBlocks.add(parseCondition(block, num));
+            if (block instanceof CondBlock) finalBlocks.add(parseCondition((CondBlock)block, num));
             if (block instanceof FunBlock) finalBlocks.add(parseFunction(block, num));
             if (block instanceof TermBlock) finalBlocks.add(parseTerm(block, num));
             else finalBlocks.add(parseBBlock(block, num));  
@@ -32,7 +34,7 @@ public class Piet {
         return finalBlocks;
     }
 
-    private Block parseCondition(BBlock bblock, int num){
+    private Block parseCondition(CondBlock bblock, int num){
         /**
         * parseCondition parsed die Condition-BBlocks
         * @param BBlock bblock ist der Condition-BBLock der als input dient
@@ -285,7 +287,7 @@ public class Piet {
             block.addOperation(new Operation(Command.PUSH, varpos));
             block.addOperation(new Operation(Command.ROLL));
         }
-        else{
+        else if (!varString.equals("")){
             // wenn Variable noch nicht auf Stack liegt -> assigne Variable zum Wert an der Spitze des Stacks (Wert der rechten Seite der Assignment Expression)
             VariablenSpeicher.add(varString);
         }
@@ -321,7 +323,7 @@ public class Piet {
         // macht iwi weniger sinn. würde tbh mehr sinn machen abzuspeichern zu welchem block gesprungen werden soll wenn die function aufgerufen wird
         
         var nodes = func.getBody();
-        parseFunctionBlock(block, node);
+        //parseFunctionBlock(block, node);
         
         return block;
     }
