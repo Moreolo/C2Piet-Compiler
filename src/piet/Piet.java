@@ -21,6 +21,8 @@ public class Piet {
 
     int ProgramCounter = 0;
 
+    boolean func_flag = false;
+
     public LinkedList<Block> parse(ArrayList<BBlock> bblocks) {
         LinkedList<Block> finalBlocks = new LinkedList<>();  
         int num = 1;
@@ -177,28 +179,39 @@ public class Piet {
         return block;
     }
 
-    private Block rotateVariable(Block block, String var2rotate){
+    private Block rotateVariable(Block block, String var_name){
         /**
         * rotateVariable rotiert die gewünschte Variable an die Spitze des Stacks dupliziert den Wert 
             und rotiert die originale Variable wieder an die ursprüngliche Position zurück
         * @param Block block ist der Block in dem die Piet-Commands gespeichert werden
         * @return String var2rotate variable die an die Spitze des Stacks rotiert werden soll
         */
-        var varpos = VariablenSpeicher.indexOf(var2rotate);
-        block.addOperation(new Operation(Command.PUSH, varpos));
+
+        int var_pos = -1;
+        if ((functionVariableSpeicher.get(var_name) != null) && func_flag){
+            var_pos = functionVariableSpeicher.get(var_name);
+        }
+        else if (VariablenSpeicher.contains(var_name)){
+            var_pos = VariablenSpeicher.indexOf(var_name);
+        }
+        else {
+            System.err.println("Variable existiert nicht");
+        }
+
+        block.addOperation(new Operation(Command.PUSH, var_pos));
         block.addOperation(new Operation(Command.PUSH, ProgramCounter));
         block.addOperation(new Operation(Command.ROLL));
         block.addOperation(new Operation(Command.DUPLICATE));
         ProgramCounter += 1;
         block.addOperation(new Operation(Command.PUSH, ProgramCounter));
-        block.addOperation(new Operation(Command.PUSH, varpos));
+        block.addOperation(new Operation(Command.PUSH, var_pos));
         block.addOperation(new Operation(Command.ROLL));
         return block;
     }
 
-    private Block typeCheck(Block block, Node node){
+    private Block resolveType(Block block, Node node){
         /**
-        * typeCheck checkt ob node von richtigem Type ist und befördert direkt Wert des Nodes an die Spitze des Stacks
+        * resolveType checkt ob node von richtigem Type ist und befördert den Wert des Nodes an die Spitze des Stacks -> löst Variablen und BinaryExpressions direkt auf
         * @param Block block ist der Block in dem die Piet-Commands gespeichert werden
         * @param Node node ist die Node der Assignment Expression
         * @return Block block der mit Commands erweiterte block wird returned
@@ -216,7 +229,8 @@ public class Piet {
         }
         else if(node.getType() == NodeTypesEnum.IDENTIFIER){
             //Kopiere Wert der Variable auf die Spitze des Stacks, um später Vergleich darauf auszuführen
-            block = rotateVariable(block, node.getValue());
+            String var_name = node.getValue();
+            block = rotateVariable(block, var_name);
         }
         else{
             System.err.println("Node must be of Type Identifier or Literal or Binary Expression");
@@ -275,7 +289,7 @@ public class Piet {
         // Check ob rechte seite der assignment expression richtigen typ hat
         Node right = node.getRight();
         // pushe werte der rechten Seite auf den Stack
-        block = typeCheck(block, right);
+        block = resolveType(block, right);
 
         // Check ob variable schon auf Stack gespeichert ist
         if (VariablenSpeicher.contains(varString)){
@@ -323,7 +337,7 @@ public class Piet {
         // macht iwi weniger sinn. würde tbh mehr sinn machen abzuspeichern zu welchem block gesprungen werden soll wenn die function aufgerufen wird
         
         var nodes = func.getBody();
-        //parseFunctionBlock(block, node);
+        parseFunction(block, node);
         
         return block;
     }
@@ -346,6 +360,8 @@ public class Piet {
         String function_name = body.getValue();
         // Get Paramternamen der Funktion
         LinkedList<String> param_names = functionsDict.get(function_name);
+
+        func_flag = true;
 
         //Loope über alle Parameter der Funktion
         for (int p = 0; p < body.getAlternative().size(); p++){
@@ -380,9 +396,9 @@ public class Piet {
         }
         else {
             Node left = node.getLeft();
-            block = typeCheck(block, left);
+            block = resolveType(block, left);
             Node right = node.getRight();
-            block = typeCheck(block, right);
+            block = resolveType(block, right);
             switch (node.getOperator()) {
                 case "+":
                     block.addOperation(new Operation(Command.ADD));
@@ -405,50 +421,6 @@ public class Piet {
             }
         }
         return block;
-    }
-
-    private Block solveBinaryExpresssion2(Block block, Node node){
-        // WEiß nicht ob wir das einfach so implementieren können 
-        // was ist z.b. mit: x = (2+3)*(4*8) ??
-        // das sind ja mehrere binary expressions ineinander verschachtelt das müssen wir ja iwi auflösen oder nicht 
-        // oder wird das schon von den teams davor aufgelöst in: 
-        // x = 2 + 3
-        // temp = 4*8
-        // x = x * temp
-
-        int leftValue = Integer.parseInt(node.getLeft().getValue()); // check ob linker value ein identifier, literal oder binary expression ist
-        int rightValue = Integer.parseInt(node.getRight().getValue()); // check ob linker value ein identifier, literal oder binary expression ist
-        block.addOperation(new Operation(Command.PUSH, leftValue));
-        block.addOperation(new Operation(Command.PUSH, rightValue));
-        
-        switch (node.getOperator()) {
-            case "=":
-                block = parseAssignmentExpression(block, node);
-                break;
-            case "+":
-                block.addOperation(new Operation(Command.ADD));
-                break;
-            case "-":
-                block.addOperation(new Operation(Command.SUBTRACT));
-                break;
-            case "*":
-                block.addOperation(new Operation(Command.MULTIPLY));
-                break;
-            case "/":
-                block.addOperation(new Operation(Command.DIVIDE));
-                break;
-            case "%":
-                block.addOperation(new Operation(Command.MOD));
-                break;     
-        
-            default:
-                break;
-        }
-
-        if(node.getLeft().getType() != NodeTypesEnum.LITERAL) solveBinaryExpresssion(block, node.getLeft());
-        if(node.getRight().getType() != NodeTypesEnum.LITERAL) solveBinaryExpresssion(block, node.getRight());
-        
-        return new Block(0);
     }
 }
 
