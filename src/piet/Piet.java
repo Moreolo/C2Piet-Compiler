@@ -28,7 +28,7 @@ public class Piet {
         int num = 1;
         for (BBlock block : bblocks) {
             if (block instanceof CondBlock) finalBlocks.add(parseCondition((CondBlock)block, num));
-            if (block instanceof FunBlock) finalBlocks.add(parseFunction(block, num));
+            if (block instanceof FunCallBlock) finalBlocks.add(parseFunction(block, num));
             if (block instanceof TermBlock) finalBlocks.add(parseTerm(block, num));
             else finalBlocks.add(parseBBlock(block, num));  
             num += 1;
