@@ -370,7 +370,7 @@ public class Piet {
         return block;
     }
 
-    private Block solveBinaryExpression(Block block, Node node){
+    private Block solveBinaryExpresssion(Block block, Node node){
         //x = (2+3)*(4*8)
         String operator = node.getOperator();
         if (operator == "="){
