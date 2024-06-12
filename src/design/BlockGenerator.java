@@ -32,16 +32,60 @@ public class BlockGenerator {
         color = new PietColor(4, 1);
         row = new PietColor[blockWidth - 1];
 
+        // erste 2 Zeilen
+
+        // Zeile 1
         row[0] = new PietColor(true, false);
         row[1] = new PietColor(true, false);
         row[2] = color;
         row[3] = color;
         row[4] = new PietColor(false, true);
+        pushRowToChooser();
 
-        // erste 2 Zeilen
+        // Zeile 2
+        row[0] = new PietColor(true, false);
+        row[1] = new PietColor(true, false);
+        row[2] = new PietColor(false, true);
+        pushRowToChooser();
+
+        chooserPush(blockNum);
+
         // blockNum push
         // letzte 2 Zeilen
 
+    }
+
+    private void chooserPush(int number) {
+
+        // von rechts nach links, dann neue Zeile
+        /*
+         * color = new PietColor(0, 0);
+         * int numberArray[];
+         * 
+         * numberArray[0] = number % 10;
+         * pushRowToChooser();
+         */
+        /*
+         * if (number == 0) {
+         * number = 1;
+         * operations.addFirst(new Operation(Command.NOT));
+         * }
+         * 
+         * while (number > 19) {
+         * int num = number % 10;
+         * arrayFiller(num);
+         * 
+         * if (num != 0) {
+         * 
+         * 
+         * operations.addFirst(new Operation(Command.ADD));
+         * operations.addFirst(new Operation(Command.PUSH, num));
+         * }
+         * operations.addFirst(new Operation(Command.MULTIPLY));
+         * operations.addFirst(new Operation(Command.PUSH, 10));
+         * number /= 10;
+         * }
+         */
     }
 
     private void generateBlock(LinkedList<Operation> operations) {
