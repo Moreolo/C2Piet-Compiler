@@ -275,16 +275,16 @@ public class BlockGenerator {
             int space = blockWidth - 3 - pos;
             if(space == -1) {
                 generateTurn();
-                pos = 5;
+                pos = blockWidth - 1;
                 if(val < 3) {
-                    pos = 6;
+                    pos = blockWidth;
                     generatePushToRight(val);
                 } else if(val > 3)
                     generatePushToRight(val - 3);
             } else if(space == 0 && val == 2) {
                 row[1].set(color);
                 funkyColor = color.getCopy();
-                pos = 4;
+                pos = blockWidth - 2;
             } else {
                 int leftCol = val % 3;
                 int cols = val / 3;
