@@ -163,8 +163,7 @@ public class Parser {
         String path = popToken().getLexeme();
         path = path.replace("\"", ""); // remove quotes
         // path specified
-        if (path.contains("/") || path.contains("\\")) {
-        } else {
+        if (!(path.contains("/") || path.contains("\\"))) {
             // if nothing else specified
             String userPath = System.getProperty("user.dir");
         }
@@ -320,11 +319,12 @@ public class Parser {
      * Check if a token is an operator
      *
      * @param type the token to check
-     * @return true if token is one of the following <, <=, >, >=, ==, +, -, =, *, /
+     * @return true if token is one of the following <, <=, >, >=, ==, +, -, =, *, /, %, &&, ||
      */
     private boolean isOperator(TokenType type) {
-        return type == TokenType.LESS || type == TokenType.LESS_EQUAL || type == TokenType.GREATER || type == TokenType.GREATER_EQUAL || type == TokenType.EQUAL_EQUAL
-                || type == TokenType.PLUS || type == TokenType.MINUS || type == TokenType.EQUAL || type == TokenType.STAR || type == TokenType.SLASH;
+        return type == TokenType.LESS || type == TokenType.LESS_EQUAL || type == TokenType.GREATER || type == TokenType.GREATER_EQUAL ||
+                type == TokenType.EQUAL_EQUAL || type == TokenType.PLUS || type == TokenType.MINUS || type == TokenType.EQUAL ||
+                type == TokenType.STAR || type == TokenType.SLASH || type == TokenType.MOD || type == TokenType.LOGICAL_AND || type == TokenType.LOGICAL_OR;
     }
 
     /**

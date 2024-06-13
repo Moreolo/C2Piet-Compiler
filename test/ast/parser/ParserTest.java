@@ -18,7 +18,7 @@ public class ParserTest {
      */
     @Test
     public void testBinExp() {
-        Scan scanner = new Scan("i = (3+4)");
+        Scan scanner = new Scan("i = ((3*4)+2)");
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
         Node testNode = parser.parse(tokens);
@@ -26,11 +26,14 @@ public class ParserTest {
         assertEquals(NodeTypesEnum.BINARY_EXPRESSION, program.getType());
         assertEquals("i", program.getLeft().getValue());
         assertEquals("=", program.getOperator());
-        Node binExp = program.getRight();
-        assertEquals(NodeTypesEnum.BINARY_EXPRESSION, binExp.getType());
-        assertEquals("3", binExp.getLeft().getValue());
-        assertEquals("+", binExp.getOperator());
-        assertEquals("4", binExp.getRight().getValue());
+        Node binExp1 = program.getRight().getLeft();
+        assertEquals(NodeTypesEnum.BINARY_EXPRESSION, binExp1.getType());
+        assertEquals("3", binExp1.getLeft().getValue());
+        assertEquals("*", binExp1.getOperator());
+        assertEquals("4", binExp1.getRight().getValue());
+        Node binExp2 = program.getRight();
+        assertEquals("+", binExp2.getOperator());
+        assertEquals("2", binExp2.getRight().getValue());
     }
 
     /**
@@ -311,6 +314,7 @@ public class ParserTest {
     @Test
     public void testInclude() {
         Scan scanner = new Scan("#include \"hello.c\"; while(i < 3) { x = 3; } int sum(int a, int b) {return (a + b); }");
+        //Scan scanner = new Scan("#include \"D:\\git\\C2Piet-Compiler\\test\\ressources\\hello.c\"; while(i < 3) { x = 3; } int sum(int a, int b) {return (a + b); }");
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
         Node testNode = parser.parse(tokens);
@@ -350,11 +354,11 @@ public class ParserTest {
 
 
     /**
-     * just for inspections for now
+     * inspections for now
      */
     @Test
-    public void testProgram() {
-        Scan scanner = new Scan("int main() {int x = 3;int y = 5;int z = (x + y);if (z > 4) {return x; }}");
+    public void testInspection() {
+        Scan scanner = new Scan("if (4*5) { x = 2; }");
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
         Node testNode = parser.parse(tokens);
@@ -364,5 +368,8 @@ public class ParserTest {
 
 }
 
-// TODO next: (<<)
-// TODO (precedence)
+// TODO next: handle not operator !
+// TODO check that binExp from ifs is a condition
+// TODO (precedence), (<<)
+// TODO (printF, scan... stdlib stuff)
+// TODO (switch with implicit breaks and aufzählungs notation)

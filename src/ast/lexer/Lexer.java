@@ -17,7 +17,7 @@ public class Lexer {
 
     static boolean hadError = false;
 
-    public Lexer() throws IOException {
+    public Lexer() {
     }
 
 

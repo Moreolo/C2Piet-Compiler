@@ -108,7 +108,8 @@ public class Scan{
             addToken(PLUS_EQUAL); break;
           }else{addToken(match('+')? INCREMENT : PLUS); break;}
           case ';': addToken(SEMICOLON); break;
-          case '*': addToken(STAR); break; 
+          case '*': addToken(STAR); break;
+          case '%': addToken(MOD); break;
           case '[': addToken(SQUARE_BRACE_LEFT); break;
           case ']': addToken(SQUARE_BRACE_RIGHT); break;
           case ':': addToken(COLON); break;
