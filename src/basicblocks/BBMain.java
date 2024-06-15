@@ -346,6 +346,9 @@ public class BBMain {
  
     
                 
+                case DECLARATION:
+                // ToDo: Suche nach Funkionen, die eine Deklaration definieren...
+
             
                 default:
 
@@ -380,7 +383,6 @@ public class BBMain {
                     //main gefunden, starterblock muss auf Main zeigen
                     // main braucht keinen Verweis in der function map
                         
-                        funcBlock.setBody((ArrayList) node.getBody());
                         starterBlock.setNext(funcBlock.getPositionInArray());
 
                     } else {
@@ -408,3 +410,21 @@ public class BBMain {
         return blockList;
     }
 }
+
+
+/*
+ * Für Alle:
+ * 
+ * - Welche Default-funktionen haben wir, und wie werden die Definiert? (Print, intput, etc.)
+ * 
+ * 
+ * 
+ * 
+ * 
+ *  ToDo:
+ *  - DECLARATION handling
+ *  - Refactoring
+ *  - Wiki
+ *  - Testing
+ *  - (Terminator)
+ */
