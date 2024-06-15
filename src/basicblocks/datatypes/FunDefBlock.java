@@ -5,11 +5,17 @@ import java.util.ArrayList;
 import ast.datatypes.Node;
 
 public class FunDefBlock extends BBlock{
+
+    ArrayList<Node> parameterList;
+
     public FunDefBlock(int positionInArray) {
         super(positionInArray);
         
     }
-    ArrayList<Node> parameterList;
+
+    public void setParameters(ArrayList<Node> paramList) {
+        this.parameterList = paramList;
+    }
 
 
 

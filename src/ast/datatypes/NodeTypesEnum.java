@@ -6,6 +6,12 @@ public enum NodeTypesEnum {
      */
     IF_STATEMENT,
     /**
+     * for else parts
+     */
+    ELSE_STATEMENT,
+
+    FUNCTION_TEMP_RETURN,
+    /**
      * any block of code
      * i.e. in if's, loops or methods
      */
@@ -23,9 +29,9 @@ public enum NodeTypesEnum {
      */
     BINARY_EXPRESSION,
     /**
-     * assigning a value (literal) to an identifier
+     * Declaring a variable
      */
-    ASSIGNMENT_EXPRESSION,
+    DECLARATION,
     /**
      * call of a function
      */
@@ -45,6 +51,10 @@ public enum NodeTypesEnum {
     /**
      * entry point to a program
      */
-    PROGRAM
+    PROGRAM,
+    /**
+     * end of program and execution
+     */
+    TERMINATOR
 
 }
