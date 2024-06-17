@@ -79,83 +79,36 @@ public class BlockGenerator {
 
     private void chooserPush(int number) {
 
-        // von rechts nach links, dann neue Zeile
-        /*
-         * color = new PietColor(0, 0);
-         * int numberArray[];
-         * 
-         * numberArray[0] = number % 10;
-         * pushRowToChooser();
-         */
-        /*
-         * if (number == 0) {
-         * number = 1;
-         * chooserPush.addFirst(new Operation(Command.NOT));
-         * }
-         * 
-         * while (number > 19) {
-         * int num = number % 10;
-         * if (num != 0) {
-         * chooserPush.addFirst(new Operation(Command.ADD));
-         * chooserPush.addFirst(new Operation(Command.PUSH, num));
-         * }
-         * chooserPush.addFirst(new Operation(Command.MULTIPLY));
-         * chooserPush.addFirst(new Operation(Command.PUSH, 10));
-         * number /= 10;
-         * }
-         */
-        /*
-         * if (number == 0) {
-         * number = 1;
-         * operations.addFirst(new Operation(Command.NOT));
-         * }
-         * 
-         * // Teilt den Push Block in Multiplikationen auf
-         * if (val == 0) {
-         * val = 1;
-         * operations.addFirst(new Operation(Command.NOT));
-         * }
-         * 
-         * while (val > 19) {
-         * int num = val % 10;
-         * if (num != 0) {
-         * operations.addFirst(new Operation(Command.ADD));
-         * operations.addFirst(new Operation(Command.PUSH, num));
-         * }
-         * operations.addFirst(new Operation(Command.MULTIPLY));
-         * operations.addFirst(new Operation(Command.PUSH, 10));
-         * val /= 10;
-         * }
-         * 
-         * if (pos == 0)
-         * generatePushDown(val, true);
-         * if (pos < blockWidth - 1)
-         * generatePushToLeft(val);
-         * else if (pos < blockWidth * 2 - 1)
-         * generatePushToRight(val);
-         * else
-         * generatePushDown(val, true);
-         * 
-         * int x = 0;
-         * while (val > 0) {
-         * if (x == collision) {
-         * x = 0;
-         * collision = -1;
-         * pushRowToBlock();
-         * }
-         * row[blockWidth - 1 - x].set(color);
-         * val--;
-         * x = (x + 1) % (blockWidth - 1);
-         * if (x == 0) {
-         * pushRowToBlock();
-         * xAsPos = false;
-         * }
-         * }
-         * if (xAsPos)
-         * pos = x;
-         * else
-         * pos = 9;
-         */
+        // temporäre Zahlenliste
+        LinkedList<Integer> numberParts = new LinkedList<>();
+
+        // zerteilen der Zahl in ein Basis-10-System; letzte "Ziffer" kann Wert bis 18
+        // annehmen
+        while (number > 19) {
+
+            int temp = number % 10;
+            numberParts.addFirst(temp);
+            number -= temp;
+            number /= 10;
+
+        }
+        numberParts.addFirst(number);
+
+        // Anlegen der Kommando-Struktur
+        chooserPush.addFirst(new Operation(Command.PUSH, numberParts.get(0)));
+
+        for (int i = 1; i < numberParts.size(); i++) {
+            chooserPush.add(new Operation(Command.PUSH, 10));
+            chooserPush.add(new Operation(Command.MULTIPLY));
+
+            int j = numberParts.get(i);
+            if (j != 0) {
+                chooserPush.add(new Operation(Command.PUSH, j));
+                chooserPush.add(new Operation(Command.ADD));
+            }
+
+        }
+
     }
 
     private void generateBlock(LinkedList<Operation> operations) {
@@ -433,25 +386,25 @@ public class BlockGenerator {
 
     private void generateLastOperation() {
         if (pos == 0 || pos == blockWidth * 2 - 3) {
-            //0, 9
+            // 0, 9
             row[blockWidth - 2].set(color);
         } else if (pos == 1) {
-            //1
+            // 1
             pushRowToBlock();
             row[blockWidth - 2].set(color);
         } else if (pos < blockWidth - 1) {
-            //2-4
+            // 2-4
             row[blockWidth - 2 - pos].set(color);
-            for(int x = 0; x < blockWidth - 2 - pos; x++)
+            for (int x = 0; x < blockWidth - 2 - pos; x++)
                 row[x].setWhite();
             pushRowToBlock();
             row[blockWidth - 2 - pos].set(color);
-            for(int x = blockWidth - 2 - pos + 1; x < blockWidth - 2; x++)
+            for (int x = blockWidth - 2 - pos + 1; x < blockWidth - 2; x++)
                 row[x].setWhite();
         } else {
-            //5-8
+            // 5-8
             row[pos - blockWidth + 2].set(color);
-            for(; pos < blockWidth * 2 - 3; pos++)
+            for (; pos < blockWidth * 2 - 3; pos++)
                 row[pos - blockWidth + 2].setWhite();
         }
         pushRowToBlock();
