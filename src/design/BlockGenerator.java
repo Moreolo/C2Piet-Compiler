@@ -175,14 +175,14 @@ public class BlockGenerator {
 
         while (!operations.isEmpty())
             generateOperation(operations.pop());
-        generateOtherOperation();
-        block.add(row);
+        generateLastOperation();
     }
 
     private void generateOperation(Operation operation) {
         // Setzt die Pixel für die vorherige Operation
         // Das muss in dieser Reihenfolge gemacht werden damit die push und pointer
         // Operation richtig gezeichnet werden können
+        System.out.println("Operation: " + operation.getName() + " (" + operation.getVal1() + "), pos = " + pos);
         Command c = operation.getName();
         if (c == Command.PUSH)
             generatePush(operation.getVal1());
@@ -237,7 +237,7 @@ public class BlockGenerator {
             // 0-3
             // Generiert Operation
             row[blockWidth - 2 - pos].set(color);
-        } else if (pos == blockWidth - 1) {
+        } else if (pos == blockWidth - 2) {
             generateTurn();
         } else if (pos < blockWidth * 2 - 4) {
             // 5-7
@@ -266,6 +266,7 @@ public class BlockGenerator {
         // 4
         // Generiert 3er-Block Operation plus schwarz
         // Pusht 2 Reihen
+        System.out.println("Generate Turn: " + "hue = " + color.hue + ", shade = " + color.shade);
         row[0].set(color);
         pushRowToBlock();
         row[0].set(color);
@@ -281,6 +282,10 @@ public class BlockGenerator {
         if (val == 0) {
             val = 1;
             operations.addFirst(new Operation(Command.NOT));
+        } else if (val < 0) {
+            operations.addFirst(new Operation(Command.SUBTRACT));
+            operations.addFirst(new Operation(Command.PUSH, val + 1));
+            val = 1;
         }
 
         while (val > 19) {
@@ -296,23 +301,25 @@ public class BlockGenerator {
 
         if (pos == 0)
             generatePushDown(val, true);
-        if (pos < blockWidth - 1)
+        else if (pos < blockWidth - 1)
             generatePushToLeft(val);
-        else if (pos < blockWidth * 2 - 1)
+        else if (pos < blockWidth * 2 - 3)
             generatePushToRight(val);
         else
-            generatePushDown(val, true);
+            generatePushDown(val, false);
     }
 
     private void generatePushDown(int val, boolean xAsPos) {
         int x = 0;
         while (val > 0) {
+            System.out.println("Generate Push Down: " + "val = " + val + ", x = " + x);
             if (x == collision) {
                 x = 0;
                 collision = -1;
                 pushRowToBlock();
+                xAsPos = false;
             }
-            row[blockWidth - 1 - x].set(color);
+            row[blockWidth - 2 - x].set(color);
             val--;
             x = (x + 1) % (blockWidth - 1);
             if (x == 0) {
@@ -322,14 +329,18 @@ public class BlockGenerator {
         }
         if (xAsPos)
             pos = x;
-        else
+        else {
+            pushRowToBlock();
             pos = 9;
+        }
+        System.out.println(pos);
     }
 
     private void generatePushToLeft(int val) {
         if (pos + val < blockWidth - 1) {
             while (val > 0) {
                 row[blockWidth - 2 - pos].set(color);
+                val--;
                 pos++;
             }
         } else if (pos == 1) {
@@ -344,9 +355,10 @@ public class BlockGenerator {
             int space = blockWidth - 3 - pos;
             if (space == -1) {
                 generateTurn();
-                pos = 5;
+                pos = blockWidth - 1;
                 if (val < 3) {
-                    pos = 6;
+                    row[1].setWhite();
+                    pos = blockWidth;
                     generatePushToRight(val);
                 } else if (val > 3)
                     generatePushToRight(val - 3);
@@ -359,30 +371,33 @@ public class BlockGenerator {
                 int cols = val / 3;
                 if (leftCol != 0)
                     cols++;
-                int x = 0;
+                int startX = 0;
                 if (val <= space * 3) {
                     row[blockWidth - 2 - pos].set(color);
                     row[blockWidth - 3 - pos].setWhite();
+                    val = 0;
                 } else {
-                    x = space + 2 - cols;
-                    if (x < 0) {
+                    startX = space + 2 - cols;
+                    if (startX < 0) {
                         leftCol = 0;
-                        x = 0;
+                        startX = 0;
                         cols = space + 2;
                         val -= cols * 3;
                     } else
                         val = 0;
                 }
+                for (int x = 0; x < startX; x++)
+                    row[x].setWhite();
                 for (int y = 0; y < 3; y++) {
                     boolean noFirstPixel = (y == 1 && leftCol == 1) || (y == 2 && leftCol != 0);
-                    for (; x < cols; x++) {
-                        if (x != 0 || !noFirstPixel)
-                            row[x].set(color);
+                    for (int x = 0; x < cols; x++) {
+                        if (!(x == 0 && noFirstPixel))
+                            row[startX + x].set(color);
                     }
                     if (y != 2)
                         pushRowToBlock();
                 }
-                pos = blockWidth - 2 + cols;
+                pos = blockWidth - 2 + startX + cols;
                 if (val > 0)
                     generatePushToRight(val);
             }
@@ -416,6 +431,32 @@ public class BlockGenerator {
 
     }
 
+    private void generateLastOperation() {
+        if (pos == 0 || pos == blockWidth * 2 - 3) {
+            //0, 9
+            row[blockWidth - 2].set(color);
+        } else if (pos == 1) {
+            //1
+            pushRowToBlock();
+            row[blockWidth - 2].set(color);
+        } else if (pos < blockWidth - 1) {
+            //2-4
+            row[blockWidth - 2 - pos].set(color);
+            for(int x = 0; x < blockWidth - 2 - pos; x++)
+                row[x].setWhite();
+            pushRowToBlock();
+            row[blockWidth - 2 - pos].set(color);
+            for(int x = blockWidth - 2 - pos + 1; x < blockWidth - 2; x++)
+                row[x].setWhite();
+        } else {
+            //5-8
+            row[pos - blockWidth + 2].set(color);
+            for(; pos < blockWidth * 2 - 3; pos++)
+                row[pos - blockWidth + 2].setWhite();
+        }
+        pushRowToBlock();
+    }
+
     // Pusht die Reihe auf den Block
     private void pushRowToBlock() {
         block.add(row);
@@ -434,6 +475,10 @@ public class BlockGenerator {
 
     public int getHeight() {
         return 0;
+    }
+
+    public LinkedList<PietColor[]> getBlock() {
+        return block;
     }
 
     public void paint(BufferedImage image, int xBlockPos, int yBlockPos) {
