@@ -63,8 +63,6 @@ public class BlockGenerator {
         row[1] = new PietColor(false, true);
         row[2] = new PietColor(false, true);
         row[3] = new PietColor(false, true);
-        color.add(Command.PUSH);
-        row[4].set(color);
         pushRowToChooser();
 
         // Zeile 2
@@ -72,8 +70,6 @@ public class BlockGenerator {
         row[1] = new PietColor(3, 0);
         row[2] = new PietColor(2, 2);
         row[3] = new PietColor(true, false);
-        color.add(Command.ADD);
-        row[4].set(color);
         pushRowToChooser();
 
     }
