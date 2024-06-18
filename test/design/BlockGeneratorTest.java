@@ -31,7 +31,7 @@ public class BlockGeneratorTest {
         block.addOperation(new Operation(Command.PUSH, 3));
         block.addOperation(new Operation(Command.PUSH, 1));
         block.addOperation(new Operation(Command.ROLL));
-        block.addOperation(new Operation(Command.PUSH, 2));
+        block.addOperation(new Operation(Command.POINTER, 0, -20));
 
         BlockGenerator blockGenerator = new BlockGenerator(block);
         LinkedList<PietColor[]> colorList = blockGenerator.getBlock();

@@ -141,14 +141,16 @@ public class BlockGenerator {
         if (c == Command.PUSH)
             generatePush(operation.getVal1());
         else if (c == Command.POINTER) {
-            if (operation.getVal1() < 1 || operation.getVal2() < 1)
-                throw new Error("Der Pointer Command braucht Werte höher als 0.");
+            // if (operation.getVal1() < 1 || operation.getVal2() < 1)
+            //     throw new Error("Der Pointer Command braucht Werte höher als 0.");
             generatePointer(operation.getVal1(), operation.getVal2());
         } else
             generateOtherOperation();
 
         // Verändert den Farbwert für den nächsten Pixel für die Operation
-        color.add(c);
+        // Nicht bei Pointer, weil diese Veränderung passiert schon in generatePointer
+        if (c != Command.POINTER)
+            color.add(c);
         // Überprüft Kollision bei pos = 9
         // Setzt Kollisionswert für Pushblock
         // Bei keiner Kollision und schwarzen Pixel bei 0: pos = 0
@@ -170,16 +172,17 @@ public class BlockGenerator {
                 } else {
                     futureOp = operations.get(opIndex++);
                     futureColor.add(futureOp.getName());
-                    if (futureOp.getName() == Command.PUSH) {
+                    if (futureOp.getName() == Command.PUSH)
                         pushLeft = futureOp.getVal1();
-                    }
+                    else if (futureOp.getName() == Command.POINTER && x == blockWidth - 3)
+                        pushLeft = blockWidth - 3;
                 }
                 if (futureColor.is(block.getLast()[blockWidth - 2 - x])) {
                     collision = x;
                     break;
                 }
             }
-            if (collision == -1)
+            if (collision == -1 && pushLeft <= 1)
                 if (block.getLast()[0].isBlack())
                     pos = 0;
                 else
@@ -395,7 +398,160 @@ public class BlockGenerator {
     }
 
     private void generatePointer(int val1, int val2) {
+        // Generiert richtige Position
+        generateOtherOperation();
+        if (pos == blockWidth * 2 - 4) {
+            // 8
+            row[blockWidth - 2].setWhite();
+            pushRowToBlock();
+            pos = blockWidth * 2 - 3;
+        }
+        if (pos == blockWidth * 2 - 3) {
+            // 9
+            row[blockWidth - 2].setWhite();
+            pushRowToBlock();
+            pos = 0;
+        }
+        if (pos < blockWidth - 2) {
+            // 0-3
+            for (int x = blockWidth - 2 - pos; x > 0; x--) {
+                row[x].setWhite();
+            }
+            generateTurn();
+            pos = blockWidth - 1;
+        } else if (pos == blockWidth - 2) {
+            // 4
+            row[0].setWhite();
+            pushRowToBlock();
+            row[1].set(color);
+            pushRowToBlock();
+            row[1].set(color);
+            pos = blockWidth;
+        }
+        color.add(Command.POINTER);
+        // Generiert ersten Push Block
+        generateSlimPushBlock(val1, true);
+        // Generiert Zwischenplatz
+        for (int x = 0; x < blockWidth - 2; x++)
+            row[x].set(color);
+        newLine(true);
+        for (int x = 0; x < blockWidth - 3; x++)
+            row[x].setWhite();
+        newLine(false);
+        // Generiert zweiten Push Block
+        generateSlimPushBlock(val2, false);
+        pos = 0;
+    }
 
+    // Generiert dünnen Push Block
+    private void generateSlimPushBlock(int val, boolean left) {
+        boolean negative = false;
+        if (val == 0) {
+            // Generiert PUSH 1 und NOT und beendet Funktion
+            if (left) {
+                row[pos - blockWidth + 2].set(color);
+                for(int x = pos + 1 - blockWidth + 2; x < blockWidth - 1; x++)
+                    row[x].setWhite();
+                pushRowToBlock();
+                row[blockWidth - 2].setWhite();
+            } else {
+                row[blockWidth - 2].set(color);
+                newLine(left);
+            }
+            color.add(Command.PUSH);
+            if (left)
+                row[pos - blockWidth + 2].set(color);
+            else
+                row[blockWidth - 2].set(color);
+            newLine(left);
+            color.add(Command.NOT);
+            return;
+        } else if (val < 0) {
+            // Generiert PUSH 1, erhöht Wert um 1 und setzt negativ
+            if (left) {
+                row[pos - blockWidth + 2].set(color);
+                for(int x = pos + 1 - blockWidth + 2; x < blockWidth - 1; x++)
+                    row[x].setWhite();
+                pushRowToBlock();
+                row[blockWidth - 2].setWhite();
+            } else {
+                row[blockWidth - 2].set(color);
+                newLine(left);
+            }
+            color.add(Command.PUSH);
+            val = 1 - val;
+            negative = true;
+        }
+        // Teilt Wert auf
+        LinkedList<Integer> num = new LinkedList<>();
+        while (val > 19) {
+            num.addFirst(val % 10);
+            val /= 10;
+        }
+        if (left) {
+            // Erste Reihe bei links
+            for (; pos < blockWidth * 2 - 4 && val > 0; pos++) {
+                row[pos - blockWidth + 2].set(color);
+                val--;
+            }
+            if (!negative)
+                for(; pos < blockWidth * 2 - 3; pos++)
+                    row[pos - blockWidth + 2].setWhite();
+            // pos refunction
+            newLine(left);
+        }
+        if(val != 0)
+            generateSlimPush(val, left);
+        else
+            color.add(Command.PUSH);
+        while (!num.isEmpty()) {
+            // 10
+            generateSlimPush(10, left);
+            // *
+            row[pos].set(color);
+            newLine(left);
+            color.add(Command.MULTIPLY);
+            //num
+            int digit = num.pop();
+            if (digit != 0) {
+                // digit
+                generateSlimPush(digit, left);
+                // +
+                row[pos].set(color);
+                newLine(left);
+                color.add(Command.ADD);
+            }
+        }
+        if (negative) {
+            int startX = 0;
+            if (!left)
+                startX = 1;
+            for (int x = 0; x < blockWidth - 2; x++)
+                row[startX + x].set(color);
+            newLine(left);
+            color.add(Command.SUBTRACT);
+        }
+    }
+
+    private void generateSlimPush(int val, boolean left) {
+        for(; val > 0; val--) {
+            if (pos < 0 && left || pos < 1 && !left)
+                newLine(left);
+            row[pos--].set(color);
+        }
+        newLine(left);
+        color.add(Command.PUSH);
+    }
+
+    private void newLine(boolean left) {
+        pushRowToBlock();
+        if (left) {
+            row[blockWidth - 2].setWhite();
+            pos = blockWidth - 3;
+        } else {
+            row[0].setWhite();
+            pos = blockWidth - 2;
+        }
     }
 
     private void generateLastOperation() {
