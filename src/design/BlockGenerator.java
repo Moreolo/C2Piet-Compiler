@@ -135,7 +135,6 @@ public class BlockGenerator {
         // Setzt die Pixel für die vorherige Operation
         // Das muss in dieser Reihenfolge gemacht werden damit die push und pointer
         // Operation richtig gezeichnet werden können
-        System.out.println("Operation: " + operation.getName() + " (" + operation.getVal1() + "), pos = " + pos);
         Command c = operation.getName();
         if (c == Command.PUSH)
             generatePush(operation.getVal1());
@@ -219,7 +218,6 @@ public class BlockGenerator {
         // 4
         // Generiert 3er-Block Operation plus schwarz
         // Pusht 2 Reihen
-        System.out.println("Generate Turn: " + "hue = " + color.hue + ", shade = " + color.shade);
         row[0].set(color);
         pushRowToBlock();
         row[0].set(color);
@@ -265,7 +263,6 @@ public class BlockGenerator {
     private void generatePushDown(int val, boolean xAsPos) {
         int x = 0;
         while (val > 0) {
-            System.out.println("Generate Push Down: " + "val = " + val + ", x = " + x);
             if (x == collision) {
                 x = 0;
                 collision = -1;
@@ -286,7 +283,6 @@ public class BlockGenerator {
             pushRowToBlock();
             pos = 9;
         }
-        System.out.println(pos);
     }
 
     private void generatePushToLeft(int val) {
