@@ -21,6 +21,7 @@ public class BlockGenerator {
     private LinkedList<Operation> chooserPush;
 
     private int collision;
+    private boolean specialPushPossible;
     private PietColor funkyColor;
 
     public BlockGenerator(Block block) {
@@ -124,6 +125,7 @@ public class BlockGenerator {
         this.operations = operations;
 
         collision = -1;
+        specialPushPossible = false;
         funkyColor = new PietColor(false, true);
 
         while (!operations.isEmpty())
@@ -152,6 +154,7 @@ public class BlockGenerator {
         // Bei keiner Kollision und schwarzen Pixel bei 0: pos = 0
         if (pos == 9 && !operations.isEmpty()) {
             collision = -1;
+            specialPushPossible = false;
             PietColor futureColor = color.getCopy();
             int pushLeft = 1;
             int opIndex = 1;
@@ -176,8 +179,11 @@ public class BlockGenerator {
                     break;
                 }
             }
-            if (block.getLast()[0].isBlack() && collision == -1)
-                pos = 0;
+            if (collision == -1)
+                if (block.getLast()[0].isBlack())
+                    pos = 0;
+                else
+                    specialPushPossible = true;
         }
         if (pos != 9)
             collision = -1;
@@ -208,7 +214,18 @@ public class BlockGenerator {
             for (int i = 0; i < blockWidth - 2; i++)
                 row[i].setBlack();
             row[blockWidth - 2].set(color);
-            pushRowToBlock();
+            if (!operations.isEmpty()) {
+                Operation next = operations.getFirst();
+                if (next.getName() != Command.PUSH)
+                    pushRowToBlock();
+                else
+                    if (next.getVal1() > 3)
+                        pos = 0;
+                    else
+                        pushRowToBlock();
+            } else {
+                pushRowToBlock();
+            }
         }
         // Erhöht Position der Operation
         pos = (pos + 1) % (blockWidth * 2 - 2);
@@ -280,7 +297,8 @@ public class BlockGenerator {
         if (xAsPos)
             pos = x;
         else {
-            pushRowToBlock();
+            if (x != 0)
+                pushRowToBlock();
             pos = 9;
         }
     }
