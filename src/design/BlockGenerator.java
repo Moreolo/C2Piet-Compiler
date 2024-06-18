@@ -110,6 +110,54 @@ public class BlockGenerator {
 
         }
 
+        for (Operation element : chooserPush) {
+            switch (element.getName()) {
+                case PUSH:
+                    color.add(Command.PUSH);
+                    // in 2-3 Zeilen aufteilen
+                    int rowVal = (element.getVal1());
+
+                    // Zeile füllen
+                    for (int i = 0; i < (rowVal / 5); i++) {
+                        for (int j = 4; j < 1; j--) {
+                            row[j].set(color);
+                            pushRowToChooser();
+                        }
+                    }
+                    ;
+                    if (rowVal % 5 != 0) {
+                        for (int j = 0; j < 5 - (rowVal % 5); j++) {
+                            row[j] = new PietColor(true, false);
+                        }
+                        for (int j = 0; j > rowVal % 5; j++) {
+                            row[4 - j].set(color);
+                            pushRowToChooser();
+                        }
+                    }
+                    break;
+                case MULTIPLY:
+                    color.add(Command.MULTIPLY);
+                    row[4].set(color);
+                    for (int j = 0; j < 4; j++) {
+                        row[j] = new PietColor(true, false);
+                    }
+                    pushRowToChooser();
+                    break;
+                case ADD:
+                    color.add(Command.ADD);
+                    row[4].set(color);
+                    for (int j = 0; j < 4; j++) {
+                        row[j] = new PietColor(true, false);
+                    }
+                    pushRowToChooser();
+                    break;
+
+                default:
+                    break;
+            }
+
+        }
+
     }
 
     private void generateBlock(LinkedList<Operation> operations) {
@@ -142,7 +190,7 @@ public class BlockGenerator {
             generatePush(operation.getVal1());
         else if (c == Command.POINTER) {
             // if (operation.getVal1() < 1 || operation.getVal2() < 1)
-            //     throw new Error("Der Pointer Command braucht Werte höher als 0.");
+            // throw new Error("Der Pointer Command braucht Werte höher als 0.");
             generatePointer(operation.getVal1(), operation.getVal2());
         } else
             generateOtherOperation();
@@ -221,11 +269,10 @@ public class BlockGenerator {
                 Operation next = operations.getFirst();
                 if (next.getName() != Command.PUSH)
                     pushRowToBlock();
+                else if (next.getVal1() > 3)
+                    pos = 0;
                 else
-                    if (next.getVal1() > 3)
-                        pos = 0;
-                    else
-                        pushRowToBlock();
+                    pushRowToBlock();
             } else {
                 pushRowToBlock();
             }
@@ -450,7 +497,7 @@ public class BlockGenerator {
             // Generiert PUSH 1 und NOT und beendet Funktion
             if (left) {
                 row[pos - blockWidth + 2].set(color);
-                for(int x = pos + 1 - blockWidth + 2; x < blockWidth - 1; x++)
+                for (int x = pos + 1 - blockWidth + 2; x < blockWidth - 1; x++)
                     row[x].setWhite();
                 pushRowToBlock();
                 row[blockWidth - 2].setWhite();
@@ -470,7 +517,7 @@ public class BlockGenerator {
             // Generiert PUSH 1, erhöht Wert um 1 und setzt negativ
             if (left) {
                 row[pos - blockWidth + 2].set(color);
-                for(int x = pos + 1 - blockWidth + 2; x < blockWidth - 1; x++)
+                for (int x = pos + 1 - blockWidth + 2; x < blockWidth - 1; x++)
                     row[x].setWhite();
                 pushRowToBlock();
                 row[blockWidth - 2].setWhite();
@@ -495,12 +542,12 @@ public class BlockGenerator {
                 val--;
             }
             if (!negative)
-                for(; pos < blockWidth * 2 - 3; pos++)
+                for (; pos < blockWidth * 2 - 3; pos++)
                     row[pos - blockWidth + 2].setWhite();
             // pos refunction
             newLine(left);
         }
-        if(val != 0)
+        if (val != 0)
             generateSlimPush(val, left);
         else
             color.add(Command.PUSH);
@@ -511,7 +558,7 @@ public class BlockGenerator {
             row[pos].set(color);
             newLine(left);
             color.add(Command.MULTIPLY);
-            //num
+            // num
             int digit = num.pop();
             if (digit != 0) {
                 // digit
@@ -534,7 +581,7 @@ public class BlockGenerator {
     }
 
     private void generateSlimPush(int val, boolean left) {
-        for(; val > 0; val--) {
+        for (; val > 0; val--) {
             if (pos < 0 && left || pos < 1 && !left)
                 newLine(left);
             row[pos--].set(color);
