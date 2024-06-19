@@ -38,19 +38,19 @@ public class BlockGenerator {
         // erste 2 Zeilen
 
         // Zeile 1
-        row[0] = new PietColor(true, false);
-        row[1] = new PietColor(true, false);
+        row[0].setWhite();
+        row[1].setWhite();
         row[2] = color;
         row[3] = color;
-        row[4] = new PietColor(false, true);
+        row[4].setBlack();
         pushRowToChooser();
 
         // Zeile 2
-        row[0] = new PietColor(true, false);
-        row[1] = new PietColor(true, false);
-        row[2] = new PietColor(false, true);
-        row[3] = new PietColor(true, false);
-        row[4] = new PietColor(true, false);
+        row[0].setWhite();
+        row[1].setWhite();
+        row[2].setBlack();
+        row[3].setWhite();
+        row[4].setWhite();
         pushRowToChooser();
 
         // blockNum push
@@ -108,7 +108,7 @@ public class BlockGenerator {
                     // weiß auffüllen falls Zeile < 5
                     if (rowVal % 5 != 0) {
                         for (int j = 0; j < 5 - (rowVal % 5); j++) {
-                            row[j] = new PietColor(true, false);
+                            row[j].setWhite();
                         }
                         // Farbe auffüllen für Zeile < 5
                         for (int j = 0; j > rowVal % 5; j++) {
@@ -117,7 +117,7 @@ public class BlockGenerator {
                         }
                     } else {
                         for (int j = 4; j < 1; j--) {
-                            row[j] = new PietColor(true, false);
+                            row[j].setWhite();
                             pushRowToChooser();
                         }
                     }
@@ -126,7 +126,7 @@ public class BlockGenerator {
                     color.add(Command.MULTIPLY);
                     row[4].set(color);
                     for (int j = 0; j < 4; j++) {
-                        row[j] = new PietColor(true, false);
+                        row[j].setWhite();
                     }
                     pushRowToChooser();
                     break;
@@ -134,7 +134,7 @@ public class BlockGenerator {
                     color.add(Command.ADD);
                     row[4].set(color);
                     for (int j = 0; j < 4; j++) {
-                        row[j] = new PietColor(true, false);
+                        row[j].setWhite();
                     }
                     pushRowToChooser();
                     break;
