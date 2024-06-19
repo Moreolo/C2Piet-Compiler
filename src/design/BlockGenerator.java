@@ -9,6 +9,7 @@ import piet.datatypes.Operation;
 
 public class BlockGenerator {
     public static int blockWidth = 6;
+    public static int blockStartPos = 1;
 
     private LinkedList<PietColor[]> chooser;
     private LinkedList<PietColor[]> block;
@@ -17,6 +18,7 @@ public class BlockGenerator {
     private PietColor color;
     private PietColor[] row;
 
+    private int blockNum;
     private LinkedList<Operation> operations;
     private LinkedList<Operation> chooserPush;
 
@@ -25,7 +27,8 @@ public class BlockGenerator {
     private PietColor funkyColor;
 
     public BlockGenerator(Block block) {
-        generateChooser(block.getNum());
+        blockNum = block.getNum();
+        generateChooser(blockNum);
         generateBlock(block.getOperations());
     }
 
@@ -34,6 +37,10 @@ public class BlockGenerator {
 
         color = new PietColor(4, 1);
         row = new PietColor[blockWidth - 1];
+        for (int i = 0; i < row.length; i++)
+            row[i] = new PietColor(false, true);
+
+        chooserPush = new LinkedList<>();
 
         // erste 2 Zeilen
 
@@ -150,7 +157,7 @@ public class BlockGenerator {
     private void generateBlock(LinkedList<Operation> operations) {
         this.block = new LinkedList<>();
 
-        pos = 2;
+        pos = blockStartPos;
         color = new PietColor(2, 2);
         row = new PietColor[blockWidth - 1];
 
@@ -630,15 +637,67 @@ public class BlockGenerator {
             row[i] = new PietColor(false, true);
     }
 
-    public int getHeight() {
-        return 0;
+    public int getHeightTop() {
+        return chooser.size() + 4;
+    }
+
+    public int getHeightBottom() {
+        return block.size() + 1;
     }
 
     public LinkedList<PietColor[]> getBlock() {
         return block;
     }
 
+    // yBlockPos ist die y Position des Starts des Blocks
     public void paint(BufferedImage image, int xBlockPos, int yBlockPos) {
-
+        // Chooser
+        int y = yBlockPos - chooser.size() - 4;
+        for(PietColor[] row: chooser) {
+            image.setRGB(xBlockPos, y, PietColor.lightRed);
+            for(int x = 0; x < row.length; x++)
+                image.setRGB(xBlockPos + 1 + x, y, row[x].get());
+            y++;
+        }
+        // Zeile 1
+        image.setRGB(xBlockPos + 1, yBlockPos - 6, PietColor.black);
+        image.setRGB(xBlockPos + 2, yBlockPos - 6, PietColor.black);
+        image.setRGB(xBlockPos + 3, yBlockPos - 6, PietColor.black);
+        if (blockNum != 1)
+            image.setRGB(xBlockPos + 4, yBlockPos - 6, PietColor.black);
+        // Zeile 2
+        image.setRGB(xBlockPos + 1, yBlockPos - 5, PietColor.black);
+        image.setRGB(xBlockPos + 2, yBlockPos - 5, PietColor.lightCyan);
+        image.setRGB(xBlockPos + 3, yBlockPos - 5, PietColor.darkGreen);
+        // Zeile 3
+        image.setRGB(xBlockPos + 0, yBlockPos - 4, PietColor.lightRed);
+        image.setRGB(xBlockPos + 1, yBlockPos - 4, PietColor.black);
+        image.setRGB(xBlockPos + 2, yBlockPos - 4, PietColor.lightCyan);
+        image.setRGB(xBlockPos + 3, yBlockPos - 4, PietColor.black);
+        image.setRGB(xBlockPos + 4, yBlockPos - 4, PietColor.black);
+        image.setRGB(xBlockPos + 5, yBlockPos - 4, PietColor.black);
+        // Zeile 4
+        image.setRGB(xBlockPos + 0, yBlockPos - 3, PietColor.lightRed);
+        image.setRGB(xBlockPos + 1, yBlockPos - 3, PietColor.black);
+        image.setRGB(xBlockPos + 2, yBlockPos - 3, PietColor.lightCyan);
+        image.setRGB(xBlockPos + 3, yBlockPos - 3, PietColor.darkMagenta);
+        image.setRGB(xBlockPos + 4, yBlockPos - 3, PietColor.lightGreen);
+        // Zeile 5
+        image.setRGB(xBlockPos + 3, yBlockPos - 2, PietColor.darkGreen);
+        image.setRGB(xBlockPos + 4, yBlockPos - 2, PietColor.darkGreen);
+        // Zeile 6
+        image.setRGB(xBlockPos + 0, yBlockPos - 1, PietColor.black);
+        image.setRGB(xBlockPos + 1, yBlockPos - 1, PietColor.black);
+        image.setRGB(xBlockPos + 2, yBlockPos - 1, PietColor.black);
+        image.setRGB(xBlockPos + 3, yBlockPos - 1, PietColor.black);
+        // Block
+        y = yBlockPos;
+        for (PietColor[] row: block) {
+            image.setRGB(xBlockPos + blockStartPos - 1, y, PietColor.black);
+            for(int x = 0; x < row.length; x++)
+                image.setRGB(xBlockPos + blockStartPos + x, y, row[x].get());
+            image.setRGB(xBlockPos + blockStartPos + 5, y, PietColor.black);
+            y++;
+        }
     }
 }

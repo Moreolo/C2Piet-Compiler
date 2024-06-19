@@ -21,6 +21,46 @@ public class Design {
     // Das Bild, in das der Piet Code übertragen wird
     BufferedImage image;
 
+    // Erstellt ein kompaktes Bild
+    public static BufferedImage compactParse(LinkedList<Block> blocks) {
+        // Generiert Blöcke
+        BlockGenerator[] blockGenerators = new BlockGenerator[blocks.size()];
+        for (int i = 0; i < blockGenerators.length; i++)
+            blockGenerators[i] = new BlockGenerator(blocks.pop());
+        // Rechnet Breite und Höhe aus
+        int width = blockGenerators.length * BlockGenerator.blockWidth + 2;
+        int heightTop = 0;
+        int heightBottom = 0;
+        for (BlockGenerator blockGenerator: blockGenerators) {
+            heightTop = Math.max(heightTop, blockGenerator.getHeightTop());
+            heightBottom = Math.max(heightBottom, blockGenerator.getHeightBottom());
+        }
+        int height = heightTop + heightBottom;
+        // Erstellt Bild
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        // Setzt alle Pixel auf weiß
+        for (int x = 0; x < width; x++)
+            for (int y = 0; y < height; y++)
+                image.setRGB(x, y, PietColor.white);
+        // Setzt Grundpixel
+        // Start
+        image.setRGB(0, 0, PietColor.darkRed);
+        image.setRGB(1, 0, PietColor.lightRed);
+        image.setRGB(6, 0, PietColor.black);
+        // Ende
+        image.setRGB(width - 1, heightTop - 5, PietColor.black);
+        image.setRGB(width - 2, heightTop - 4, PietColor.black);
+        image.setRGB(width - 1, heightTop - 4, PietColor.red);
+        image.setRGB(width - 1, heightTop - 3, PietColor.red);
+        image.setRGB(width - 2, heightTop - 2, PietColor.black);
+        image.setRGB(width - 1, heightTop - 2, PietColor.red);
+        image.setRGB(width - 1, heightTop - 1, PietColor.black);
+        // Setzt Blöcke ins Bild
+        for (int i = 0; i < blockGenerators.length; i++)
+            blockGenerators[i].paint(image, i * BlockGenerator.blockWidth + 1, heightTop);
+        return image;
+    }
+
     // Wandelt eine Block Liste mit Piet Commands in ein Bild um
     public static BufferedImage parse(LinkedList<Block> blocks) throws Error {
         if (blocks.size() > 0)
