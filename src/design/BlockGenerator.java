@@ -56,22 +56,6 @@ public class BlockGenerator {
         // blockNum push
         chooserPush(blockNum);
 
-        // letzte 2 Zeilen
-        // Zeile 1
-        color = new PietColor(4, 1);
-        row[0] = new PietColor(false, true);
-        row[1] = new PietColor(false, true);
-        row[2] = new PietColor(false, true);
-        row[3] = new PietColor(false, true);
-        pushRowToChooser();
-
-        // Zeile 2
-        row[0] = new PietColor(false, true);
-        row[1] = new PietColor(3, 0);
-        row[2] = new PietColor(2, 2);
-        row[3] = new PietColor(true, false);
-        pushRowToChooser();
-
     }
 
     private void chooserPush(int number) {
@@ -121,12 +105,19 @@ public class BlockGenerator {
                         }
                     }
                     ;
+                    // weiß auffüllen falls Zeile < 5
                     if (rowVal % 5 != 0) {
                         for (int j = 0; j < 5 - (rowVal % 5); j++) {
                             row[j] = new PietColor(true, false);
                         }
+                        // Farbe auffüllen für Zeile < 5
                         for (int j = 0; j > rowVal % 5; j++) {
                             row[4 - j].set(color);
+                            pushRowToChooser();
+                        }
+                    } else {
+                        for (int j = 4; j < 1; j--) {
+                            row[j] = new PietColor(true, false);
                             pushRowToChooser();
                         }
                     }
