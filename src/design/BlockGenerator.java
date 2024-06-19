@@ -23,7 +23,6 @@ public class BlockGenerator {
     private LinkedList<Operation> chooserPush;
 
     private int collision;
-    private boolean specialPushPossible;
     private PietColor funkyColor;
 
     public BlockGenerator(Block block) {
@@ -196,7 +195,6 @@ public class BlockGenerator {
         this.operations = operations;
 
         collision = -1;
-        specialPushPossible = false;
         funkyColor = new PietColor(false, true);
 
         while (!operations.isEmpty())
@@ -227,7 +225,6 @@ public class BlockGenerator {
         // Bei keiner Kollision und schwarzen Pixel bei 0: pos = 0
         if (pos == 9 && !operations.isEmpty()) {
             collision = -1;
-            specialPushPossible = false;
             PietColor futureColor = color.getCopy();
             int pushLeft = 1;
             int opIndex = 1;
@@ -253,11 +250,8 @@ public class BlockGenerator {
                     break;
                 }
             }
-            if (collision == -1 && pushLeft <= 1)
-                if (block.getLast()[0].isBlack())
+            if (collision == -1 && pushLeft <= 1 && block.getLast()[0].isBlack())
                     pos = 0;
-                else
-                    specialPushPossible = true;
         }
         if (pos != 9)
             collision = -1;
