@@ -46,8 +46,8 @@ public class BlockGenerator {
         // Zeile 1
         row[0].setWhite();
         row[1].setWhite();
-        row[2] = color;
-        row[3] = color;
+        row[2].set(color);
+        row[3].set(color);
         row[4].setBlack();
         pushRowToChooser();
 
@@ -637,7 +637,7 @@ public class BlockGenerator {
                 row[x].setWhite();
         } else {
             // 5-8
-            row[pos - blockWidth + 2].set(color);
+            row[pos++ - blockWidth + 2].set(color);
             for (; pos < blockWidth * 2 - 3; pos++)
                 row[pos - blockWidth + 2].setWhite();
         }

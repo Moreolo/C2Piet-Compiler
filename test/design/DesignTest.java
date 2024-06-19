@@ -101,9 +101,7 @@ public class DesignTest {
         block2.addOperation(new Operation(Command.PUSH, 4));
         block2.addOperation(new Operation(Command.PUSH, 1));
         block2.addOperation(new Operation(Command.ROLL));
-        block2.addOperation(new Operation(Command.PUSH, 1));
-        block2.addOperation(new Operation(Command.DUPLICATE));
-        block2.addOperation(new Operation(Command.SUBTRACT));
+        block2.addOperation(new Operation(Command.PUSH, 0));
         block2.addOperation(new Operation(Command.GREATER));
         block2.addOperation(new Operation(Command.POINTER, 3, 4));
         blocks.add(block2);
@@ -131,9 +129,7 @@ public class DesignTest {
         Block block4 = new Block(4);
         block4.addOperation(new Operation(Command.DUPLICATE));
         block4.addOperation(new Operation(Command.OUTNUMBER));
-        block4.addOperation(new Operation(Command.PUSH, 1));
-        block4.addOperation(new Operation(Command.DUPLICATE));
-        block4.addOperation(new Operation(Command.SUBTRACT));
+        block4.addOperation(new Operation(Command.PUSH, 0));
         blocks.add(block4);
 
         try {
