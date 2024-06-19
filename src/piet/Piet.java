@@ -7,8 +7,13 @@ import java.util.LinkedList;
 
 import ast.datatypes.Node;
 import ast.datatypes.NodeTypesEnum;
-import basicblocks.datatypes.*;
-import piet.datatypes.*;
+import basicblocks.datatypes.BBlock;
+import basicblocks.datatypes.CondBlock;
+import basicblocks.datatypes.FunCallBlock;
+import basicblocks.datatypes.TermBlock;
+import piet.datatypes.Block;
+import piet.datatypes.Command;
+import piet.datatypes.Operation;
 
 public class Piet {
 
@@ -56,7 +61,7 @@ public class Piet {
         for (Node node : nodes) {
             var type = node.getType();
             //Überprüfung, ob Node vom Typ IF_STATEMENT ist 
-            if (type.equals(NodeTypesEnum.IF_STATEMENT)){
+            if (!type.equals(NodeTypesEnum.IF_STATEMENT)){
                 System.err.println("Conditions block must contain if statement");
                 return block;
             }
