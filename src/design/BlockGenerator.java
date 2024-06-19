@@ -38,7 +38,7 @@ public class BlockGenerator {
         color = new PietColor(4, 1);
         row = new PietColor[blockWidth - 1];
         for (int i = 0; i < row.length; i++)
-            row[i] = new PietColor(false, true);
+            row[i] = new PietColor(true, false);
 
         chooserPush = new LinkedList<>();
 
@@ -58,6 +58,7 @@ public class BlockGenerator {
         row[2].setBlack();
         row[3].setWhite();
         row[4].setWhite();
+        // TODO: noch nicht reihe pushen
         pushRowToChooser();
 
         // blockNum push
@@ -80,6 +81,32 @@ public class BlockGenerator {
             number /= 10;
 
         }
+        // color add duplicate
+
+        // number als erste Zahl speziell behandeln
+        // aufpassen auf schwarzen pixel
+        // int x
+        // if (val = 0)
+        //      pushRowToChooser
+        //      row[x] set color
+        //      pushRowToChooser
+        //      color add push
+        //      // "add"
+        //      (set white)
+        //      pushRowToChooser
+        //      color add add
+        // for(; number > 0; number--)
+        //      if (x < 0)
+        //          pushRowToChooser
+        //          x = 4
+        //      row[x--] set color
+        // pushRowToChooser
+        // x = 4
+        // color add push
+        // row[x--] set color
+        // color add add/mul
+        // Iterieren durch die Zahlen
+
         numberParts.addFirst(number);
 
         // Anlegen der Kommando-Struktur
@@ -90,6 +117,8 @@ public class BlockGenerator {
             chooserPush.add(new Operation(Command.MULTIPLY));
 
             int j = numberParts.get(i);
+            // TODO: immer pushen auch 0
+            // 0 dann separat abhandeln
             if (j != 0) {
                 chooserPush.add(new Operation(Command.PUSH, j));
                 chooserPush.add(new Operation(Command.ADD));
@@ -634,7 +663,7 @@ public class BlockGenerator {
         chooser.add(row);
         row = new PietColor[blockWidth - 1];
         for (int i = 0; i < row.length; i++)
-            row[i] = new PietColor(false, true);
+            row[i] = new PietColor(true, false);
     }
 
     public int getHeightTop() {
