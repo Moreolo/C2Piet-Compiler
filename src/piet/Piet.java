@@ -418,63 +418,73 @@ public class Piet {
 
         // Navigate to Function-Block
         int func_id = functionIDsDict.get(function_name);
-        block.addOperation(new Operation(Command.PUSH, func_id)); // für condition bblock bitte noch getAlt function hinzufügen!!!
-
-        // check ob function return wert hat
-        // wenn ja lege top spot of stack als tmp fest in der der wert der 
-
-        // --> mit neuer funktion die funktionsdefinition auflösen und in neuen blöcken abspeichern
-        
-        // --> mit next von block (in dem der function call ist) dann auf weiteren normalen programmablauf verlinken
-
-
-        // funktionsaufruf wird aus block vorgezogen und durch tmp var mit typ FUNCTION RETURN replacet, der dann den return wert hat
-
-        // wie kann ich an den block verlinken der dann die Funktion ausführt. Da müsste im block was mitgegeben werden
+        block.addOperation(new Operation(Command.PUSH, func_id)); 
         return block;
     }
 
     private Block parseReturnStatement(Block block, Node node, String functionName){
-        Node program = node.getBody().get(0);
-        if (program.getType() != NodeTypesEnum.RETURN_STATEMENT){
-            System.err.println("Return Statement needs to be of type RETURN_STATEMENT");
-            return block;
-        }
-        Node value = program.getCondition();
+        /**
+        * parseReturnStatement behandelt return statements und stellt sicher das an den funktionsaufruf zurückgesprungen wird
+        * @param Block block ist der Block in dem die Piet-Commands gespeichert werden
+        * @param Node node ist die Node dem Function Call
+        * @param String functionName ist der Name der Funktion aus der returnt wird
+        * @return Block block der mit Commands erweiterte block wird returned
+        */
+
+        // get wert des return nodes
+        Node value = node.getCondition();
+        // checken ob überhaupt etwas returnt wird
         if (value != null){
+            // wenn ja pushe return wert auf stack und speichere in als temporäre Variable ab
             block = resolveType(block, value); // berechne return wert und pushe in an die spitze des stacks
             VariablenSpeicher.add("return_tmp"); // teile den namen "return_tmp" der spitze des stacks zu
         }
 
+        // get alle funktions parameter der funktion aus der returnt wird und lösche sie aus functionsvariablenspeicher
+        LinkedList<String> func_params = functionParamsDict.get(functionName); // get liste von parametern der funktion aus der returnt wird
+        for(String func_param : func_params){
+            functionVariableSpeicher.remove(func_param); // lösche die parameter aus dem functionsvariablenspeicher
+        }
+
         // Jump back to Program after Function Call
         if (returnIds.size() > 0){
+            // get letzten Wert in return id list -> wert der zum letzten Funktionsaufruf passt
             int return_id = returnIds.getLast();
             returnIds.removeLast(); //verwendete return id aus der liste löschen
-            LinkedList<String> func_params = functionParamsDict.get(functionName); // get liste von parametern der funktion aus der returnt wird
-            for(String func_param : func_params){
-                functionVariableSpeicher.remove(func_param); // lösche die parameter aus dem functionsvariablenspeicher
-            }
+
+            // Pushe die return id die Block verweist der nach dem Funktionsaufruf drannkommt
             block.addOperation(new Operation(Command.PUSH, return_id)); // für condition bblock bitte noch getAlt function hinzufügen!!!
             if (returnIds.size() == 0){
                 func_flag = false;
             }
         } else{
-            System.err.println("There was no return adress left in the list");
+            System.err.println("There was no return adress left in the return id list");
         }
         return block;
     }
 
     private Block solveBinaryExpresssion(Block block, Node node){
+        /**
+        * solveBinaryExpresssion behandelt binaryExpressions und löst diese auf -> das ergebniss wird einer variablen zugewiesen oder auf die spitze des stacks gepusht
+        * @param Block block ist der Block in dem die Piet-Commands gespeichert werden
+        * @param Node node ist die Node dem Function Call
+        * @return Block block der mit Commands erweiterte block wird returned
+        */
         //x = (2+3)*(4*8)
+
+        // Get ersten Operator der BinaryExpression und checke ob es sich um eine Assignment Expression handelt
         String operator = node.getOperator();
         if (operator == "="){
             parseAssignmentExpression(block, node);
         }
         else {
+            // get linken wert der binary expression und löse diesen auf
             Node left = node.getLeft();
             block = resolveType(block, left);
+            // get rechten wert der binary expression und löse diesen auf
             Node right = node.getRight();
             block = resolveType(block, right);
+            // führe die operationen aus
             switch (node.getOperator()) {
                 case "+":
                     block.addOperation(new Operation(Command.ADD));
