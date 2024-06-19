@@ -21,11 +21,8 @@ public class Piet {
     //LinkedList<String> FunktionsVariablenSpeicher = new LinkedList<>();
     Dictionary<String, Integer> functionVariableSpeicher = new Hashtable<>(); // key ist der param name und der wert ist die position auf dem stack
     Dictionary<String, LinkedList<String>> functionParamsDict = new Hashtable<>();
-    Dictionary<String, Integer> functionIDsDict = new Hashtable<>();
-
-    // dictionary in dem funktionname zu anfangsblock id gemapped wird
-
-    int return_id = 0;
+    Dictionary<String, Integer> functionIDsDict = new Hashtable<>(); // dictionary in dem funktionname zu id des anfangsblocks gemapped wird
+    LinkedList<Integer> returnIds = new LinkedList<>(); //linked list in der die ids gespeichert werden zu denen returnt werden muss -> last in first out
 
     int ProgramCounter = 0;
 
@@ -36,12 +33,43 @@ public class Piet {
         int num = 1;
         for (BBlock block : bblocks) {
             if (block instanceof CondBlock) finalBlocks.add(parseCondition((CondBlock)block, num));
-            if (block instanceof FunCallBlock) finalBlocks.add(parseFunction(block, num));
-            if (block instanceof TermBlock) finalBlocks.add(parseTerm(block, num));
+            if (block instanceof FunBlock) finalBlocks.add(parseFunction((FunBlock) block, num));
             else finalBlocks.add(parseBBlock(block, num));  
             num += 1;
         }
         return finalBlocks;
+    }
+
+    private Block parseFunction(FunBlock bblock, int num){
+        var block = new Block(num);
+
+        boolean return_flag = false;
+
+        Node func_def_node = bblock.getBody().get(0);
+        if (func_def_node.getType() != NodeTypesEnum.FUNCTION_DEF){
+            System.err.println("First node of function block needs to be function def");
+            return block;
+        }
+        String functionName = parseFunctionDef(func_def_node);
+        functionIDsDict.put(functionName, num);
+        
+        for (Node node : bblock.getBody()) {
+            //if(node.getType() == NodeTypesEnum.BLOCK_STATEMENT) ; //return as BLOCK_STATEMENT
+            if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION){
+                block = solveBinaryExpresssion(block, node); //return as BINARY_EXPRESSION
+            } 
+            if(node.getType() == NodeTypesEnum.FUNCTION_CALL){
+                block = parseFunctionCall(block, node, bblock.getNext()); //return as FUNCTION_CALL
+            }
+            if(node.getType() == NodeTypesEnum.RETURN_STATEMENT){ 
+                block = parseReturnStatement(block, node); //return as RETURN_STATEMENT
+                return_flag = true;
+            }
+        }
+        if (!return_flag){
+            block.addOperation(new Operation(Command.PUSH, bblock.getNext()));
+        }
+        return block;
     }
 
     private Block parseCondition(CondBlock bblock, int num){
@@ -245,36 +273,19 @@ public class Piet {
         }
         return block;
     }
-    
-    private Block parseFunction(BBlock bblock, int num){
-        var block = new Block(num);
-        for (Node node : bblock.getBody()) {
-            //if(node.getType() == NodeTypesEnum.ASSIGNMENT_EXPRESSION) return parseAssignmentExpression(block, node); //return as ASSIGNMENT_EXPRESSION
-            if(node.getType() == NodeTypesEnum.BLOCK_STATEMENT) ; //return as BLOCK_STATEMENT
-            if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION) return solveBinaryExpresssion(block, node); //return as BINARY_EXPRESSION
-            if(node.getType() == NodeTypesEnum.FUNCTION_CALL) return parseFunctionCall(block, node); //return as FUNCTION_CALL
-            if(node.getType() == NodeTypesEnum.FUNCTION_DEF) return parseFunctionDef(block, node); //return as FUNCTION_DEF
-            if(node.getType() == NodeTypesEnum.RETURN_STATEMENT) ; //return as RETURN_STATEMENT
-        }
-        return block;
-    }
-    
-    private Block parseTerm(BBlock block, int num){
-        return new Block(num);
-    }
 
     private Block parseBBlock(BBlock bblock, int num){
         var block = new Block(num);
         for (Node node : bblock.getBody()) {
-            //if(node.getType() == NodeTypesEnum.ASSIGNMENT_EXPRESSION) return parseAssignmentExpression(block, node); //return as ASSIGNMENT_EXPRESSION
-            if(node.getType() == NodeTypesEnum.BLOCK_STATEMENT) ; //return as BLOCK_STATEMENT
-            if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION) return solveBinaryExpresssion(block, node); //return as BINARY_EXPRESSION
-            if(node.getType() == NodeTypesEnum.FUNCTION_CALL) return parseFunctionCall(block, node, bblock.getNext()); //return as FUNCTION_CALL
-            if(node.getType() == NodeTypesEnum.FUNCTION_DEF) return parseFunctionDef(block, node); //return as FUNCTION_DEF
-            if(node.getType() == NodeTypesEnum.RETURN_STATEMENT) ; //return as RETURN_STATEMENT
+            if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION){
+                block = solveBinaryExpresssion(block, node); //return as BINARY_EXPRESSION
+            } 
+            if(node.getType() == NodeTypesEnum.FUNCTION_CALL){
+                block = parseFunctionCall(block, node, bblock.getNext()); //return as FUNCTION_CALL
+            } 
         }
         // Set Pointer for next Block
-        block.addOperation(new Operation(Command.POINTER, bblock.getNext())); // für condition bblock bitte noch getAlt function hinzufügen!!!
+        block.addOperation(new Operation(Command.PUSH, bblock.getNext()));
         return block;
     }
 
@@ -318,7 +329,7 @@ public class Piet {
         return block;
     }
 
-    private Block parseFunctionDef(Block block, Node node){
+    private String parseFunctionDef(Node node){
         /**
         * parseFunctionDef parsed Functions Definitionen
         * @param Node node ist die Node der Function Definition
@@ -329,7 +340,7 @@ public class Piet {
         Node func = node.getBody().get(0);
         if (func.getType() != NodeTypesEnum.FUNCTION_DEF){
             System.err.println("Node must be of Type FUNCTION_DEF");
-            return block;
+            return "";
         }
 
         String functionName = func.getValue();
@@ -346,10 +357,10 @@ public class Piet {
         // macht das wirklich sinn den code von der function hier direkt zu parsen??? Also so ists zumindest gerade im ast team gemacht
         // macht iwi weniger sinn. würde tbh mehr sinn machen abzuspeichern zu welchem block gesprungen werden soll wenn die function aufgerufen wird
         
-        var nodes = func.getBody();
-        parseFunction(block, node);
-        
-        return block;
+        //var nodes = func.getBody();
+        //parseFunction
+
+        return functionName;
     }
 
     private Block parseFunctionCall(Block block, Node node, int id2return2){
@@ -396,12 +407,11 @@ public class Piet {
         }
 
         // Safe id where Programm needs to return after function call
-        return_id = id2return2;
-
+        returnIds.add(id2return2);
 
         // Navigate to Function-Block
         int func_id = functionIDsDict.get(function_name);
-        block.addOperation(new Operation(Command.POINTER, func_id)); // für condition bblock bitte noch getAlt function hinzufügen!!!
+        block.addOperation(new Operation(Command.PUSH, func_id)); // für condition bblock bitte noch getAlt function hinzufügen!!!
 
         // check ob function return wert hat
         // wenn ja lege top spot of stack als tmp fest in der der wert der 
@@ -414,6 +424,18 @@ public class Piet {
         // funktionsaufruf wird aus block vorgezogen und durch tmp var mit typ FUNCTION RETURN replacet, der dann den return wert hat
 
         // wie kann ich an den block verlinken der dann die Funktion ausführt. Da müsste im block was mitgegeben werden
+        return block;
+    }
+
+    private Block parseReturnStatement(Block block, Node node){
+        // Jump back to Program after Function Call
+        if (returnIds.size() > 0){
+            int return_id = returnIds.getLast();
+            returnIds.removeLast(); //verwendete return id aus der liste löschen
+            block.addOperation(new Operation(Command.PUSH, return_id)); // für condition bblock bitte noch getAlt function hinzufügen!!!
+        } else{
+            System.err.println("There was no return adress left in the list");
+        }
         return block;
     }
 
