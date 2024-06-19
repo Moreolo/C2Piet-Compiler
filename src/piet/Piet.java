@@ -1,5 +1,7 @@
 package piet;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -283,6 +285,11 @@ public class Piet {
             String var_name = node.getValue();
             block = rotateVariable(block, var_name);
         }
+        else if(node.getType() == NodeTypesEnum.FUNCTION_TEMP_RETURN){
+            //Return wert der Funktion der zwischenzeitig als return_tmp auf Variablenspeicher liegt
+            block = rotateVariable(block, "return_tmp"); 
+            VariablenSpeicher.remove("return_tmp"); // lösche tmp return value, wenn er einmal benutzt wurde
+        }
         else{
             System.err.println("Node must be of Type Identifier or Literal or Binary Expression");
         }
@@ -428,6 +435,17 @@ public class Piet {
     }
 
     private Block parseReturnStatement(Block block, Node node, String functionName){
+        Node program = node.getBody().get(0);
+        if (program.getType() != NodeTypesEnum.RETURN_STATEMENT){
+            System.err.println("Return Statement needs to be of type RETURN_STATEMENT");
+            return block;
+        }
+        Node value = program.getCondition();
+        if (value != null){
+            block = resolveType(block, value); // berechne return wert und pushe in an die spitze des stacks
+            VariablenSpeicher.add("return_tmp"); // teile den namen "return_tmp" der spitze des stacks zu
+        }
+
         // Jump back to Program after Function Call
         if (returnIds.size() > 0){
             int return_id = returnIds.getLast();
@@ -460,18 +478,23 @@ public class Piet {
             switch (node.getOperator()) {
                 case "+":
                     block.addOperation(new Operation(Command.ADD));
+                    ProgramCounter -= 1;
                     break;
                 case "-":
                     block.addOperation(new Operation(Command.SUBTRACT));
+                    ProgramCounter -= 1;
                     break;
                 case "*":
                     block.addOperation(new Operation(Command.MULTIPLY));
+                    ProgramCounter -= 1;
                     break;
                 case "/":
                     block.addOperation(new Operation(Command.DIVIDE));
+                    ProgramCounter -= 1;
                     break;
                 case "%":
                     block.addOperation(new Operation(Command.MOD));
+                    ProgramCounter -= 1;
                     break;     
             
                 default:
