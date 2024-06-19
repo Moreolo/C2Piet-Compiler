@@ -62,13 +62,28 @@ public class Piet {
                 block = parseFunctionCall(block, node, bblock.getNext()); //return as FUNCTION_CALL
             }
             if(node.getType() == NodeTypesEnum.RETURN_STATEMENT){ 
-                block = parseReturnStatement(block, node); //return as RETURN_STATEMENT
+                block = parseReturnStatement(block, node, functionName); //return as RETURN_STATEMENT
                 return_flag = true;
             }
         }
         if (!return_flag){
             block.addOperation(new Operation(Command.PUSH, bblock.getNext()));
         }
+        return block;
+    }
+
+    private Block parseBBlock(BBlock bblock, int num){
+        var block = new Block(num);
+        for (Node node : bblock.getBody()) {
+            if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION){
+                block = solveBinaryExpresssion(block, node); //return as BINARY_EXPRESSION
+            } 
+            if(node.getType() == NodeTypesEnum.FUNCTION_CALL){
+                block = parseFunctionCall(block, node, bblock.getNext()); //return as FUNCTION_CALL
+            } 
+        }
+        // Set Pointer for next Block
+        block.addOperation(new Operation(Command.PUSH, bblock.getNext()));
         return block;
     }
 
@@ -273,22 +288,7 @@ public class Piet {
         }
         return block;
     }
-
-    private Block parseBBlock(BBlock bblock, int num){
-        var block = new Block(num);
-        for (Node node : bblock.getBody()) {
-            if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION){
-                block = solveBinaryExpresssion(block, node); //return as BINARY_EXPRESSION
-            } 
-            if(node.getType() == NodeTypesEnum.FUNCTION_CALL){
-                block = parseFunctionCall(block, node, bblock.getNext()); //return as FUNCTION_CALL
-            } 
-        }
-        // Set Pointer for next Block
-        block.addOperation(new Operation(Command.PUSH, bblock.getNext()));
-        return block;
-    }
-
+    
     private Block parseAssignmentExpression(Block block, Node node){
         /**
         * parseAssignmentExpression parsed Assignment Expressions
@@ -427,12 +427,19 @@ public class Piet {
         return block;
     }
 
-    private Block parseReturnStatement(Block block, Node node){
+    private Block parseReturnStatement(Block block, Node node, String functionName){
         // Jump back to Program after Function Call
         if (returnIds.size() > 0){
             int return_id = returnIds.getLast();
             returnIds.removeLast(); //verwendete return id aus der liste löschen
+            LinkedList<String> func_params = functionParamsDict.get(functionName); // get liste von parametern der funktion aus der returnt wird
+            for(String func_param : func_params){
+                functionVariableSpeicher.remove(func_param); // lösche die parameter aus dem functionsvariablenspeicher
+            }
             block.addOperation(new Operation(Command.PUSH, return_id)); // für condition bblock bitte noch getAlt function hinzufügen!!!
+            if (returnIds.size() == 0){
+                func_flag = false;
+            }
         } else{
             System.err.println("There was no return adress left in the list");
         }
