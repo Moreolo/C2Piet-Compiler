@@ -6,8 +6,4 @@ public class TermBlock extends BBlock{
         super(positionInArray, null);
     }
 
-    public String toString() {
-        return "Term Block";
-     }
-
 }

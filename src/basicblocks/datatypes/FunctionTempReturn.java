@@ -15,7 +15,7 @@ import ast.datatypes.NodeTypesEnum;
 
  temp ist hier der FunctionTempReturn
  */
-public class FunctionTempReturn extends Node{
+public class FunctionTempReturn extends Node {
     private static int communalCounter = 0;
     private int id;
     //Instanzen hiervon werden als return values genutzt
