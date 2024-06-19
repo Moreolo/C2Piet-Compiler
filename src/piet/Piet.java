@@ -20,9 +20,12 @@ public class Piet {
     LinkedList<String> VariablenSpeicher = new LinkedList<>();
     //LinkedList<String> FunktionsVariablenSpeicher = new LinkedList<>();
     Dictionary<String, Integer> functionVariableSpeicher = new Hashtable<>(); // key ist der param name und der wert ist die position auf dem stack
-    Dictionary<String, LinkedList<String>> functionsDict = new Hashtable<>();
+    Dictionary<String, LinkedList<String>> functionParamsDict = new Hashtable<>();
+    Dictionary<String, Integer> functionIDsDict = new Hashtable<>();
 
-    
+    // dictionary in dem funktionname zu anfangsblock id gemapped wird
+
+    int return_id = 0;
 
     int ProgramCounter = 0;
 
@@ -266,8 +269,8 @@ public class Piet {
             //if(node.getType() == NodeTypesEnum.ASSIGNMENT_EXPRESSION) return parseAssignmentExpression(block, node); //return as ASSIGNMENT_EXPRESSION
             if(node.getType() == NodeTypesEnum.BLOCK_STATEMENT) ; //return as BLOCK_STATEMENT
             if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION) return solveBinaryExpresssion(block, node); //return as BINARY_EXPRESSION
-            if(node.getType() == NodeTypesEnum.FUNCTION_CALL) return parseFunctionCall(block, node); //return as FUNCTION_CALL
-            //if(node.getType() == NodeTypesEnum.FUNCTION_DEF) return parseFunctionDef(block, node); //return as FUNCTION_DEF
+            if(node.getType() == NodeTypesEnum.FUNCTION_CALL) return parseFunctionCall(block, node, bblock.getNext()); //return as FUNCTION_CALL
+            if(node.getType() == NodeTypesEnum.FUNCTION_DEF) return parseFunctionDef(block, node); //return as FUNCTION_DEF
             if(node.getType() == NodeTypesEnum.RETURN_STATEMENT) ; //return as RETURN_STATEMENT
         }
         // Set Pointer for next Block
@@ -339,7 +342,7 @@ public class Piet {
             params.add(param_name);
         }
         // erstelle neuen Eintrag im Functions Dictionary -> dort wird der Funktionsname + die zugehörigen Parameternamen gespeichert
-        functionsDict.put(functionName, params);
+        functionParamsDict.put(functionName, params);
         // macht das wirklich sinn den code von der function hier direkt zu parsen??? Also so ists zumindest gerade im ast team gemacht
         // macht iwi weniger sinn. würde tbh mehr sinn machen abzuspeichern zu welchem block gesprungen werden soll wenn die function aufgerufen wird
         
@@ -349,7 +352,7 @@ public class Piet {
         return block;
     }
 
-    private Block parseFunctionCall(Block block, Node node){
+    private Block parseFunctionCall(Block block, Node node, int id2return2){
         /**
         * parseFunctionCall parsed FunctionCalls
         * @param Block block ist der Block in dem die Piet-Commands gespeichert werden
@@ -366,7 +369,7 @@ public class Piet {
         // Get Funktionsname
         String function_name = body.getValue();
         // Get Paramternamen der Funktion
-        LinkedList<String> param_names = functionsDict.get(function_name);
+        LinkedList<String> param_names = functionParamsDict.get(function_name);
 
         func_flag = true;
 
@@ -391,6 +394,14 @@ public class Piet {
             }
             functionVariableSpeicher.put(param_name, ProgramCounter); // param wird auf top des stacks gepusht und diese position wird im dictionary mit dem param name(key) gespeichert
         }
+
+        // Safe id where Programm needs to return after function call
+        return_id = id2return2;
+
+
+        // Navigate to Function-Block
+        int func_id = functionIDsDict.get(function_name);
+        block.addOperation(new Operation(Command.POINTER, func_id)); // für condition bblock bitte noch getAlt function hinzufügen!!!
 
         // check ob function return wert hat
         // wenn ja lege top spot of stack als tmp fest in der der wert der 
