@@ -395,9 +395,7 @@ public class Piet {
         // check ob function return wert hat
         // wenn ja lege top spot of stack als tmp fest in der der wert der 
 
-        // --> hashmap in der die funktionsdefinition gespeichert sind (wir müssen dann neue id an diese blocks verteilen und diese auch untereinander weiter verbinden)
         // --> mit neuer funktion die funktionsdefinition auflösen und in neuen blöcken abspeichern
-    
         
         // --> mit next von block (in dem der function call ist) dann auf weiteren normalen programmablauf verlinken
 
