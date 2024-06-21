@@ -10,22 +10,14 @@ import java.util.List;
 
 public class BBMain {
 
-    private ArrayList<BBlock> blockList = new ArrayList<>();
-    private int iterator = 0;
-    HashMap<String, ArrayList<BBlock>> allFunctionDefinitions;
+    private static ArrayList<BBlock> blockList = new ArrayList<>();
+    private static int iterator = 0;
 
-    HashMap<String, Integer> functionIndicesMap = new HashMap<>();
-
-    public BBMain(){
-        this.allFunctionDefinitions = new HashMap<>();
-    }
-
-    public BBMain(HashMap<String, ArrayList<BBlock>> storesFunctionDefinitions){
-        this.allFunctionDefinitions = storesFunctionDefinitions;
-    }
+    static HashMap<String, Integer> functionIndicesMap = new HashMap<>();
 
 
-    private BBlock splitBlock(BBlock oldBlock, ArrayList<Node> stayBehind) {
+
+    private static BBlock splitBlock(BBlock oldBlock, ArrayList<Node> stayBehind) {
         //die alten Nodes im alten Block werden aufgeteil:
         //stayBehind Teil bleibt im alten Block während alle anderen Nodes 
         //in den neuen Block wandern
@@ -47,7 +39,7 @@ public class BBMain {
         }
         return newBlock;
     }
-    private ArrayList<BBlock> createFork(BBlock oldBBlock, List<Node> leftPath, List<Node> rightPath, Node condition){
+    private static ArrayList<BBlock> createFork(BBlock oldBBlock, List<Node> leftPath, List<Node> rightPath, Node condition){
         //alter Block wir mit CondBlock ersetzt und mit condition node befüllt
         //ein bzw. zwei neue Blöcke werden erstellt für true bzw. else Blöcke 
         //diese werden mit den jeweiligen Nodes für diese Blöcke befüllt 
@@ -87,7 +79,7 @@ public class BBMain {
     }
 
     //die Funktion fügt einen BasicBlock VOR einem anderen BasicBlock ein
-    private void addBefore(BBlock addBlock, BBlock oldBBlock){
+    private static void addBefore(BBlock addBlock, BBlock oldBBlock){
 
         int position = oldBBlock.getPositionInArray();
 
@@ -102,7 +94,7 @@ public class BBMain {
 
 
     // Grundlegende Idee ist der rekursive durchlauf durch den Node-Baum
-    private void walkTree(BBlock blockOfCode) {
+    private static void walkTree(BBlock blockOfCode) {
 
         ArrayList<Node> nodesForOneBasicBlock = new ArrayList<>();
         ArrayList<Node> nodeList = blockOfCode.getBody();
@@ -347,7 +339,34 @@ public class BBMain {
     
                 
                 case DECLARATION:
-                // ToDo: Suche nach Funkionen, die eine Deklaration definieren...
+                //zuerst schauen, ob da überhaupt mind. ein funktionsaufruf dinnen ist
+                SearchFunCall decSearcher = new SearchFunCall();
+                decSearcher.searchCallsOriginDec(currentNode);
+                ArrayList<funCallInfo> decCallInfos = decSearcher.getFunCallInfos();
+
+                if (decCallInfos.size() != 0){
+
+                    //wenn ja, dann muss man davor abtrennen und danach
+                    if (!nodesForOneBasicBlock.isEmpty()){
+
+                        BBlock nextBlockLookInto = splitBlock(blockOfCode, nodesForOneBasicBlock); //neuer wichtiger block
+                        blockOfCode = nextBlockLookInto;
+                        nodesForOneBasicBlock.clear();
+
+                    }
+
+                    //alle Funktionen werden vor die Binary Expression geschrieben
+                    for(funCallInfo funInfo: decCallInfos){
+
+                        FunCallBlock callFun = new FunCallBlock(-1, funInfo.getParameterList(), funInfo.getFunctionName(), funInfo.getReturnTempVar());
+                        addBefore(callFun, blockOfCode);
+
+                    }
+                    
+                }
+
+                nodesForOneBasicBlock.add(currentNode);
+                break;
 
             
                 default:
@@ -365,9 +384,9 @@ public class BBMain {
 
 
     // Aufruf für die "Interface"-Abfolge; erhält Programm-Node des gesamten AST
-    public ArrayList<BBlock> parse(Node rootNode) {
+    public static ArrayList<BBlock> parse(Node rootNode) {
 
-        BBlock starterBlock = new BBlock(iterator++);
+        BBlock starterBlock = new BBlock(iterator);
         blockList.add(starterBlock);
 
         for (Node node : rootNode.getBody()) {
@@ -377,7 +396,7 @@ public class BBMain {
 
                 case FUNCTION_DEF:
 
-                    BBlock funcBlock = new BBlock(iterator++);
+                    BBlock funcBlock = new BBlock(++iterator);
 
                     if (node.getValue().equals("main")) {
                     //main gefunden, starterblock muss auf Main zeigen
