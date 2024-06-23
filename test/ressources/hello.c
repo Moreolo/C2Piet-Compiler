@@ -4,7 +4,7 @@ int main()
  int y = 5;
  int z = (x + y);
 
- if (z > 4) {
+ if (z > 3) {
     x = 7;
  }
 

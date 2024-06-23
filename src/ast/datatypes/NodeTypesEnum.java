@@ -47,7 +47,7 @@ public enum NodeTypesEnum {
      */
     LITERAL,
     /**
-     * for assignment expressions
+     * for assignment expressions or variables
      */
     IDENTIFIER,
     /**
