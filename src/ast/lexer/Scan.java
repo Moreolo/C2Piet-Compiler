@@ -157,7 +157,7 @@ public class Scan{
             }else if (isAlpha(c)) {
               identifier();
             }
-            else {Lexer.error(line, "Unexpected character.");}
+            else {throw new RuntimeException("Unexpected character: " + c + " at line" + line);}
               break;
           }
       }
@@ -182,8 +182,7 @@ public class Scan{
         }
     
         if (isAtEnd()) {
-          Lexer.error(line, "Unterminated string.");
-          return;
+          throw new RuntimeException("Unterminated string in line " + line);
         }
     
         // The closing ".
