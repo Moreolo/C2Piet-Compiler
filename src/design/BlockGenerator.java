@@ -57,10 +57,7 @@ public class BlockGenerator {
         row[2].setBlack();
         row[3].setWhite();
         row[4].setWhite();
-        // TODO: noch nicht reihe pushen
-        pushRowToChooser();
 
-        // blockNum push
         chooserPush(blockNum);
 
     }
@@ -80,25 +77,25 @@ public class BlockGenerator {
             number /= 10;
 
         }
-        // color add duplicate
 
-        // number als erste Zahl speziell behandeln
+        numberParts.addFirst(number);
+
         // aufpassen auf schwarzen pixel
         // int x
         // if (val = 0)
-        //      pushRowToChooser
-        //      row[x] set color
-        //      pushRowToChooser
-        //      color add push
-        //      // "add"
-        //      (set white)
-        //      pushRowToChooser
-        //      color add add
+        // pushRowToChooser
+        // row[x] set color
+        // pushRowToChooser
+        // color add push
+        // // "add"
+        // (set white)
+        // pushRowToChooser
+        // color add add
         // for(; number > 0; number--)
-        //      if (x < 0)
-        //          pushRowToChooser
-        //          x = 4
-        //      row[x--] set color
+        // if (x < 0)
+        // pushRowToChooser
+        // x = 4
+        // row[x--] set color
         // pushRowToChooser
         // x = 4
         // color add push
@@ -106,21 +103,46 @@ public class BlockGenerator {
         // color add add/mul
         // Iterieren durch die Zahlen
 
-        numberParts.addFirst(number);
-
         // Anlegen der Kommando-Struktur
-        chooserPush.addFirst(new Operation(Command.PUSH, numberParts.get(0)));
 
+        color.add(Command.DUPLICATE);
+
+        // erste Zahl pushen, Fall für erste Zeile
+        if (numberParts.get(0) > 2) {
+            chooserPush.addFirst(new Operation(Command.PUSH, numberParts.get(0) - 2));
+            row[3].set(color);
+            row[4].set(color);
+            pushRowToChooser();
+            color.add(Command.POP);
+
+        } else {
+            for (int i = 0; i < numberParts.get(0); i++) {
+                row[3 + i].set(color);
+            }
+            pushRowToChooser();
+        }
+
+        // Operationen anhand der numberParts-Liste auf chooserPush-Liste hinzufügen
         for (int i = 1; i < numberParts.size(); i++) {
+
             chooserPush.add(new Operation(Command.PUSH, 10));
-            chooserPush.add(new Operation(Command.MULTIPLY));
+            chooserPush.add(new Operation(Command.PUSH, 1));
+            if (i < numberParts.size() - 1) {
+                chooserPush.add(new Operation(Command.MULTIPLY, 0));
+            } else {
+                chooserPush.add(new Operation(Command.MULTIPLY, -1));
+            }
 
             int j = numberParts.get(i);
-            // TODO: immer pushen auch 0
-            // 0 dann separat abhandeln
+
             if (j != 0) {
                 chooserPush.add(new Operation(Command.PUSH, j));
-                chooserPush.add(new Operation(Command.ADD));
+                chooserPush.add(new Operation(Command.PUSH, 1));
+                if (i < numberParts.size() - 1) {
+                    chooserPush.add(new Operation(Command.ADD, 0));
+                } else {
+                    chooserPush.add(new Operation(Command.ADD, -1));
+                }
             }
 
         }
@@ -129,15 +151,16 @@ public class BlockGenerator {
             switch (element.getName()) {
                 case PUSH:
                     color.add(Command.PUSH);
-                    // in 2-3 Zeilen aufteilen
+                    // in Zeilen aufteilen
                     int rowVal = (element.getVal1());
 
                     // Zeile füllen
                     for (int i = 0; i < (rowVal / 5); i++) {
-                        for (int j = 4; j < 1; j--) {
+                        for (int j = 4; j >= 0; j--) {
                             row[j].set(color);
-                            pushRowToChooser();
+
                         }
+                        pushRowToChooser();
                     }
                     ;
                     // weiß auffüllen falls Zeile < 5
@@ -146,15 +169,11 @@ public class BlockGenerator {
                             row[j].setWhite();
                         }
                         // Farbe auffüllen für Zeile < 5
-                        for (int j = 0; j > rowVal % 5; j++) {
+                        for (int j = 0; j < rowVal % 5; j++) {
                             row[4 - j].set(color);
-                            pushRowToChooser();
+
                         }
-                    } else {
-                        for (int j = 4; j < 1; j--) {
-                            row[j].setWhite();
-                            pushRowToChooser();
-                        }
+                        pushRowToChooser();
                     }
                     break;
                 case MULTIPLY:
@@ -164,6 +183,9 @@ public class BlockGenerator {
                         row[j].setWhite();
                     }
                     pushRowToChooser();
+                    pushRowToChooser();
+
+                    color.add(Command.PUSH);
                     break;
                 case ADD:
                     color.add(Command.ADD);
@@ -172,6 +194,9 @@ public class BlockGenerator {
                         row[j].setWhite();
                     }
                     pushRowToChooser();
+                    if (element.getVal1() == 0) {
+                        pushRowToChooser();
+                    }
                     break;
 
                 default:
@@ -180,6 +205,11 @@ public class BlockGenerator {
 
         }
 
+        // letzte zwei Zeilen nicht überschreiben bei < 19
+        if (numberParts.size() == 1) {
+            pushRowToChooser();
+            pushRowToChooser();
+        }
     }
 
     private void generateBlock(LinkedList<Operation> operations) {
@@ -251,7 +281,7 @@ public class BlockGenerator {
                 }
             }
             if (collision == -1 && pushLeft <= 1 && block.getLast()[0].isBlack())
-                    pos = 0;
+                pos = 0;
         }
         if (pos != 9)
             collision = -1;
@@ -676,9 +706,9 @@ public class BlockGenerator {
     public void paint(BufferedImage image, int xBlockPos, int yBlockPos) {
         // Chooser
         int y = yBlockPos - chooser.size() - 4;
-        for(PietColor[] row: chooser) {
+        for (PietColor[] row : chooser) {
             image.setRGB(xBlockPos, y, PietColor.lightRed);
-            for(int x = 0; x < row.length; x++)
+            for (int x = 0; x < row.length; x++)
                 image.setRGB(xBlockPos + 1 + x, y, row[x].get());
             y++;
         }
@@ -715,9 +745,9 @@ public class BlockGenerator {
         image.setRGB(xBlockPos + 3, yBlockPos - 1, PietColor.black);
         // Block
         y = yBlockPos;
-        for (PietColor[] row: block) {
+        for (PietColor[] row : block) {
             image.setRGB(xBlockPos + blockStartPos - 1, y, PietColor.black);
-            for(int x = 0; x < row.length; x++)
+            for (int x = 0; x < row.length; x++)
                 image.setRGB(xBlockPos + blockStartPos + x, y, row[x].get());
             image.setRGB(xBlockPos + blockStartPos + 5, y, PietColor.black);
             y++;
