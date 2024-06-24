@@ -3,10 +3,16 @@ package testing.basicblock;
 
 import org.junit.Test;
 import ast.datatypes.*;
+import ast.lexer.Lexer;
+import ast.lexer.Scan;
+import ast.lexer.Token;
+import ast.parser.Parser;
 import basicblocks.BBMain;
 import basicblocks.datatypes.BBlock;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 
 
@@ -183,6 +189,59 @@ public class NodeTest {
         ArrayList<BBlock> TestList = basicBlockMaker.parse(bin1);
         System.out.println(TestList);
     }
-    
+
+    @Test
+    public void testFunCallInDec() {
+        /*
+        AST-Ausgangslage:
+        eine Declaration, die eine Binary Expression hat, die im rechten Ast einen Funktionsaufruf hat
+        verpackt in einer main function, welche wieder in einer Program Node steckt
+        */
+        Node mainFunc = new Node(NodeTypesEnum.FUNCTION_DEF);
+        mainFunc.setValue("main");
+        
+        Node rootNode = new Node(NodeTypesEnum.PROGRAM);
+        Node dec1 = new Node(NodeTypesEnum.DECLARATION);
+        Node bin1 = new Node(NodeTypesEnum.BINARY_EXPRESSION);
+        bin1.setLeft(new Node(NodeTypesEnum.LITERAL));
+        Node funcCall1 = new Node(NodeTypesEnum.FUNCTION_CALL);
+        funcCall1.setValue("FunctionCall");
+        funcCall1.setAlternative(new ArrayList<>());
+        bin1.setRight(funcCall1);
+        dec1.setCondition(bin1);
+        dec1.setValue("c");
+        ArrayList<Node> rootBody = new ArrayList<>();
+        rootBody.add(dec1);
+
+        ArrayList<Node> programmBody = new ArrayList<>();
+        programmBody.add(mainFunc);
+        rootNode.setBody(programmBody);
+        mainFunc.setBody(rootBody);
+        ArrayList<BBlock> TestList = BBMain.parse(rootNode);
+        System.out.println(TestList);
+    }
+
+
+
+        @Test
+        public void testWithASTGenerator() {
+            /*
+            kleines Programm nun mit AST Code zu AST gemacht und dann mit unserer parse verarbeitet
+
+            Bisher: generierter AST enthält komischerweise Variablen vom Typ Node, die aber auf null gesetzt sind
+            --> das kann unser Code noch nicht verarbeiten
+            */
+            Node rootNode;
+
+            Scan scanner = new Scan(
+                                "int main() {int i = 1; while (i <= 5) {i = (i + 1);}return 0;}");
+            
+            List<Token> tokens = scanner.scanTokens();
+            Parser parser = new Parser(tokens);
+            rootNode = parser.parse(tokens);
+
+            ArrayList<BBlock> TestList = BBMain.parse(rootNode);
+            System.out.println(TestList);
+        }
 
 }

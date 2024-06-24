@@ -8,6 +8,7 @@ public class Block {
 
     public Block(int num) {
         this.num = num;
+        this.operations = new LinkedList<>();
     }
 
     public void addOperation(Operation operation) {

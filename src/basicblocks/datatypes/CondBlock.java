@@ -17,6 +17,10 @@ public class CondBlock extends BBlock {
         this.alt = alt;
     }
 
+    public int getAlt(){
+        return alt;
+    }
+
     public String toString() {
         return "Cond Block";
      }

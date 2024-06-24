@@ -9,8 +9,6 @@ public enum NodeTypesEnum {
      * for else parts
      */
     ELSE_STATEMENT,
-
-    FUNCTION_TEMP_RETURN,
     /**
      * any block of code
      * i.e. in if's, loops or methods
@@ -40,6 +38,10 @@ public enum NodeTypesEnum {
      * declaration of a function
      */
     FUNCTION_DEF,
+    /**
+     * for the next team
+     */
+    FUNCTION_TEMP_RETURN,
     /**
      * a concrete value
      */
