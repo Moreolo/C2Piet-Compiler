@@ -31,7 +31,7 @@ public class Design {
         int width = blockGenerators.length * BlockGenerator.blockWidth + 2;
         int heightTop = 0;
         int heightBottom = 0;
-        for (BlockGenerator blockGenerator: blockGenerators) {
+        for (BlockGenerator blockGenerator : blockGenerators) {
             heightTop = Math.max(heightTop, blockGenerator.getHeightTop());
             heightBottom = Math.max(heightBottom, blockGenerator.getHeightBottom());
         }
@@ -121,10 +121,10 @@ public class Design {
         int max_block_height = 0;
         int max_block_num = 0;
         // Iteriert durch alle Blöcke
-        for (Block block: blocks) {
+        for (Block block : blocks) {
             int block_height = 0;
             // Rechnet die Höhe aller Operationen im Block zusammen
-            for (Operation op: block.getOperations()) {
+            for (Operation op : block.getOperations()) {
                 switch (op.getName()) {
                     case PUSH:
                         block_height += 1;
@@ -180,7 +180,8 @@ public class Design {
         image.setRGB(1, height - 1, PietColor.green);
 
         // Setzt alle Pixel oberhalb der Blöcke
-        // Die Pixel überprüfen ob die Block Nummer mit dem aktuellen Wert auf dem Stack übereinstimmt
+        // Die Pixel überprüfen ob die Block Nummer mit dem aktuellen Wert auf dem Stack
+        // übereinstimmt
         for (int i = 0; i < blocks.size(); i++) {
             // Rechnet die Position des Blocks aus
             int blockPosi = i * 7;
