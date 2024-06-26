@@ -61,8 +61,15 @@ public class Parser {
                         return handleFunctionCall(new Node(NodeTypesEnum.FUNCTION_CALL));
                     } else if (tokens.get(1).getType() == TokenType.PLUS_EQUAL || tokens.get(1).getType() == TokenType.MINUS_EQUAL) {
                         return handleOpEqual();
-                    }else if(tokens.get(1).getType()==TokenType.SEMICOLON){
+                    } else if(tokens.get(1).getType()==TokenType.SEMICOLON){
                         return new Node(NodeTypesEnum.IDENTIFIER).setValue(popToken().getLexeme());
+                    } else if(tokens.get(1).getType() == TokenType.EQUAL && !(peekAhead(TokenType.PLUS) || peekAhead(TokenType.MINUS) || peekAhead(TokenType.STAR)|| peekAhead(TokenType.SLASH)|| peekAhead(TokenType.MOD)) && peekAhead(TokenType.LEFT_PAREN)){
+                        Node temp = new Node(NodeTypesEnum.BINARY_EXPRESSION);
+                        temp.setLeft(new Node(NodeTypesEnum.IDENTIFIER).setValue(popToken().getLexeme()));
+                        temp.setOperator("=");
+                        popToken();
+                        temp.setRight((handleFunctionCall(new Node(NodeTypesEnum.FUNCTION_CALL))));
+                        return temp;
                     }
                     else {
                         return handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION));
@@ -117,6 +124,18 @@ public class Parser {
      */
     private boolean peek(TokenType type) {
         return tokens.get(0).getType() == type;
+    }
+
+    private boolean peekAhead(TokenType type){
+        int i = 0;
+        while(true){
+            if (tokens.get(i).getType() == TokenType.SEMICOLON) {
+                return false;
+            } else if (tokens.get(i).getType() == type) {
+                return true;
+            }
+            i++;
+        }
     }
 
     /**
