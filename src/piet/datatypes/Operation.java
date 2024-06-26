@@ -1,7 +1,7 @@
 package piet.datatypes;
 
 public class Operation {
-    private Command	 name;
+    private Command name;
     private int val1;
     private int val2;
 
@@ -23,8 +23,8 @@ public class Operation {
         this.val2 = -1;
     }
 
-    public String getName() {
-        return this.name.toString();
+    public Command getName() {
+        return this.name;
     }
 
     public int getVal1() {

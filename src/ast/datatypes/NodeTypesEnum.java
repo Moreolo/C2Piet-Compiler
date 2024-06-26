@@ -39,6 +39,10 @@ public enum NodeTypesEnum {
      */
     FUNCTION_DEF,
     /**
+     * for the next team
+     */
+    FUNCTION_TEMP_RETURN,
+    /**
      * a concrete value
      */
     LITERAL,

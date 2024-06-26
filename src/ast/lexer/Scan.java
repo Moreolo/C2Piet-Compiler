@@ -54,8 +54,8 @@ public class Scan{
       keywords.put("union",    UNION);
       keywords.put("unsigned",    UNSIGNED);
       keywords.put("volatile",    VOLATILE);
-     
-
+      keywords.put("include",    INCLUDE);
+      keywords.put("define",    DEFINE);
     }
   
     public Scan(String source) {
@@ -100,14 +100,21 @@ public class Scan{
           case '}': addToken(RIGHT_BRACE); break;
           case ',': addToken(COMMA); break;
           case '.': addToken(DOT); break;
-          case '-': addToken(match('-')? DECREMENT : MINUS); break;
-          case '+': addToken(match('+')? INCREMENT : PLUS); break;
+          case '-': if(match('=')) {
+            addToken(MINUS_EQUAL);
+            break;
+          }else {addToken(match('-')? DECREMENT : MINUS); break;}
+          case '+': if(match('=')){
+            addToken(PLUS_EQUAL); break;
+          }else{addToken(match('+')? INCREMENT : PLUS); break;}
           case ';': addToken(SEMICOLON); break;
-          case '*': addToken(STAR); break; 
+          case '*': addToken(STAR); break;
+          case '%': addToken(MOD); break;
           case '[': addToken(SQUARE_BRACE_LEFT); break;
           case ']': addToken(SQUARE_BRACE_RIGHT); break;
           case ':': addToken(COLON); break;
           case '~': addToken(TILDA); break;
+          case '#': addToken(HASHTAG); break;
           case '&': addToken(match('&')? LOGICAL_AND : AND); break;
           case '|': addToken(match('|')? LOGICAL_OR : PIPE); break;
           case '!': addToken(match('=') ? BANG_EQUAL : BANG); break;
