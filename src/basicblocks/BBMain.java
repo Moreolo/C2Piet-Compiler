@@ -10,8 +10,23 @@ import java.util.List;
 
 public class BBMain {
 
+    public static class BlockLists {
+
+        public ArrayList<BBlock> blockList;
+        public HashMap<String,Integer> functionIndexMap;
+
+        public BlockLists(ArrayList<BBlock> blockList, HashMap<String,Integer> funcMap) {
+            this.blockList = blockList;
+            this.functionIndexMap = funcMap;
+        }
+    
+        
+    }
+
     private static ArrayList<BBlock> blockList = new ArrayList<>();
     private static int iterator = 0;
+
+    private static BlockLists bLists;
 
     static HashMap<String, Integer> functionIndicesMap = new HashMap<>();
 
@@ -384,7 +399,7 @@ public class BBMain {
 
 
     // Aufruf für die "Interface"-Abfolge; erhält Programm-Node des gesamten AST
-    public static ArrayList<BBlock> parse(Node rootNode) {
+    public static BlockLists parse(Node rootNode) {
 
         BBlock starterBlock = new BBlock(iterator);
         blockList.add(starterBlock);
@@ -426,7 +441,7 @@ public class BBMain {
             }
         }
 
-        return blockList;
+        return new BlockLists(blockList, functionIndicesMap);
     }
 }
 
@@ -437,11 +452,10 @@ public class BBMain {
  * - Welche Default-funktionen haben wir, und wie werden die Definiert? (Print, intput, etc.)
  * 
  * 
- * 
- * 
+ *  (x) Function Declaration Handling
+ *  (x) Übergabewert BBMain
  * 
  *  ToDo:
- *  - DECLARATION handling
  *  - Refactoring
  *  - Wiki
  *  - Testing
