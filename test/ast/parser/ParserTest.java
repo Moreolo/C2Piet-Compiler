@@ -385,12 +385,14 @@ public class ParserTest {
      */
     @Test
     public void testInspection() throws IOException {
-        Node testNode = Lexer.runFile("hello.c");
+        Node testNode = Lexer.run("int diffToTen(int x) { if (x<= 10) { return 0; } int y = 0; while (x <= 10) { y++;} return y;}");
+        Node testNode2 = Lexer.run("i = add(4, y);");
 
         Assert.assertTrue(true);
     }
 }
 
+// TODO enums
 // TODO bool not for variables only
 // TODO enable stuff like (fun1(x) > fun2(y))  (just do y = fun1(x) -> (y >...))
 // TODO not for expressions like (!(a && b) && a)
