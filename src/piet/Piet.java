@@ -424,18 +424,10 @@ public class Piet {
         * @return Block block der mit Commands erweiterte block wird returned
         */
 
-        // get wert des return nodes
-        Node value = node.getCondition();
-        // checken ob überhaupt etwas returnt wird
-        if (value != null){
-            // wenn ja pushe return wert auf stack und speichere in als temporäre Variable ab
-            block = resolveType(block, value); // berechne return wert und pushe in an die spitze des stacks
-            VariablenSpeicher.add("return_tmp"); // teile den namen "return_tmp" der spitze des stacks zu
-        }
-
         // get alle funktions parameter der funktion aus der returnt wird und lösche sie aus functionsvariablenspeicher
         LinkedList<String> func_params = functionParamsDict.get(functionName); // get liste von parametern der funktion aus der returnt wird
         for(String func_param : func_params){
+            // lösche werte der Parameter und Variablen der Funktion vom Stack
             int varpos = functionVariableSpeicher.get(func_param);
             block.addOperation(new Operation(Command.PUSH, varpos));
             block.addOperation(new Operation(Command.PUSH, ProgramCounter));
@@ -446,8 +438,23 @@ public class Piet {
 
             //Wie kann ich noch Variablen die in Funktion definiert wurden von Stack löschen??
         }
+
+        // get wert des return nodes
+        Node value = node.getCondition();
+        // checken ob überhaupt etwas returnt wird
+        if (value != null){
+            // wenn ja pushe return wert auf stack und speichere in als temporäre Variable ab
+            block = resolveType(block, value); // berechne return wert und pushe in an die spitze des stacks
+            VariablenSpeicher.add("return_tmp"); // teile den namen "return_tmp" der spitze des stacks zu
+        }
         
-        if (ProgramCounter != returnIds.getLast()){
+        //tausche return Value mit Block-ID zu der zurückgekehrt werden muss
+        block.addOperation(new Operation(Command.PUSH, ProgramCounter-1));
+        block.addOperation(new Operation(Command.PUSH, ProgramCounter));
+        block.addOperation(new Operation(Command.ROLL));
+
+        // Check ob StackPointer auf richtige Position zeigt
+        if (ProgramCounter != returnIds.getLast()+1){
             throw new Error("StackPointer zeigt nicht auf die korrekte Return-Adresse")
         }
         //Bei Return wird keine Block-ID(für den nächsten Block) auf Stack gepusht, da dies schon im dazugehörigen Function-Call gemacht wurde
