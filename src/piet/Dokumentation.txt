@@ -1,0 +1,59 @@
+Dokumentation Piet Commands
+
+Konzepte:
+Variablenmanagement über eine LinkedList -> rotatevariables
+resolveType + solveBinaryExpression
+
+Handling von den verschiedenen Condition operatoren (==, >=, ...)
+
+FunktionsDefinition mit erstellen von Parameter gemapped zu funktionsname, Startblock-Id gemapped zu funktionsname
+Funktionsvariablenmanagement (alle aktiven funktionsvariablen in dictionary, variablen werden bei function calls hinzugefügt)
+Return id management (LinkedList die wie stack funktioniert. FIFO prinzip für return ids)
+
+
+Input:
+Die Schnittstelle zum vorherigen Team (Team Basicblock) ist die Klasse BlockLists. 
+Darin befindet sich eine List mit den Basicblöcken und zusätzlich eine Hashmap funcMap in 
+der die Block-Ids der Funktionen gemapped sind. 
+
+Output:
+Für die Schnittstelle zum nachfolgenden Team (Design Team) wurde die Klasse Block (in der Datei Block.java) definiert.
+In der Klasse Block befindet sich eine Liste an Blöcken mit Operationen.
+Eine Operation (Operation Klasse in Datei Operation.java) besteht immer aus einem Piet-Command und kann entweder keinen, einen oder zwei Integer-Werte enthalen. 
+Diese zusätzlichen Integer-Werte werden von bestimmten Piet-Commands benötigt. 
+z.B. muss mit dem Piet-Command PUSH noch ein zusätzlicher Wert mitgegeben werden, damit klar ist welcher Wert gepusht werden soll.
+In der Datei Command.java befindet sich ein Enum mit allen verfügbaren Piet-Commands.
+Der Output ist eine Liste an Blöcken in der die Operationen aufgelistet sind.
+
+Programm:
+Das Hauptprogramm befindet sich in der Datei Piet.java. Dort wird die Klasse Piet definiert. 
+Die Klasse wandelt die Basicblöcke in Blöcke bestehend aus Piet-Commands um. 
+Zusätzlich wird das Stack- und Variablenmanagement darin umgesetzt. 
+
+parse():
+Der Einstiegspunkt der Piet Klasse ist die Funktion parse(). 
+Die Funktion erhält als Argument ein BlockLists Objekt. Daraus wird sich die BasicBlock-Liste, sowie die Hashmap funcMap, in der Funktionen zu BasicBlöcken gemapped wird, gezogen.
+Zudem wird die LinkedList (Output) erstellt, in der die Blöcke mit Piet-Commands hinzugefügt werden.
+Anschließend wird über die Liste an Basicblöcken gelooped.
+Für jeden Basicblock wird gecheckt um welchen Typ es sich beim Basicblock handelt (BBlock, CondBlock, FunCallBlock, FunDefBlock).
+Der Basicblock wird dann an die entsprechende Funktion(die zum Typ des Basicblocks passt) weitergeleitet und dort weiterverarbeitet.
+
+parseFunctionDefBlock(): 
+Basicblöcke die vom Typ FunDefBlock sind werden von der Funktion parseFunctionDefBlock() verarbeitet.
+Die Funktion nimmt sich den ersten Node von diesem Basicblock.
+Der erste Node eines FunDefBlocks muss immer vom NodeTyp FUNCTION_DEF sein.
+Dieser Node wird an die Funktion parseFunctionDef() weitergegeben welche den Node analysiert. 
+parseFunctionDef() hat als Return-Wert den Namen der Funktion. 
+Mit dem Funktionsnamen kann in der Hashmap funcMap die BBlock-Id des Funktionsblocks ermittelt werden.
+Mit dieser Id wird nun ein (PietCommands-)Block erzeugt.
+Anschließend wird über die restlichen Nodes aus dem FunDefBlock gelooped.
+Je nachdem welchen NodeTyp die Nodes haben werden sie unterschiedlich verarbeitet. 
+Nachdem über jeden Node gelooped wurde wird noch die Id des nachfolgenden Blocks auf den Stack gepusht.
+Falls jedoch ein Return-Node vorgekommen ist wird nicht die Id des nachfolgenden Blocks gepusht sonder die Id des Blocks zu der returned werden soll
+
+parseFunctionCallBlock():
+Basicblöcke die vom Typ FunCallBlock sind werden von der Funktion parseFunctionCallBlock() verarbeitet.
+Es wird zuerst ein neuer (PietCommands-)Block erstellt. 
+Danach wird gecheckt, wie viele Nodes sich in dem FunCallBlock befinden. Wenn in dem FunCallBlock mehr als 1 Node ist, wird ein Fehler geworfen.
+Anschließend wird der Node vom Typ FUNCTION_CALL weitergegeben, um weiterverarbeitet zu werden. 
+

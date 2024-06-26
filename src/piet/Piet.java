@@ -42,9 +42,9 @@ public class Piet {
         int num = 1;
         for (BBlock block : bblocks) {
             if (block instanceof CondBlock) finalBlocks.add(parseConditionBlock((CondBlock)block, num));
-            if (block instanceof FunDefBlock) finalBlocks.add(parseFunctionDefBlock((FunDefBlock) block, funcMap));
-            if (block instanceof FunCallBlock) finalBlocks.add(parseFunctionCallBlock((FunCallBlock) block, num));
-            if (block instanceof BBlock) finalBlocks.add(parseBBlock(block, num));
+            else if (block instanceof FunDefBlock) finalBlocks.add(parseFunctionDefBlock((FunDefBlock) block, funcMap));
+            else if (block instanceof FunCallBlock) finalBlocks.add(parseFunctionCallBlock((FunCallBlock) block, num));
+            else if (block instanceof BBlock) finalBlocks.add(parseBBlock(block, num));
             else throw new Error("Unbekannter BlockTyp");  
             num += 1;
         }
@@ -64,7 +64,8 @@ public class Piet {
         var block = new Block(func_id);
         functionIDsDict.put(functionName, func_id);
 
-        for (Node node : bblock.getBody()) {
+        for (int i=1; i<bblock.getBody().size(); i++){ //fange bei 1 zu loopen da erster Node schon analysiert wurde
+            Node node = bblock.getBody().get(i);
             //if(node.getType() == NodeTypesEnum.BLOCK_STATEMENT) ; //return as BLOCK_STATEMENT
             if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION){
                 block = solveBinaryExpresssion(block, node); //return as BINARY_EXPRESSION
@@ -94,15 +95,13 @@ public class Piet {
         if (nodes.size() != 1) {
             throw new Error("FunctionCallBlock darf maximal einen Node enthalten");
         }
+        
+        Node node = nodes.get(0);
 
-        for (Node node : nodes) {
-            if(node.getType() == NodeTypesEnum.FUNCTION_CALL){
-                block = parseFunctionCall(block, node, bblock.getNext()); //return as FUNCTION_CALL
-            } 
-            else{
-                throw new Error("Unvalider NodeTyp in FunctionCallBlock");
-            }
+        if (node.getType() != NodeTypesEnum.FUNCTION_CALL){
+            throw new Error("Node in FunctionCallBlock muss vom Typ FUNCTION_CALL sein");
         }
+        block = parseFunctionCall(block, node, bblock.getNext()); //return as FUNCTION_CALL
         return block;
     }
 
