@@ -50,7 +50,7 @@ public class Parser {
                     return handleFor(new Node(NodeTypesEnum.WHILE_STATEMENT));
                 case WHILE:
                     return handleWhile(new Node(NodeTypesEnum.WHILE_STATEMENT));
-                case STRING, INT, FLOAT, DOUBLE, SHORT, LONG:
+                case STRING, INT, FLOAT, DOUBLE, SHORT, LONG, VOID:
                     if (tokens.get(1).getType() == TokenType.IDENTIFIER && tokens.get(2).getType() == TokenType.LEFT_PAREN) {
                         return handleFunctionDeclaration(new Node(NodeTypesEnum.FUNCTION_DEF));
                     } else {
@@ -61,11 +61,19 @@ public class Parser {
                         return handleFunctionCall(new Node(NodeTypesEnum.FUNCTION_CALL));
                     } else if (tokens.get(1).getType() == TokenType.PLUS_EQUAL || tokens.get(1).getType() == TokenType.MINUS_EQUAL) {
                         return handleOpEqual();
-                    } else {
+                    }else if(tokens.get(1).getType()==TokenType.SEMICOLON){
+                        return new Node(NodeTypesEnum.IDENTIFIER).setValue(popToken().getLexeme());
+                    }
+                    else {
                         return handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION));
                     }
                 case RETURN:
                     return handleReturn(new Node(NodeTypesEnum.RETURN_STATEMENT));
+                case LEFT_PAREN:
+                    consumeErrorFree(TokenType.LEFT_PAREN);
+                    return handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION));
+                case NUMBER:
+                    return new Node(NodeTypesEnum.LITERAL).setValue(popToken().getLexeme());
                 default:
                     // delete unknown tokens
                     popToken();
@@ -581,9 +589,9 @@ public class Parser {
      */
     private Node handleReturn(Node node) {
         consume(TokenType.RETURN);
-        consumeErrorFree(TokenType.LEFT_PAREN);
+        //consumeErrorFree(TokenType.LEFT_PAREN);
         node.setCondition(parse(tokens)); // for stuff like: return add(2,3) + 3;
-        consumeErrorFree(TokenType.RIGHT_PAREN);
+        //consumeErrorFree(TokenType.RIGHT_PAREN);
         return node;
     }
 
