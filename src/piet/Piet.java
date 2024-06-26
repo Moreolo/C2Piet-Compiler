@@ -32,6 +32,8 @@ public class Piet {
 
     int ProgramCounter = 0;
 
+    int return_tmp_pos = -1;
+
     boolean func_flag = false;
 
     public LinkedList<Block> parse(BlockLists list) throws Error{
@@ -296,9 +298,16 @@ public class Piet {
             block = rotateVariable(block, var_name);
         }
         else if(node.getType() == NodeTypesEnum.FUNCTION_TEMP_RETURN){
-            //Return wert der Funktion der zwischenzeitig als return_tmp auf Variablenspeicher liegt
-            block = rotateVariable(block, "return_tmp"); 
-            VariablenSpeicher.remove("return_tmp"); // lösche tmp return value, wenn er einmal benutzt wurde
+            //Return wert der Funktion der zwischenzeitig auf Stack liegt an position return_tmp_position
+            if (return_tmp_pos != -1){
+                block.addOperation(new Operation(Command.PUSH, return_tmp_pos));
+                block.addOperation(new Operation(Command.PUSH, ProgramCounter));
+                block.addOperation(new Operation(Command.ROLL));
+                return_tmp_pos = -1;
+            }
+            else{
+                throw new Error("kein Return Wert auf Stack");
+            }
         }
         else{
             throw new Error("Es können nur die NodeTypen LITERAL, BINARY_EXPRESSION, IDENTIFIER und FUNCTION_TEMP_RETURN resolved werden");
@@ -394,7 +403,8 @@ public class Piet {
         LinkedList<String> param_names = functionParamsDict.get(function_name);
 
         // Pushe BlockId an die nach Funktionscall zurückgekehrt werden soll (wird dann bei return gepopped)
-        block.addOperation(new Operation(Command.PUSH, id2return2)); 
+        block.addOperation(new Operation(Command.PUSH, id2return2));
+        VariablenSpeicher.add("RETURN_ID");
         ProgramCounter += 1;
         // Safe id where Programm needs to return after function call
         returnIds.add(ProgramCounter);
@@ -411,7 +421,7 @@ public class Piet {
 
         // Navigate to Function-Block
         int func_id = functionIDsDict.get(function_name);
-        block.addOperation(new Operation(Command.PUSH, func_id)); 
+        block.addOperation(new Operation(Command.PUSH, func_id));
         return block;
     }
 
@@ -439,24 +449,26 @@ public class Piet {
             //Wie kann ich noch Variablen die in Funktion definiert wurden von Stack löschen??
         }
 
+        // Check ob StackPointer auf richtige Position zeigt
+        if (ProgramCounter != returnIds.getLast()){
+            throw new Error("StackPointer zeigt nicht auf die korrekte Return-Adresse")
+        }
+
         // get wert des return nodes
         Node value = node.getCondition();
         // checken ob überhaupt etwas returnt wird
         if (value != null){
             // wenn ja pushe return wert auf stack und speichere in als temporäre Variable ab
             block = resolveType(block, value); // berechne return wert und pushe in an die spitze des stacks
-            VariablenSpeicher.add("return_tmp"); // teile den namen "return_tmp" der spitze des stacks zu
+            //tausche return Value mit return Block-ID zu der zurückgekehrt werden muss (BLock ID muss oben liegen)
+            block.addOperation(new Operation(Command.PUSH, ProgramCounter-1));
+            block.addOperation(new Operation(Command.PUSH, ProgramCounter));
+            block.addOperation(new Operation(Command.ROLL));
+            return_tmp_pos =  ProgramCounter-1;
+            VariablenSpeicher.removeLast();
+            ProgramCounter -= 1; // Setze Programm Counter schon mal eins herunter da Block ID automatisch vom Design Team gepopped wird.
         }
         
-        //tausche return Value mit Block-ID zu der zurückgekehrt werden muss
-        block.addOperation(new Operation(Command.PUSH, ProgramCounter-1));
-        block.addOperation(new Operation(Command.PUSH, ProgramCounter));
-        block.addOperation(new Operation(Command.ROLL));
-
-        // Check ob StackPointer auf richtige Position zeigt
-        if (ProgramCounter != returnIds.getLast()+1){
-            throw new Error("StackPointer zeigt nicht auf die korrekte Return-Adresse")
-        }
         //Bei Return wird keine Block-ID(für den nächsten Block) auf Stack gepusht, da dies schon im dazugehörigen Function-Call gemacht wurde
         return block;
     }
@@ -544,7 +556,6 @@ public class Piet {
             functionParamsDict.put(functionName, param_list);
             functionVariableSpeicher.put(varString, ProgramCounter);
         }
-        
         return block;
     }
 
