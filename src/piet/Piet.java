@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import ast.datatypes.Node;
 import ast.datatypes.NodeTypesEnum;
 import basicblocks.BBMain;
+import basicblocks.BBMain.BlockLists;
 import basicblocks.datatypes.BBlock;
 import basicblocks.datatypes.CondBlock;
 import basicblocks.datatypes.FunCallBlock;
@@ -33,7 +34,7 @@ public class Piet {
 
     boolean func_flag = false;
 
-    public LinkedList<Block> parse(BlockLists list) {
+    public LinkedList<Block> parse(BlockLists list) throws Error{
         ArrayList<BBlock> bblocks = list.blockList;
         HashMap<String,Integer> funcMap = list.functionIndexMap;
         
@@ -44,18 +45,18 @@ public class Piet {
             if (block instanceof FunDefBlock) finalBlocks.add(parseFunctionDefBlock((FunDefBlock) block, funcMap));
             if (block instanceof FunCallBlock) finalBlocks.add(parseFunctionCallBlock((FunCallBlock) block, num));
             if (block instanceof BBlock) finalBlocks.add(parseBBlock(block, num));
-            else //throw error;  
+            else throw new Error("Unbekannter BlockTyp");  
             num += 1;
         }
         return finalBlocks;
     }
 
-    private Block parseFunctionDefBlock(FunDefBlock bblock, HashMap<String,Integer> funcMap){
+    private Block parseFunctionDefBlock(FunDefBlock bblock, HashMap<String,Integer> funcMap) throws Error{
         boolean return_flag = false;
 
         Node func_def_node = bblock.getBody().get(0);
         if (func_def_node.getType() != NodeTypesEnum.FUNCTION_DEF){
-            System.err.println("First node of function block needs to be function def");
+            throw new Error("Erster Node muss vom Typ FUNCTION_DEF sein");
         }
         String functionName = parseFunctionDef(func_def_node);
         
@@ -76,7 +77,7 @@ public class Piet {
                 return_flag = true;
             }
             else{
-                //Throw error
+                throw new Error("Unvalider NodeTyp in FunctionDefBlock");
             }
         }
         if (!return_flag){
@@ -85,20 +86,27 @@ public class Piet {
         return block;
     }
 
-    private Block parseFunctionCallBlock(BBlock bblock, int num){
+    private Block parseFunctionCallBlock(BBlock bblock, int num) throws Error{
         var block = new Block(num);
-        for (Node node : bblock.getBody()) {
+        var nodes = bblock.getBody();
+
+        //Überprüfen, ob der Condition-BBlock richtiges Format hat (darf nur einen Node enthalten)
+        if (nodes.size() != 1) {
+            throw new Error("FunctionCallBlock darf maximal einen Node enthalten");
+        }
+
+        for (Node node : nodes) {
             if(node.getType() == NodeTypesEnum.FUNCTION_CALL){
                 block = parseFunctionCall(block, node, bblock.getNext()); //return as FUNCTION_CALL
             } 
             else{
-                //Throw error
+                throw new Error("Unvalider NodeTyp in FunctionCallBlock");
             }
         }
         return block;
     }
 
-    private Block parseBBlock(BBlock bblock, int num){
+    private Block parseBBlock(BBlock bblock, int num) throws Error{
         var block = new Block(num);
         for (Node node : bblock.getBody()) {
             if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION){
@@ -108,7 +116,7 @@ public class Piet {
                 block = parseDeclarations(block, node);
             }
             else{
-                //throw error
+                throw new Error("Unvalider NodeTyp in BBlock");
             }
         }
         // Set Pointer for next Block
@@ -116,7 +124,7 @@ public class Piet {
         return block;
     }
 
-    private Block parseConditionBlock(CondBlock bblock, int num){
+    private Block parseConditionBlock(CondBlock bblock, int num) throws Error{
         /**
         * parseCondition parsed die Condition-BBlocks
         * @param BBlock bblock ist der Condition-BBLock der als input dient
@@ -129,16 +137,14 @@ public class Piet {
 
         //Überprüfen, ob der Condition-BBlock richtiges Format hat (darf nur einen Node enthalten)
         if (nodes.size() != 1) {
-            System.err.println("Condition block can only take one node");
-            return block;
+            throw new Error("ConditionBlock darf maximal einen Node enthalten");
         }
         //über Node loopen
         for (Node node : nodes) {
             var type = node.getType();
             //Überprüfung, ob Node vom Typ IF_STATEMENT ist 
             if (!type.equals(NodeTypesEnum.IF_STATEMENT)){
-                System.err.println("Conditions block must contain if statement");
-                return block;
+                throw new Error("Node im ConditionBlock muss vom NodeTyp IF_STATEMENT sein");
             }
             //Condition aus dem Node ziehen
             var condition = node.getCondition();
@@ -150,7 +156,7 @@ public class Piet {
         return block;
     }
 
-    private Block analyseConditionNode(Block block, Node condition){
+    private Block analyseConditionNode(Block block, Node condition) throws Error{
         /**
         * analyseConditionNode analysiert Condition-Nodes
         * @param Block block ist der Block in dem die Piet-Commands gespeichert werden
@@ -228,13 +234,12 @@ public class Piet {
                 break;
         
             default:
-                System.err.println("Unknown Operator");
-                break;
+                throw new Error("Unbekannter Vergleichs-Operator");
         }
         return block;
     }
 
-    private Block rotateVariable(Block block, String var_name){
+    private Block rotateVariable(Block block, String var_name) throws Error{
         /**
         * rotateVariable rotiert die gewünschte Variable an die Spitze des Stacks dupliziert den Wert 
             und rotiert die originale Variable wieder an die ursprüngliche Position zurück
@@ -250,7 +255,7 @@ public class Piet {
             var_pos = VariablenSpeicher.indexOf(var_name);
         }
         else {
-            System.err.println("Variable existiert nicht");
+            throw new Error("Variable wurde nicht definiert (existiert nicht)");
         }
 
         block.addOperation(new Operation(Command.PUSH, var_pos));
@@ -264,7 +269,7 @@ public class Piet {
         return block;
     }
 
-    private Block resolveType(Block block, Node node){
+    private Block resolveType(Block block, Node node) throws Error{
         /**
         * resolveType checkt ob node von richtigem Type ist und befördert den Wert des Nodes an die Spitze des Stacks -> löst Variablen und BinaryExpressions direkt auf
         * @param Block block ist der Block in dem die Piet-Commands gespeichert werden
@@ -293,12 +298,12 @@ public class Piet {
             VariablenSpeicher.remove("return_tmp"); // lösche tmp return value, wenn er einmal benutzt wurde
         }
         else{
-            System.err.println("Node must be of Type Identifier or Literal or Binary Expression");
+            throw new Error("Es können nur die NodeTypen LITERAL, BINARY_EXPRESSION, IDENTIFIER und FUNCTION_TEMP_RETURN resolved werden");
         }
         return block;
     }
     
-    private Block parseAssignmentExpression(Block block, Node node){
+    private Block parseAssignmentExpression(Block block, Node node) throws Error{
         /**
         * parseAssignmentExpression parsed Assignment Expressions
         * @param Block block ist der Block in dem die Piet-Commands gespeichert werden
@@ -309,12 +314,12 @@ public class Piet {
         // Check ob linke seite vom Type IDENTIFIER ist
         Node left = node.getLeft();
         String varString = "";
-        if (left.getType() == NodeTypesEnum.IDENTIFIER){
-            varString = left.getValue();
+        if (left.getType() != NodeTypesEnum.IDENTIFIER){
+            
+            throw new Error("Linker Node bei AssignmentExpression muss vom NodeTyp IDENTIFIER sein");
         }
-        else{
-            System.err.println("Right side of assignment expression must be of Type Identifier");
-        }
+
+        varString = left.getValue();
 
         // Check ob rechte seite der assignment expression richtigen typ hat
         Node right = node.getRight();
@@ -331,39 +336,29 @@ public class Piet {
             block.addOperation(new Operation(Command.PUSH, varpos));
             block.addOperation(new Operation(Command.ROLL));
         }
-        else if (!varString.equals("")){
+        else{
             // pushe werte der rechten Seite auf den Stack
             block = resolveType(block, right);
             // wenn Variable noch nicht auf Stack liegt -> assigne Variable zum Wert an der Spitze des Stacks (Wert der rechten Seite der Assignment Expression)
             VariablenSpeicher.add(varString);
         }
-        else{
-            //Throw error
-        }
         return block;
     }
 
-    private String parseFunctionDef(Node node){
+    private String parseFunctionDef(Node node) {
         /**
         * parseFunctionDef parsed Functions Definitionen
         * @param Node node ist die Node der Function Definition
         * @return Block block der mit Commands erweiterte block wird returned
         */
 
-        //Überprüfung ob Node vom Type FUNCTION_DEF ist
-        Node func = node.getBody().get(0);
-        if (func.getType() != NodeTypesEnum.FUNCTION_DEF){
-            System.err.println("Node must be of Type FUNCTION_DEF");
-            return "";
-        }
-
-        String functionName = func.getValue();
+        String functionName = node.getValue();
         // Initialisiere Linked List in der die Namen der Parameter der Funktion gespeichert werden
         LinkedList<String> params = new LinkedList<>();
         // Loope über alle Parameter der Funktion
-        for (int p=0; p < func.getAlternative().size(); p++){
+        for (int p=0; p < node.getAlternative().size(); p++){
             // Füge Parametername zu LinkedList hinzu
-            String param_name = func.getAlternative().get(p).getValue();
+            String param_name = node.getAlternative().get(p).getValue();
             params.add(param_name);
         }
         // erstelle neuen Eintrag im Functions Dictionary -> dort wird der Funktionsname + die zugehörigen Parameternamen gespeichert
@@ -380,22 +375,16 @@ public class Piet {
         * @return Block block der mit Commands erweiterte block wird returned
         */
         
-        //Überprüfung ob Node vom Type FUNCTION_CALL ist
-        Node body = node.getBody().get(0);
-        if (body.getType() != NodeTypesEnum.FUNCTION_CALL){
-            System.err.println("Function Call muss vom type FUNCTION CALL SEIN");
-            return block;
-        }
         // Get Funktionsname
-        String function_name = body.getValue();
+        String function_name = node.getValue();
         // Get Paramternamen der Funktion
         LinkedList<String> param_names = functionParamsDict.get(function_name);
 
         func_flag = true;
 
         //Loope über alle Parameter der Funktion
-        for (int p = 0; p < body.getAlternative().size(); p++){
-            Node param = body.getAlternative().get(p);
+        for (int p = 0; p < node.getAlternative().size(); p++){
+            Node param = node.getAlternative().get(p);
             String param_name = param_names.get(p);
             block = resolveType(block, param);
             functionVariableSpeicher.put(param_name, ProgramCounter); // param wird auf top des stacks gepusht und diese position wird im dictionary mit dem param name(key) gespeichert
@@ -410,7 +399,7 @@ public class Piet {
         return block;
     }
 
-    private Block parseReturnStatement(Block block, Node node, String functionName){
+    private Block parseReturnStatement(Block block, Node node, String functionName) throws Error{
         /**
         * parseReturnStatement behandelt return statements und stellt sicher das an den funktionsaufruf zurückgesprungen wird
         * @param Block block ist der Block in dem die Piet-Commands gespeichert werden
@@ -446,7 +435,7 @@ public class Piet {
                 func_flag = false;
             }
         } else{
-            System.err.println("There was no return adress left in the return id list");
+            throw new Error("Liste mit Return-Ids ist leer")
         }
         return block;
     }
@@ -512,12 +501,11 @@ public class Piet {
         // Check ob linke seite vom Type IDENTIFIER ist
         Node left = node.getLeft();
         String varString = "";
-        if (left.getType() == NodeTypesEnum.IDENTIFIER){
-            varString = left.getValue();
+        if (left.getType() != NodeTypesEnum.IDENTIFIER){
+            throw new Error("Linke Node bei DECLARATION Node muss vom Typ IDENTIFIER sein")
         }
-        else{
-            System.err.println("Right side of assignment expression must be of Type Identifier");
-        }
+
+        varString = left.getValue();
 
         // Check ob rechte seite der assignment expression richtigen typ hat
         Node right = node.getRight();
