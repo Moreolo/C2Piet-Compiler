@@ -1,7 +1,18 @@
 Dokumentation Piet Commands
 
 Konzepte:
-Variablenmanagement über eine LinkedList -> rotatevariables
+Variablen:
+Der Wert einer Variablen wird auf den Stack gepusht, wenn die Variable initialisiert wird.
+Die Position des Variablenwertes wird getrackt, in dem eine Liste Variablenspeicher geführt wird, in der die Namen der Variablen liegen.
+Die Namen der Variablen haben dieselbe Position in der Liste, wie die dazugehörigen Werte auf dem Stack.
+Wenn nun eine Variable verwendet werden soll wird ihr Wert von ihrer originalen Position (die Position des Variablennamens in der Liste) an die Spitze des Stacks gerollt.
+Dort wird der Wert dupliziert und wird danach wieder an die ursprüngliche Position zurückgerollt.
+Der Wert der Variablen liegt nun an der Spitze des Stacks und kann für Berechnungen und andere Dinge verwendet werden.
+Wenn einer Variable ein neuer Wert zugewiesen werden soll, wird der alte Wert an die Spitze des Stacks gerollt und gepopped. Der neue Wert wird dann an die originale Position der Variable gerollt.
+Um die Werte auf dem Stack hin und herzubewegen wurde die Funktion rotatevariables() implementiert.
+
+Solve Binary Expressions:
+
 resolveType + solveBinaryExpression
 
 Handling von den verschiedenen Condition operatoren (==, >=, ...)
@@ -56,4 +67,5 @@ Basicblöcke die vom Typ FunCallBlock sind werden von der Funktion parseFunction
 Es wird zuerst ein neuer (PietCommands-)Block erstellt. 
 Danach wird gecheckt, wie viele Nodes sich in dem FunCallBlock befinden. Wenn in dem FunCallBlock mehr als 1 Node ist, wird ein Fehler geworfen.
 Anschließend wird der Node vom Typ FUNCTION_CALL weitergegeben, um weiterverarbeitet zu werden. 
+
 

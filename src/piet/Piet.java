@@ -215,7 +215,8 @@ public class Piet {
                 block.addOperation(new Operation(Command.GREATER));
                 ProgramCounter -= 1;
                 break;
-            //Für "<" Vergleichswerte vertauschen und dann Greater Command ausführen und Ergebnis umkehren mit NOT
+            //Für ">=" Vergleichswerte vertauschen und dann Greater Command ausführen und Ergebnis 
+            // umkehren mit NOT
             case ">=":
                 // rotatiere die obersten werte des Stacks und dann Greater Vergleich dann NOT
                 block.addOperation(new Operation(Command.PUSH, ProgramCounter-1));
@@ -314,7 +315,6 @@ public class Piet {
         Node left = node.getLeft();
         String varString = "";
         if (left.getType() != NodeTypesEnum.IDENTIFIER){
-            
             throw new Error("Linker Node bei AssignmentExpression muss vom NodeTyp IDENTIFIER sein");
         }
 
@@ -322,11 +322,11 @@ public class Piet {
 
         // Check ob rechte seite der assignment expression richtigen typ hat
         Node right = node.getRight();
+        // pushe werte der rechten Seite auf den Stack
+        block = resolveType(block, right);
 
         // Check ob variable schon auf Stack gespeichert ist
         if (VariablenSpeicher.contains(varString)){
-            // pushe werte der rechten Seite auf den Stack
-            block = resolveType(block, right);
             // wenn Variable schon auf Stack liegt -> rotiere Variable zur Spitze des Stacks und update Wert
             int varpos = VariablenSpeicher.indexOf(varString);
             block = rotateVariable(block, varString);
@@ -335,11 +335,19 @@ public class Piet {
             block.addOperation(new Operation(Command.PUSH, varpos));
             block.addOperation(new Operation(Command.ROLL));
         }
+        else if (VariablenSpeicher.contains(varString)){
+            // wenn es sich um eine Funktionsvariable handelt
+            int varpos = VariablenSpeicher.indexOf(varString);
+            block = rotateVariable(block, varString);
+            block.addOperation(new Operation(Command.POP));
+            block.addOperation(new Operation(Command.PUSH, ProgramCounter));
+            block.addOperation(new Operation(Command.PUSH, varpos));
+            block.addOperation(new Operation(Command.ROLL));
+        }
         else{
-            // pushe werte der rechten Seite auf den Stack
-            block = resolveType(block, right);
-            // wenn Variable noch nicht auf Stack liegt -> assigne Variable zum Wert an der Spitze des Stacks (Wert der rechten Seite der Assignment Expression)
-            VariablenSpeicher.add(varString);
+            // Variable nicht definiert
+            block.addOperation(new Operation(Command.POP));
+            throw new Error("Undefinierte Variable");
         }
         return block;
     }
@@ -497,16 +505,10 @@ public class Piet {
 
         // Check ob rechte seite der assignment expression richtigen typ hat
         Node right = node.getRight();
-
-        if (!varString.equals("")){
-            // pushe werte der rechten Seite auf den Stack
-            block = resolveType(block, right);
-            // wenn Variable noch nicht auf Stack liegt -> assigne Variable zum Wert an der Spitze des Stacks (Wert der rechten Seite der Assignment Expression)
-            VariablenSpeicher.add(varString);
-        }
-        else{
-            //Throw error
-        }
+        // pushe werte der rechten Seite auf den Stack
+        block = resolveType(block, right);
+        // wenn Variable noch nicht auf Stack liegt -> assigne Variable zum Wert an der Spitze des Stacks (Wert der rechten Seite der Assignment Expression)
+        VariablenSpeicher.add(varString);
         return block;
     }
 }
