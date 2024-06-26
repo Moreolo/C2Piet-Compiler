@@ -70,6 +70,9 @@ public class Piet {
             if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION){
                 block = solveBinaryExpresssion(block, node); //return as BINARY_EXPRESSION
             } 
+            if(node.getType() == NodeTypesEnum.DECLARATION){
+                block = parseDeclarations(block, node, functionName);
+            }
             if(node.getType() == NodeTypesEnum.FUNCTION_CALL){
                 block = parseFunctionCall(block, node, bblock.getNext()); //return as FUNCTION_CALL
             }
@@ -112,7 +115,7 @@ public class Piet {
                 block = solveBinaryExpresssion(block, node); //return as BINARY_EXPRESSION
             } 
             if(node.getType() == NodeTypesEnum.DECLARATION){
-                block = parseDeclarations(block, node);
+                block = parseDeclarations(block, node, "");
             }
             else{
                 throw new Error("Unvalider NodeTyp in BBlock");
@@ -329,8 +332,11 @@ public class Piet {
         if (VariablenSpeicher.contains(varString)){
             // wenn Variable schon auf Stack liegt -> rotiere Variable zur Spitze des Stacks und update Wert
             int varpos = VariablenSpeicher.indexOf(varString);
-            block = rotateVariable(block, varString);
+            block.addOperation(new Operation(Command.PUSH, varpos));
+            block.addOperation(new Operation(Command.PUSH, ProgramCounter));
+            block.addOperation(new Operation(Command.ROLL));
             block.addOperation(new Operation(Command.POP));
+            ProgramCounter -= 1;
             block.addOperation(new Operation(Command.PUSH, ProgramCounter));
             block.addOperation(new Operation(Command.PUSH, varpos));
             block.addOperation(new Operation(Command.ROLL));
@@ -387,10 +393,11 @@ public class Piet {
         // Get Paramternamen der Funktion
         LinkedList<String> param_names = functionParamsDict.get(function_name);
 
-        // Safe id where Programm needs to return after function call
-        returnIds.add(id2return2);
         // Pushe BlockId an die nach Funktionscall zurückgekehrt werden soll (wird dann bei return gepopped)
         block.addOperation(new Operation(Command.PUSH, id2return2)); 
+        ProgramCounter += 1;
+        // Safe id where Programm needs to return after function call
+        returnIds.add(ProgramCounter);
 
         func_flag = true;
 
@@ -429,9 +436,20 @@ public class Piet {
         // get alle funktions parameter der funktion aus der returnt wird und lösche sie aus functionsvariablenspeicher
         LinkedList<String> func_params = functionParamsDict.get(functionName); // get liste von parametern der funktion aus der returnt wird
         for(String func_param : func_params){
+            int varpos = functionVariableSpeicher.get(func_param);
+            block.addOperation(new Operation(Command.PUSH, varpos));
+            block.addOperation(new Operation(Command.PUSH, ProgramCounter));
+            block.addOperation(new Operation(Command.ROLL));
+            block.addOperation(new Operation(Command.POP));
+            ProgramCounter -= 1;
             functionVariableSpeicher.remove(func_param); // lösche die parameter aus dem functionsvariablenspeicher
+
+            //Wie kann ich noch Variablen die in Funktion definiert wurden von Stack löschen??
         }
         
+        if (ProgramCounter != returnIds.getLast()){
+            throw new Error("StackPointer zeigt nicht auf die korrekte Return-Adresse")
+        }
         //Bei Return wird keine Block-ID(für den nächsten Block) auf Stack gepusht, da dies schon im dazugehörigen Function-Call gemacht wurde
         return block;
     }
@@ -486,7 +504,7 @@ public class Piet {
         }
         return block;
     }
-    private Block parseDeclarations(Block block, Node node){
+    private Block parseDeclarations(Block block, Node node, String functionName){
         /**
         * parseDeclarations setzt die Deklaration von Variablen um
         * @param Block block ist der Block in dem die Piet-Commands gespeichert werden
@@ -507,9 +525,21 @@ public class Piet {
         Node right = node.getRight();
         // pushe werte der rechten Seite auf den Stack
         block = resolveType(block, right);
-        // wenn Variable noch nicht auf Stack liegt -> assigne Variable zum Wert an der Spitze des Stacks (Wert der rechten Seite der Assignment Expression)
-        VariablenSpeicher.add(varString);
+        
+        if(functionName != ""){
+            // initialisiere Variable und speichere Position des Wertes auf Stack
+            VariablenSpeicher.add(varString);
+        }
+        else{
+            // initialisiere Variable die in Funktion initialisiert wurde und speichere Position des Wertes auf Stack
+            var param_list = functionParamsDict.get(functionName);
+            param_list.add(varString);
+            functionParamsDict.put(functionName, param_list);
+            functionVariableSpeicher.put(varString, ProgramCounter);
+        }
+        
         return block;
     }
+
 }
 
