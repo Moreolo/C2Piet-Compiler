@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
 
@@ -30,7 +31,10 @@ public class Piet {
 
     boolean func_flag = false;
 
-    public LinkedList<Block> parse(ArrayList<BBlock> bblocks) {
+    public LinkedList<Block> parse(BlockLists list) {
+        ArrayList<BBlock> bblocks = list.blockList;
+        HashMap<String,Integer> funcMap = list.functionIndexMap;
+        
         LinkedList<Block> finalBlocks = new LinkedList<>();  
         int num = 1;
         for (BBlock block : bblocks) {
@@ -43,17 +47,18 @@ public class Piet {
     }
 
     private Block parseFunction(FunBlock bblock, int num){
-        var block = new Block(num);
+        
 
         boolean return_flag = false;
 
         Node func_def_node = bblock.getBody().get(0);
         if (func_def_node.getType() != NodeTypesEnum.FUNCTION_DEF){
             System.err.println("First node of function block needs to be function def");
-            return block;
         }
         String functionName = parseFunctionDef(func_def_node);
         functionIDsDict.put(functionName, num);
+
+        var block = new Block(num);
         
         for (Node node : bblock.getBody()) {
             //if(node.getType() == NodeTypesEnum.BLOCK_STATEMENT) ; //return as BLOCK_STATEMENT
