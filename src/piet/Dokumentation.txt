@@ -8,7 +8,7 @@ Handling von den verschiedenen Condition operatoren (==, >=, ...)
 
 FunktionsDefinition mit erstellen von Parameter gemapped zu funktionsname, Startblock-Id gemapped zu funktionsname
 Funktionsvariablenmanagement (alle aktiven funktionsvariablen in dictionary, variablen werden bei function calls hinzugefügt)
-Return id management (LinkedList die wie stack funktioniert. FIFO prinzip für return ids)
+Return id management (Id des Blocks der nach dem FunktionCall drannkommt wird während FunktionCall auf Stack gepusht) --> wenn bearbeitung der Funktion fertig ist und returned wird liegt schon richtige Block-ReturnId oben auf dem Stack
 
 
 Input:

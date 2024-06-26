@@ -95,7 +95,7 @@ public class Piet {
         if (nodes.size() != 1) {
             throw new Error("FunctionCallBlock darf maximal einen Node enthalten");
         }
-        
+
         Node node = nodes.get(0);
 
         if (node.getType() != NodeTypesEnum.FUNCTION_CALL){
@@ -379,6 +379,11 @@ public class Piet {
         // Get Paramternamen der Funktion
         LinkedList<String> param_names = functionParamsDict.get(function_name);
 
+        // Safe id where Programm needs to return after function call
+        returnIds.add(id2return2);
+        // Pushe BlockId an die nach Funktionscall zurückgekehrt werden soll (wird dann bei return gepopped)
+        block.addOperation(new Operation(Command.PUSH, id2return2)); 
+
         func_flag = true;
 
         //Loope über alle Parameter der Funktion
@@ -388,9 +393,6 @@ public class Piet {
             block = resolveType(block, param);
             functionVariableSpeicher.put(param_name, ProgramCounter); // param wird auf top des stacks gepusht und diese position wird im dictionary mit dem param name(key) gespeichert
         }
-
-        // Safe id where Programm needs to return after function call
-        returnIds.add(id2return2);
 
         // Navigate to Function-Block
         int func_id = functionIDsDict.get(function_name);
@@ -421,21 +423,8 @@ public class Piet {
         for(String func_param : func_params){
             functionVariableSpeicher.remove(func_param); // lösche die parameter aus dem functionsvariablenspeicher
         }
-
-        // Jump back to Program after Function Call
-        if (returnIds.size() > 0){
-            // get letzten Wert in return id list -> wert der zum letzten Funktionsaufruf passt
-            int return_id = returnIds.getLast();
-            returnIds.removeLast(); //verwendete return id aus der liste löschen
-
-            // Pushe die return id die Block verweist der nach dem Funktionsaufruf drannkommt
-            block.addOperation(new Operation(Command.PUSH, return_id)); // für condition bblock bitte noch getAlt function hinzufügen!!!
-            if (returnIds.size() == 0){
-                func_flag = false;
-            }
-        } else{
-            throw new Error("Liste mit Return-Ids ist leer")
-        }
+        
+        //Bei Return wird keine Block-ID(für den nächsten Block) auf Stack gepusht, da dies schon im dazugehörigen Function-Call gemacht wurde
         return block;
     }
 
