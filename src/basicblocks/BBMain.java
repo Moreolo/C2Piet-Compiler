@@ -246,6 +246,9 @@ public class BBMain {
                     }
 
                     // in diesem Fall hat man nur ein While ohne Code davor und danach vorliegen
+                    //condition an den searcher geben -> falls funktionsinformationen zurückbekommen:
+                    //splitBlock 
+                    //next vom true Block des While zur vorgezogenen Funktion setzen
                     Node whileCondition = currentNode.getCondition();
                     ArrayList<Node> whileBody = (ArrayList) currentNode.getBody();
                     ArrayList<BBlock> whileBodyBB;
@@ -314,18 +317,20 @@ public class BBMain {
                     }
 
                     Integer oldNext = blockOfCode.getNext();
-                    Node leftNode = currentNode.getLeft();
-                    Node rightNode = currentNode.getRight();
+                    ArrayList<Node> trueBody = (ArrayList) currentNode.getBody();
+                    ArrayList<Node> elseNodes = (ArrayList) currentNode.getAlternative();
+                    //condition nach funktionen durchsuchen --> wenn gefunden:
+                    //mit addbefore alle funktionen vor den Conditionblock schieben
                     Node condition = currentNode.getCondition();
                     ArrayList<BBlock> paths;
 
-                    if (rightNode != null){
+                    if (elseNodes != null){
 
-                        paths = createFork(blockOfCode, leftNode.getBody(), rightNode.getBody(), condition);
+                        paths = createFork(blockOfCode, trueBody, elseNodes, condition);
 
                     }else{
 
-                        paths = createFork(blockOfCode, leftNode.getBody(), new ArrayList<>(), condition);
+                        paths = createFork(blockOfCode, trueBody, new ArrayList<>(), condition);
 
                     }
 
@@ -411,25 +416,29 @@ public class BBMain {
 
                 case FUNCTION_DEF:
 
-                    BBlock funcBlock = new BBlock(++iterator);
-
+                    
                     if (node.getValue().equals("main")) {
                     //main gefunden, starterblock muss auf Main zeigen
                     // main braucht keinen Verweis in der function map
                         
+                        BBlock funcBlock = new BBlock(++iterator);
                         starterBlock.setNext(funcBlock.getPositionInArray());
+                        funcBlock.setBody((ArrayList) node.getBody());
+                        blockList.add(funcBlock);
+                        walkTree(funcBlock);
 
                     } else {
                     // es handelt sich um normale Func-Def, Index und Name des Startblocks der Funktion müssen abgespeichert werden
-
+                        FunDefBlock funcBlock = new FunDefBlock(++iterator);
                         functionIndicesMap.put(node.getValue(), funcBlock.getPositionInArray());
-                        ((FunDefBlock) funcBlock).setParameters((ArrayList) node.getAlternative());
+                        funcBlock.setParameters((ArrayList) node.getAlternative());
+                        funcBlock.setBody((ArrayList) node.getBody());
+                        blockList.add(funcBlock);
+                        walkTree(funcBlock);
     
                     }
 
-                    funcBlock.setBody((ArrayList) node.getBody());
-                    blockList.add(funcBlock);
-                    walkTree(funcBlock);
+                   
 
                     break;
             
@@ -454,10 +463,13 @@ public class BBMain {
  * 
  *  (x) Function Declaration Handling
  *  (x) Übergabewert BBMain
- * 
+ *  - Testing
+ *
  *  ToDo:
  *  - Refactoring
  *  - Wiki
- *  - Testing
+ *  - alles gesamt mit allen Teams durchlaufen
  *  - (Terminator)
+ *  - (funCall In While Condition)
+ *  - (funCall In IF Condition)
  */
