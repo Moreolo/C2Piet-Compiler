@@ -5,6 +5,8 @@ import ast.datatypes.NodeTypesEnum;
 import ast.lexer.Lexer;
 import ast.lexer.Token;
 import ast.lexer.TokenType;
+import basicblocks.datatypes.funCallInfo;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -588,11 +590,19 @@ public class Parser {
         while (!peek(TokenType.RIGHT_PAREN)) {
             // handle parameters (values vs variables)
             if (tokens.get(0).getLiteral() instanceof String || tokens.get(0).getLiteral() instanceof Number) {
+                
                 params.add(new Node(NodeTypesEnum.LITERAL, null, tokens.get(0).getLexeme(), null, null, null, null, null));
-            } else {
-                params.add(new Node(NodeTypesEnum.IDENTIFIER, null, tokens.get(0).getLexeme(), null, null, null, null, null));
+                popToken(); // pop param
+            } else if (tokens.get(0).getType() == TokenType.IDENTIFIER && tokens.get(1).getType()==TokenType.LEFT_PAREN){
+                Node temp = new Node(NodeTypesEnum.FUNCTION_CALL);
+                temp = handleFunctionCall(temp);
+                params.add(temp);
             }
-            popToken(); // pop param
+            else {
+                params.add(new Node(NodeTypesEnum.IDENTIFIER, null, tokens.get(0).getLexeme(), null, null, null, null, null));
+                popToken(); // pop param
+            }
+            //popToken(); // pop param
             consumeErrorFree(TokenType.COMMA);
         }
         node.setAlternative(params);
