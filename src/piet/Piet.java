@@ -350,11 +350,14 @@ public class Piet {
             block.addOperation(new Operation(Command.PUSH, varpos));
             block.addOperation(new Operation(Command.ROLL));
         }
-        else if (VariablenSpeicher.contains(varString)){
+        else if (functionVariableSpeicher.get(varString) != null){
             // wenn es sich um eine Funktionsvariable handelt
-            int varpos = VariablenSpeicher.indexOf(varString);
-            block = rotateVariable(block, varString);
+            int varpos = functionVariableSpeicher.get(varString);
+            block.addOperation(new Operation(Command.PUSH, varpos));
+            block.addOperation(new Operation(Command.PUSH, ProgramCounter));
+            block.addOperation(new Operation(Command.ROLL));
             block.addOperation(new Operation(Command.POP));
+            ProgramCounter -= 1;
             block.addOperation(new Operation(Command.PUSH, ProgramCounter));
             block.addOperation(new Operation(Command.PUSH, varpos));
             block.addOperation(new Operation(Command.ROLL));
@@ -404,7 +407,7 @@ public class Piet {
 
         // Pushe BlockId an die nach Funktionscall zurückgekehrt werden soll (wird dann bei return gepopped)
         block.addOperation(new Operation(Command.PUSH, id2return2));
-        VariablenSpeicher.add("RETURN_ID");
+        VariablenSpeicher.add("RETURN_ID"); //Platzhalter auf Variablenspeicher legen, da diese Return BlockID länger auf Stack liegen bleibt und sonst die Positionen nicht mehr stimmen würden
         ProgramCounter += 1;
         // Safe id where Programm needs to return after function call
         returnIds.add(ProgramCounter);

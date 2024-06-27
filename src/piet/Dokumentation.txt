@@ -12,8 +12,19 @@ Wenn einer Variable ein neuer Wert zugewiesen werden soll, wird der alte Wert an
 Um die Werte auf dem Stack hin und herzubewegen wurde die Funktion rotatevariables() implementiert.
 
 Solve Binary Expressions:
+Eine Binary Expression wird Schritt für Schritt gelöst. Dazu wird immer erst der linke Teil(Node) aufgelöst, danach wird der rechte Teil(Node) aufgelöst.
+Aufgelöst bedeuted das der Wert des Nodes errechnet wird und an der Spitze des Stacks liegt. 
+Wenn der linke Node ein LITERAL ist, ist dies einfach und es wird lediglich der Wert gepusht.
+Handelt es sich um eine Variable(IDENTIFIER), wird die Variable rotiert und der Wert der Variable wird kopiert (-> Wert der Variable liegt an der Spitze des Stacks).
+Es kann sich jedoch auch wieder um eine Binary Expression handeln. 
+Dann wird wieder die Funktion solveBinaryExpression() aufgerufen. Dies wird so lange getan bis es sich bei dem Node um einen IDENTIFIER oder ein LITERAL handelt.
+Danach wird der rechte Node auf die selbe Weise aufgelöst.
 
-resolveType + solveBinaryExpression
+Assignment Expression:
+Bei Assignment Expressions wird erst der rechte Node (der Wert der Assigned werden soll aufgelöst (siehe Solve Binary Expression)). 
+Anschließend wird gecheckt ob die Variable zu der der Wert assigned wird bereits auf dem Stack existiert, dazu wird im Variablenspeicher(wenn in Funktion Funktionsvariablenspeicher) nach dem Variablennamen gesucht.
+Wenn die Variable existiert wird der alte Wert hochrotiert und gepopped. Der neue Wert wird an die Position der Variable rotiert (im Variablenspeicher/Funktionsvariablenspeicher gespeichert).
+
 
 Handling von den verschiedenen Condition operatoren (==, >=, ...)
 
