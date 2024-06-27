@@ -5,7 +5,6 @@ import ast.datatypes.NodeTypesEnum;
 import ast.lexer.Lexer;
 import ast.lexer.Token;
 import ast.lexer.TokenType;
-import basicblocks.datatypes.funCallInfo;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -63,17 +62,17 @@ public class Parser {
                         return handleFunctionCall(new Node(NodeTypesEnum.FUNCTION_CALL));
                     } else if (tokens.get(1).getType() == TokenType.PLUS_EQUAL || tokens.get(1).getType() == TokenType.MINUS_EQUAL) {
                         return handleOpEqual();
-                    } else if(tokens.get(1).getType()==TokenType.SEMICOLON){
+                    } else if (tokens.get(1).getType() == TokenType.SEMICOLON) {
                         return new Node(NodeTypesEnum.IDENTIFIER).setValue(popToken().getLexeme());
-                    } else if(tokens.get(1).getType() == TokenType.EQUAL && !(peekAhead(TokenType.PLUS) || peekAhead(TokenType.MINUS) || peekAhead(TokenType.STAR)|| peekAhead(TokenType.SLASH)|| peekAhead(TokenType.MOD)) && peekAhead(TokenType.LEFT_PAREN)){
+                    } else if (tokens.get(1).getType() == TokenType.EQUAL && !(peekAhead(TokenType.PLUS) || peekAhead(TokenType.MINUS) ||
+                            peekAhead(TokenType.STAR) || peekAhead(TokenType.SLASH) || peekAhead(TokenType.MOD)) && peekAhead(TokenType.LEFT_PAREN)) {
                         Node temp = new Node(NodeTypesEnum.BINARY_EXPRESSION);
                         temp.setLeft(new Node(NodeTypesEnum.IDENTIFIER).setValue(popToken().getLexeme()));
                         temp.setOperator("=");
                         popToken();
                         temp.setRight((handleFunctionCall(new Node(NodeTypesEnum.FUNCTION_CALL))));
                         return temp;
-                    }
-                    else {
+                    } else {
                         return handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION));
                     }
                 case RETURN:
@@ -128,7 +127,13 @@ public class Parser {
         return tokens.get(0).getType() == type;
     }
 
-    private boolean peekAhead(TokenType type){
+    /**
+     * checks for a certain type of token upto the next semicolon
+     *
+     * @param type type to look for
+     * @return true if the token appears, false if not
+     */
+    private boolean peekAhead(TokenType type) {
         int i = 0;
         while(true){
             if (tokens.get(i).getType() == TokenType.SEMICOLON) {
@@ -235,7 +240,7 @@ public class Parser {
         if (!(conOp.equals(">") || conOp.equals("<") || conOp.equals(">=") || conOp.equals("<=") ||
                 conOp.equals("!=") || conOp.equals("==") || conOp.equals("||") || conOp.equals("&&"))
                 && node.getCondition().getRight() != null) {
-           throw new RuntimeException("Not a boolean expression!");
+            throw new RuntimeException("Not a boolean expression!");
         }
         consume(TokenType.LEFT_BRACE);
         node.setBody(handleBlock());
@@ -376,7 +381,7 @@ public class Parser {
                 return handleCrement();
             }
             node.setLeft(handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION)));
-        // checking for valid left side
+            // checking for valid left side
         } else if (!isOperator(tokens.get(0).getType())) {
             // check for increment on other side of operator
             if (tokens.get(1).getType() == TokenType.INCREMENT || tokens.get(1).getType() == TokenType.DECREMENT) {
@@ -388,11 +393,11 @@ public class Parser {
                 consume(TokenType.LEFT_PAREN);
                 node.setOperator("!");
                 node.setLeft(handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION)));
-            // in case of not operator in front of single variables
-            }else if (peek(TokenType.BANG) ) {
+                // in case of not operator in front of single variables
+            } else if (peek(TokenType.BANG)) {
                 consume(TokenType.BANG);
                 node.setLeft(new Node(NodeTypesEnum.IDENTIFIER).setValue(popToken().getLexeme()).setOperator("!"));
-            // final literal
+                // final literal
             } else {
                 node.setLeft(new Node(NodeTypesEnum.LITERAL).setValue(popToken().getLexeme()));
             }
@@ -416,12 +421,12 @@ public class Parser {
                 return handleCrement();
             }
             node.setRight(handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION)));
-        // check for a valid right side
+            // check for a valid right side
         } else if (!isOperator(tokens.get(0).getType())) {
             // handle increment on the right side
             if (tokens.get(1).getType() == TokenType.INCREMENT || tokens.get(1).getType() == TokenType.DECREMENT) {
                 return handleCrement();
-            // no increment
+                // no increment
             } else {
                 // in case of not operator in front of expressions
                 if (peek(TokenType.BANG) && tokens.get(1).getType() == TokenType.LEFT_PAREN) {
@@ -430,12 +435,12 @@ public class Parser {
                     consume(TokenType.LEFT_PAREN);
                     node.setOperator("!");
                     node.setLeft(handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION)));
-                // in case of not operator in front of single variables
-                }else if (peek(TokenType.BANG) ) {
+                    // in case of not operator in front of single variables
+                } else if (peek(TokenType.BANG)) {
                     // just negated variable
                     consume(TokenType.BANG);
                     node.setLeft(new Node(NodeTypesEnum.IDENTIFIER).setValue(popToken().getLexeme()).setOperator("!"));
-                // final literal
+                    // final literal
                 } else {
                     node.setRight(new Node(NodeTypesEnum.LITERAL).setValue(popToken().getLexeme()));
                 }
@@ -575,7 +580,6 @@ public class Parser {
         return node;
     }
 
-
     /**
      * Handles function calls like add(2,3);
      *
@@ -590,13 +594,10 @@ public class Parser {
         while (!peek(TokenType.RIGHT_PAREN)) {
             // handle parameters (values vs variables)
             if (tokens.get(0).getLiteral() instanceof String || tokens.get(0).getLiteral() instanceof Number) {
-                
                 params.add(new Node(NodeTypesEnum.LITERAL, null, tokens.get(0).getLexeme(), null, null, null, null, null));
                 popToken(); // pop param
             } else if (tokens.get(0).getType() == TokenType.IDENTIFIER && tokens.get(1).getType()==TokenType.LEFT_PAREN){
-                Node temp = new Node(NodeTypesEnum.FUNCTION_CALL);
-                temp = handleFunctionCall(temp);
-                params.add(temp);
+                params.add(handleFunctionCall(new Node(NodeTypesEnum.FUNCTION_CALL)));
             }
             else {
                 params.add(new Node(NodeTypesEnum.IDENTIFIER, null, tokens.get(0).getLexeme(), null, null, null, null, null));
