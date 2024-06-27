@@ -434,6 +434,16 @@ public class Piet {
         * @return Block block der mit Commands erweiterte block wird returned
         */
 
+        boolean return_value_flag = false;
+        // get wert des return nodes
+        Node value = node.getCondition();
+        // checken ob überhaupt etwas returnt wird
+        if (value != null){
+            // wenn ja pushe return wert auf stack und speichere in als temporäre Variable ab
+            block = resolveType(block, value); // berechne return wert und pushe in an die spitze des stacks
+            return_value_flag = true;
+        }
+        
         // get alle funktions parameter der funktion aus der returnt wird und lösche sie aus functionsvariablenspeicher
         LinkedList<String> func_params = functionParamsDict.get(functionName); // get liste von parametern der funktion aus der returnt wird
         for(String func_param : func_params){
@@ -451,21 +461,20 @@ public class Piet {
 
         // Check ob StackPointer auf richtige Position zeigt
         if (ProgramCounter != returnIds.getLast()){
-            throw new Error("StackPointer zeigt nicht auf die korrekte Return-Adresse")
+            throw new Error("StackPointer zeigt nicht auf die korrekte Return-Adresse");
         }
 
-        // get wert des return nodes
-        Node value = node.getCondition();
-        // checken ob überhaupt etwas returnt wird
-        if (value != null){
-            // wenn ja pushe return wert auf stack und speichere in als temporäre Variable ab
-            block = resolveType(block, value); // berechne return wert und pushe in an die spitze des stacks
+        if (return_value_flag){
             //tausche return Value mit return Block-ID zu der zurückgekehrt werden muss (BLock ID muss oben liegen)
             block.addOperation(new Operation(Command.PUSH, ProgramCounter-1));
             block.addOperation(new Operation(Command.PUSH, ProgramCounter));
             block.addOperation(new Operation(Command.ROLL));
-            return_tmp_pos =  ProgramCounter-1;
-            VariablenSpeicher.removeLast();
+            VariablenSpeicher.removeLast(); //remove den letzten RETURN_ID-Eintrag aus VariablenSpeicher
+            ProgramCounter -= 1; // Setze Programm Counter schon mal eins herunter da Block ID automatisch vom Design Team gepopped wird.
+            return_tmp_pos =  ProgramCounter; // -> return_tmp_pos befindet sich an Position ProgramCounter (eins unter Spitze des Stacks)
+        }
+        else{ //return value und return block-id müssen nicht getauscht werden, wenn es keinen return value gibt
+            VariablenSpeicher.removeLast(); //remove den letzten RETURN_ID-Eintrag aus VariablenSpeicher
             ProgramCounter -= 1; // Setze Programm Counter schon mal eins herunter da Block ID automatisch vom Design Team gepopped wird.
         }
         
