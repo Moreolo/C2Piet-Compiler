@@ -106,14 +106,7 @@ public class BlockGenerator {
         for (int i = 1; i < numberParts.size(); i++) {
             chooserPush.add(new Operation(Command.PUSH, 10));
             chooserPush.add(new Operation(Command.NOOP));
-
-            if (i < numberParts.size() - 1) {
-                chooserPush.add(new Operation(Command.MULTIPLY, 0));
-
-            } else {
-                chooserPush.add(new Operation(Command.MULTIPLY, -1));
-
-            }
+            chooserPush.add(new Operation(Command.MULTIPLY));
 
             int j = numberParts.get(i);
 
@@ -121,13 +114,9 @@ public class BlockGenerator {
                 if (j % 10 != 0) {
                     chooserPush.add(new Operation(Command.PUSH, j));
                     chooserPush.add(new Operation(Command.NOOP));
-                    if (i < numberParts.size() - 1) {
-                        chooserPush.add(new Operation(Command.ADD, 0));
-                    } else {
-                        chooserPush.add(new Operation(Command.ADD, -1));
-                    }
+                    chooserPush.add(new Operation(Command.ADD));
                 } else {
-                    chooserPush.add(new Operation(Command.ADD, 1));
+                    chooserPush.add(new Operation(Command.ADD));
                 }
             }
 
@@ -153,14 +142,12 @@ public class BlockGenerator {
                             }
                             pushRowToChooser();
                         }
-
                         // Farbe auffüllen für Zeile < 3
                         for (int j = 0; j < rowVal % 3; j++) {
                             row[3 - j].set(color);
 
                         }
                         pushRowToChooser();
-
                         ;
                     } else {
                         // Zeile füllen
@@ -215,6 +202,7 @@ public class BlockGenerator {
                     // falls letztes Element, Reihe hochsetzen
                     if (element == chooserPush.getLast()) {
                         row[3].set(color);
+                        pushRowToChooser();
                         pushRowToChooser();
                     }
                     break;

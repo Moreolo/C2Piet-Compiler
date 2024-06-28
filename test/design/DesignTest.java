@@ -93,7 +93,7 @@ public class DesignTest {
         block1.addOperation(new Operation(Command.PUSH, 2));
         blocks.add(block1);
 
-        Block block2 = new Block(3);
+        Block block2 = new Block(19);
         block2.addOperation(new Operation(Command.PUSH, 3));
         block2.addOperation(new Operation(Command.PUSH, 2));
         block2.addOperation(new Operation(Command.ROLL));
@@ -106,7 +106,7 @@ public class DesignTest {
         block2.addOperation(new Operation(Command.POINTER, 3, 4));
         blocks.add(block2);
 
-        Block block3 = new Block(18);
+        Block block3 = new Block(2020);
         block3.addOperation(new Operation(Command.PUSH, 2));
         block3.addOperation(new Operation(Command.PUSH, 1));
         block3.addOperation(new Operation(Command.ROLL));
