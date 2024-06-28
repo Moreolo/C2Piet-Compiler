@@ -241,7 +241,7 @@ public class NodeTest {
             rootNode = parser.parse(tokens); */
             Node rootNode = null;
             try{
-            rootNode = Lexer.runFile("/home/josua/Downloads/while.c");
+            rootNode = Lexer.runFile("test/ressources/FunctionCallInCondition.c");
             }catch(Exception e){
                 System.out.println(e);
             }

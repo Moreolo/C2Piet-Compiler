@@ -116,8 +116,12 @@ public class BBMain {
         int counter = 0;
 
         for(Node currentNode :nodeList){ 
-
             counter = counter + 1;
+            if (currentNode ==null){
+                continue;
+            }
+
+            
 
             switch (currentNode.getType()) {
                 //Function Call Node wird in Function Call Block umgewandelt
@@ -286,6 +290,7 @@ public class BBMain {
                     }else{
 
                         blockOfCode.setBody( (ArrayList) currentNode.getBody());
+                        walkTree(blockOfCode);
 
                     }
 
@@ -466,7 +471,6 @@ public class BBMain {
  *  - Testing
  *
  *  ToDo:
- *  - Refactoring
  *  - Wiki
  *  - alles gesamt mit allen Teams durchlaufen
  *  - (Terminator)
