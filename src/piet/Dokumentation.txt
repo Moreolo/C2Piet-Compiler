@@ -1,5 +1,19 @@
 Dokumentation Piet Commands
 
+Input:
+Die Schnittstelle zum vorherigen Team (Team Basicblock) ist die Klasse BlockLists. 
+Darin befindet sich eine List mit den Basicblöcken und zusätzlich eine Hashmap funcMap in 
+der die Block-Ids der Funktionen gemapped sind. 
+
+Output:
+Für die Schnittstelle zum nachfolgenden Team (Design Team) wurde die Klasse Block (in der Datei Block.java) definiert.
+In der Klasse Block befindet sich eine Liste an Blöcken mit Operationen.
+Eine Operation (Operation Klasse in Datei Operation.java) besteht immer aus einem Piet-Command und kann entweder keinen, einen oder zwei Integer-Werte enthalen. 
+Diese zusätzlichen Integer-Werte werden von bestimmten Piet-Commands benötigt. 
+z.B. muss mit dem Piet-Command PUSH noch ein zusätzlicher Wert mitgegeben werden, damit klar ist welcher Wert gepusht werden soll.
+In der Datei Command.java befindet sich ein Enum mit allen verfügbaren Piet-Commands.
+Der Output ist eine Liste an Blöcken in der die Operationen aufgelistet sind.
+
 Konzepte:
 Variablen:
 Der Wert einer Variablen wird auf den Stack gepusht, wenn die Variable initialisiert wird.
@@ -27,25 +41,37 @@ Wenn die Variable existiert wird der alte Wert hochrotiert und gepopped. Der neu
 
 
 Handling von den verschiedenen Condition operatoren (==, >=, ...)
+Conditionen:
+Piet stellt nur den ">"-Command zur Verfügung. Alle anderen Conditionen müssen daher aus der ">"-Condition hergeleitet werden.
+Der ">"-Vergleich ist der einfachste Vergleich. Die beiden zu vergleichenden Werte werden an die Spitze des Stacks gerollt und dann wird der ">"-Command von Piet ausgeführt.
+Für den "<="-Vergleich wird ein ">"-Vergleich ausgeführt und das Ergebnis wird mit dem Not-Command von Piet umgekehrt.
+Für den "<"-Vergleich werden die zu vergleichenden Werte Vertausch und dann wird ein ">"-Vergleich ausgeführt. Durch das vertauschen der zu vergleichenden Werte entsteht aus dem ">"-Vergleich ein "<"-Vergleich.
+Der ">="-Vergleich wird genauso umgesetzt wie der "<"-Vergleich jedoch wird das Ergebnis noch mit dem Not-Command von Piet umgekehrt.
+Der "=="-Verlgeich ist der aufwendigste Vergleich. Für diesen Vergleich wird erst ein ">"-Vergleich durchgeführt und danach mit denselben Werten ein "<"-Vergleich. Die Ergebnisse der beiden Vergleiche werden addiert und noch mit dem Not-Command umgekehrt.
 
-FunktionsDefinition mit erstellen von Parameter gemapped zu funktionsname, Startblock-Id gemapped zu funktionsname
-Funktionsvariablenmanagement (alle aktiven funktionsvariablen in dictionary, variablen werden bei function calls hinzugefügt)
-Return id management (Id des Blocks der nach dem FunktionCall drannkommt wird während FunktionCall auf Stack gepusht) --> wenn bearbeitung der Funktion fertig ist und returned wird liegt schon richtige Block-ReturnId oben auf dem Stack
 
+Funktionen:
+Damit der Code von Funktionen wiederverwendbar ist und nicht jedes mal wenn die Funktion aufgerufen wird neu generiert werden muss, werden Funktionen in Blöcke geparsed auf die immer wieder verlinkt wird, wenn die Funktion aufgerufen wird.
 
-Input:
-Die Schnittstelle zum vorherigen Team (Team Basicblock) ist die Klasse BlockLists. 
-Darin befindet sich eine List mit den Basicblöcken und zusätzlich eine Hashmap funcMap in 
-der die Block-Ids der Funktionen gemapped sind. 
+Funktion Definitionen:
+Bei der Funktionsdefinition werden alle benötigten Information aus dem Funktionsheader herausextrahiert und gespeichert. 
+Es wird der Funktionsname abgespeichert. Zudem wird ein Eintrag in einem Dictionary erzeugt, dass Funktionsname zu den Funktionsparametern mapped.
+Desweiteren wird auch ein Eintrag in einem Dictionary erzeugt, dass Funktionsname zu der BlockID (Id des Startblocks der Funktion) mapped.
+Danach wird der Inhalt der Funktion (der Code) geparsed und es entsteht ein Piet-Command Block. Dieser Block hat als ID die zuvor im Dictionary gespeicherte BlockID. 
+Falls es Verzweigungen in der Funktion gibt (if,...) verlinkt der Startblock der Funktion auf den nächsten Block usw bis schließlich der Block mit dem Return erstellt wird.
 
-Output:
-Für die Schnittstelle zum nachfolgenden Team (Design Team) wurde die Klasse Block (in der Datei Block.java) definiert.
-In der Klasse Block befindet sich eine Liste an Blöcken mit Operationen.
-Eine Operation (Operation Klasse in Datei Operation.java) besteht immer aus einem Piet-Command und kann entweder keinen, einen oder zwei Integer-Werte enthalen. 
-Diese zusätzlichen Integer-Werte werden von bestimmten Piet-Commands benötigt. 
-z.B. muss mit dem Piet-Command PUSH noch ein zusätzlicher Wert mitgegeben werden, damit klar ist welcher Wert gepusht werden soll.
-In der Datei Command.java befindet sich ein Enum mit allen verfügbaren Piet-Commands.
-Der Output ist eine Liste an Blöcken in der die Operationen aufgelistet sind.
+Funktion Calls:
+Im ersten Schritt wird die BlockID des Blocks der nach dem Block mit dem Funktion Call kommt, abgespeichert und auf den Stack gepushed.
+Anschließend werden die Parameter der aufgerufenen Funktion abgerufen (Nachschauen in Dictionary mit Funktionsname).
+Danach werden die beim Funktion Call übergebenen Werte der Parameter auf den Stack gepushed. Dabei wird die Position der Parameterwerte mit einem Dictionary dem Funktionsvariablenspeicher (Key ist name des Parameters, Wert ist Position des Parameterwerts auf Stack) gemapped.
+Zum Schluss wird auf den Startblock der aufgerufenen Funktion verlinkt. Um dies zu tun wird die BlockID des Startblocks der Funktion auf den Stack gepushed.
+
+Function Return:
+Zuerst wird der Return-Value berechnet und auf den Stack gepushed.
+Anschließend werden alle Funktionsparameter und Variablen die in der Funktion initialisiert wurden vom Stack und aus dem Funktionsvariablenspeicher gelöscht.
+Nun befinden sich vom ursprünglichen Funktionsaufruf nur noch die BlockID des Blocks nach dem Block des Funktioncalls und der Return-Value auf dem Stack.
+Diese beiden Werte werden so angeordnet, dass die BlockID des nächsten Blocks an der Spitze liegt. Dann wird die Position des Return Values abgespeichert, damit man weiß wo der Return Value sich auf dem Stack befindet und damit man diesen abrufen kann.
+
 
 Programm:
 Das Hauptprogramm befindet sich in der Datei Piet.java. Dort wird die Klasse Piet definiert. 
