@@ -442,12 +442,3 @@ public class BBMain {
         return new BlockLists(blockList, functionIndicesMap);
     }
 }
-
-
-/*
- * Für Alle:
- *
- *  ToDo:
- *  - Wiki
- *  - alles gesamt mit allen Teams durchlaufen
- */
