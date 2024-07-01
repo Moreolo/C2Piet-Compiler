@@ -22,6 +22,10 @@ public class SearchFunCall {
                 case BINARY_EXPRESSION:
                     searchCallsOriginBin(parameter);
                     break;
+
+                case DECLARATION:
+                    searchCallsOriginDec(parameter);
+                    break;
                     
                 case FUNCTION_CALL:
                     searchCallsOriginFun(parameter);
@@ -48,6 +52,11 @@ public class SearchFunCall {
                 case BINARY_EXPRESSION:
                     searchCallsOriginBin(path);
                     break;
+
+                case DECLARATION:
+                    searchCallsOriginDec(path);
+                    break;
+
                 case FUNCTION_CALL:
                     searchCallsOriginFun(path);
                     FunctionTempReturn returnTempVar = new FunctionTempReturn();
@@ -66,6 +75,36 @@ public class SearchFunCall {
             }
     }
     }
+
+    //durchsucht links und rechts einer Binary Expression
+    public void searchCallsOriginDec(Node declaration){
+        Node condition = declaration.getCondition();
+
+        switch (condition.getType()) {
+            case BINARY_EXPRESSION:
+                searchCallsOriginBin(condition);
+                break;
+            
+            case DECLARATION:
+                searchCallsOriginDec(condition);
+                break;
+
+            case FUNCTION_CALL:
+                searchCallsOriginFun(condition);
+                FunctionTempReturn returnTempVar = new FunctionTempReturn();
+                //Eintragen von Infos für Callblock in Liste
+                declaration.setCondition(returnTempVar);
+
+                funCallInfo funCall = new funCallInfo(returnTempVar, condition.getValue(), (ArrayList) condition.getAlternative());
+                funCallInfos.add(funCall);
+                    
+                default:
+                
+                
+            }
+        }   
+    
+
     public ArrayList<funCallInfo> getFunCallInfos(){
         return this.funCallInfos;
     }

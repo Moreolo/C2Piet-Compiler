@@ -23,5 +23,13 @@ public class FunCallBlock extends BBlock {
         this.nameOfFunction = functionName;
         this.returnObject = funReturn;
     }
+
+    public FunCallBlock(Integer positionInArray, ArrayList<Node> parameterList, String functionName, Integer next) {
+
+        super(positionInArray, next);
+
+        this.parameterList = parameterList;
+        this.nameOfFunction = functionName;
+    }
     
 }

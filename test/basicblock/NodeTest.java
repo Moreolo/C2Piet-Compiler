@@ -1,4 +1,4 @@
-package testing.basicblock;
+package basicblock;
 
 
 import org.junit.Test;
@@ -241,7 +241,10 @@ public class NodeTest {
             rootNode = parser.parse(tokens); */
             Node rootNode = null;
             try{
-            rootNode = Lexer.runFile("test\\ressources\\ifFunction.c");
+            rootNode = Lexer.runFile("");
+            //rootNode = Lexer.runFile("C:\\Users\\ajkic\\Documents\\VS_CODE\\DISC_BOT\\C2Piet-Compiler\\test\\ressources\\FunctionCallInCondition.c");
+            
+            
             }catch(Exception e){
                 System.out.println(e);
             }

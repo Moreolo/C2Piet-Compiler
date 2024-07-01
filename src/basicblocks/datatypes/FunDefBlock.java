@@ -17,6 +17,10 @@ public class FunDefBlock extends BBlock{
         this.parameterList = paramList;
     }
 
+    public ArrayList<Node> getParameters() {
+        return this.parameterList;
+    }
+
 
 
 }

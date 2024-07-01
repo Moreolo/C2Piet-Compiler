@@ -48,9 +48,4 @@ public class BBlock {
     public void addNodeToBody(Node node) {
         this.body.add(node);
     }
-
-    @Override
-    public String toString() {
-       return "Classic Block";
-    }
 }
