@@ -10,6 +10,9 @@ import java.util.List;
 
 public class BBMain {
 
+    /*
+     * Return-Object für die gleichzeitige Übergabe von der BBlock- und der Funktionsindex-Liste
+     */
     public static class BlockLists {
 
         public ArrayList<BBlock> blockList;
@@ -18,22 +21,18 @@ public class BBMain {
         public BlockLists(ArrayList<BBlock> blockList, HashMap<String,Integer> funcMap) {
             this.blockList = blockList;
             this.functionIndexMap = funcMap;
-        }
-    
-        
+        }        
     }
 
     private static ArrayList<BBlock> blockList = new ArrayList<>();
     private static int iterator = 0;
-
-    private static BlockLists bLists;
 
     static HashMap<String, Integer> functionIndicesMap = new HashMap<>();
 
 
 
     private static BBlock splitBlock(BBlock oldBlock, ArrayList<Node> stayBehind) {
-        //die alten Nodes im alten Block werden aufgeteil:
+        //die alten Nodes im alten Block werden aufgeteilt:
         //stayBehind Teil bleibt im alten Block während alle anderen Nodes 
         //in den neuen Block wandern
         Integer oldNext = oldBlock.getNext();
@@ -117,6 +116,8 @@ public class BBMain {
 
         for(Node currentNode :nodeList){ 
             counter = counter + 1;
+
+            // überbleibsel vom AST-Team, kann ausgefiltert werden
             if (currentNode ==null){
                 continue;
             }
@@ -139,9 +140,10 @@ public class BBMain {
 
                         int positionOfOldBlock = blockOfCode.getPositionInArray();
                         ArrayList<Node> funCallBlock = new ArrayList<>();
+                        funCallBlock.add(currentNode);
                         BBlock nextBlockLookInto = splitBlock(blockOfCode, funCallBlock);
 
-                        funCallBlock.add(currentNode);
+                        
                         walkTree(blockList.get(positionOfOldBlock));
                         walkTree(nextBlockLookInto);
 
@@ -165,8 +167,8 @@ public class BBMain {
 
                     }
 
-                    FunCallBlock callFunction = new FunCallBlock(blockOfCode.getPositionInArray(), (ArrayList) currentNode.getAlternative(), currentNode.getValue(), null);
-                    blockList.set(iterator, callFunction);
+                    FunCallBlock callFunction = new FunCallBlock(blockOfCode.getPositionInArray(), (ArrayList) currentNode.getAlternative(), currentNode.getValue(), blockOfCode.getNext());
+                    blockList.set(callFunction.getPositionInArray(), callFunction);
 
                     return;
                 
@@ -205,25 +207,6 @@ public class BBMain {
 
                     nodesForOneBasicBlock.add(currentNode);
                     break;
-
-                /*
-                //Function Definition Node -> Code der Funktion wird wie ein normales Programm abgearbeitet
-                //die Basic Blocks einer Funktion werden in einer Liste gespeichert
-                //diese Liste kommt in eine HashList, in der alle Funktionsdefinitionen gespeichert sind
-                //der Funktionsname (string) ist der key
-                case FUNCTION_DEF:
-                    //function def node muss evtl. entfernt werden aus bb; wenn dann nix mehr drin ist -> komplett löschen
-                    BBMain parseFunction = new BBMain(this.allFunctionDefinitions);
-                    ArrayList<Node> codeInFunction = (ArrayList) currentNode.getBody();
-                    BBlock blockForFunctionCode = new BBlock(parseFunction.iterator);
-                    blockForFunctionCode.setBody(codeInFunction);
-                    parseFunction.blockList.add(blockForFunctionCode);
-                    parseFunction.walkTree(blockForFunctionCode);
-                    ArrayList<BBlock> functionAsBlocks = parseFunction.blockList;
-                    this.allFunctionDefinitions.put(currentNode.getValue(), functionAsBlocks); //erster Parameter ist der Funktionsname
-                    break;
-
-                */
 
                 case WHILE_STATEMENT:
                     //wenn normaler Code vor While -> Trennen: Code vor While - restlicher Code
@@ -324,6 +307,7 @@ public class BBMain {
                     Integer oldNext = blockOfCode.getNext();
                     ArrayList<Node> trueBody = (ArrayList) currentNode.getBody();
                     ArrayList<Node> elseNodes = (ArrayList) currentNode.getAlternative();
+
                     //condition nach funktionen durchsuchen --> wenn gefunden:
                     //mit addbefore alle funktionen vor den Conditionblock schieben
                     Node condition = currentNode.getCondition();
@@ -355,13 +339,7 @@ public class BBMain {
 
                     }
 
-                    return;
-
-
-
-    
- 
-    
+                    return;    
                 
                 case DECLARATION:
                 //zuerst schauen, ob da überhaupt mind. ein funktionsaufruf dinnen ist
@@ -407,9 +385,11 @@ public class BBMain {
     }
 
 
-
     // Aufruf für die "Interface"-Abfolge; erhält Programm-Node des gesamten AST
     public static BlockLists parse(Node rootNode) {
+
+        TermBlock termBlock = new TermBlock(iterator++);
+        blockList.add(termBlock);
 
         BBlock starterBlock = new BBlock(iterator);
         blockList.add(starterBlock);
@@ -418,6 +398,10 @@ public class BBMain {
 
             // im Body einer Program-Node können eig. nur Function-DEFs und Variable-Declarations stehen
             switch (node.getType()) {
+
+                case TERMINATOR:
+                // nichts machen
+                continue;
 
                 case FUNCTION_DEF:
 
@@ -462,18 +446,8 @@ public class BBMain {
 
 /*
  * Für Alle:
- * 
- * - Welche Default-funktionen haben wir, und wie werden die Definiert? (Print, intput, etc.)
- * 
- * 
- *  (x) Function Declaration Handling
- *  (x) Übergabewert BBMain
- *  - Testing
  *
  *  ToDo:
  *  - Wiki
  *  - alles gesamt mit allen Teams durchlaufen
- *  - (Terminator)
- *  - (funCall In While Condition)
- *  - (funCall In IF Condition)
  */
