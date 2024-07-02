@@ -11,7 +11,7 @@ import piet.Piet;
 
 public class Main {
     public static void main(String[] args) {
-        if (args.length < 1) {
+   if (args.length < 1) {
             System.out.println("Please enter a valid c file");
             return;
         }

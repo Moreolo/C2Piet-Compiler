@@ -2,11 +2,13 @@ package ast.parser;
 
 import ast.datatypes.Node;
 import ast.datatypes.NodeTypesEnum;
+import ast.lexer.Lexer;
 import ast.lexer.Scan;
 import ast.lexer.Token;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -205,17 +207,17 @@ public class ParserTest {
      */
     @Test
     public void testFunCall() {
-        Scan scanner = new Scan("add(5,6);");
+        Scan scanner = new Scan("add(x,6);");
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
         Node program = parser.parse(tokens).getBody().get(0);
         assertEquals(NodeTypesEnum.FUNCTION_CALL, program.getType());
         assertEquals("add", program.getValue());
         Node param1 = program.getAlternative().get(0);
-        assertEquals(NodeTypesEnum.LITERAL, param1.getType());
-        assertEquals("5", param1.getValue());
+        assertEquals(NodeTypesEnum.IDENTIFIER, param1.getType());
+        assertEquals("x", param1.getValue());
         Node param2 = program.getAlternative().get(1);
-        assertEquals(NodeTypesEnum.LITERAL, param1.getType());
+        assertEquals(NodeTypesEnum.LITERAL, param2.getType());
         assertEquals("6", param2.getValue());
     }
 
@@ -250,11 +252,11 @@ public class ParserTest {
         assertEquals("sum", program.getValue());
         assertEquals("int", program.getOperator());
         Node param1 = program.getAlternative().get(0);
-        assertEquals(NodeTypesEnum.LITERAL, param1.getType());
+        assertEquals(NodeTypesEnum.IDENTIFIER, param1.getType());
         assertEquals("a", param1.getValue());
         assertEquals("int", param1.getOperator());
         Node param2 = program.getAlternative().get(1);
-        assertEquals(NodeTypesEnum.LITERAL, param2.getType());
+        assertEquals(NodeTypesEnum.IDENTIFIER, param2.getType());
         assertEquals("b", param2.getValue());
         assertEquals("int", param2.getOperator());
         // test function body
@@ -352,24 +354,47 @@ public class ParserTest {
         assertEquals("4", node2.getRight().getValue());
     }
 
+    /**
+     * Test that the unary operator ! is handled correctly in front of
+     * 1. variables, 2. conditions, 3. functionCalls
+     */
+    @Test
+    public void testHandleNot() {
+        // test not variable
+        Node notVariable = Lexer.run("if(!var1) {x = 3;}").getBody().get(0);
+        assertEquals(notVariable.getType(), NodeTypesEnum.IF_STATEMENT);
+        assertEquals(notVariable.getCondition().getLeft().getOperator(), "!");
+        assertEquals(notVariable.getCondition().getLeft().getType(), NodeTypesEnum.IDENTIFIER);
+        assertEquals(notVariable.getCondition().getLeft().getValue(), "var1");
+        // test not condition
+        Node notCondition = Lexer.run("if(!(var1 && var2)) {y = 4;}").getBody().get(0);
+        System.out.println();
+        assertEquals(notCondition.getType(), NodeTypesEnum.IF_STATEMENT);
+        Node notCondi = notCondition.getCondition();
+        assertEquals(notCondi.getOperator(), "!");
+        Node nestedCon = notCondi.getLeft();
+        assertEquals(nestedCon.getType(), NodeTypesEnum.BINARY_EXPRESSION);
+        assertEquals(nestedCon.getLeft().getValue(), "var1");
+        assertEquals(nestedCon.getOperator(), "&&");
+        assertEquals(nestedCon.getRight().getValue(), "var2");
+    }
+
 
     /**
      * inspections for now
      */
     @Test
-    public void testInspection() {
-        Scan scanner = new Scan("if (4*5) { x = 2; }");
-        List<Token> tokens = scanner.scanTokens();
-        Parser parser = new Parser(tokens);
-        Node testNode = parser.parse(tokens);
+    public void testInspection() throws IOException {
+        Node testNode = Lexer.run("int diffToTen(int x) { if (x<= 10) { return 0; } int y = 0; while (x <= 10) { y++;} return y;}");
+        Node testNode2 = Lexer.run("i = add(4, y);");
+        Node testNode3 = Lexer.run("x = add(x, add(x,1));");
 
         Assert.assertTrue(true);
     }
-
 }
 
-// TODO next: handle not operator !
-// TODO check that binExp from ifs is a condition
-// TODO (precedence), (<<)
-// TODO (printF, scan... stdlib stuff)
-// TODO (switch with implicit breaks and aufzählungs notation)
+// TODO enums
+// TODO bool not for variables only
+// TODO enable stuff like (fun1(x) > fun2(y))  (just do y = fun1(x) -> (y >...))
+// TODO not for expressions like (!(a && b) && a)
+// TODO (precedence)
