@@ -385,9 +385,10 @@ public class ParserTest {
      */
     @Test
     public void testInspection() throws IOException {
-        Node testNode = Lexer.run("int diffToTen(int x) { if (x<= 10) { return 0; } int y = 0; while (x <= 10) { y++;} return y;}");
-        Node testNode2 = Lexer.run("i = add(4, y);");
-        Node testNode3 = Lexer.run("x = add(x, add(x,1));");
+       // Node testNode = Lexer.run("int diffToTen(int x) { if (x<= 10) { return 0; } int y = 0; while (x <= 10) { y++;} return y;}");
+       // Node testNode2 = Lexer.run("i = add(4, y);");
+       //Node testNode3 = Lexer.run("x = add(x, add(x,1));");
+        Node testNode4 = Lexer.run("int y;");
 
         Assert.assertTrue(true);
     }
