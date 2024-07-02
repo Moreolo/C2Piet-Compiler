@@ -557,6 +557,8 @@ public class Parser {
         if (tokens.get(1).getType() == TokenType.EQUAL) {
             node.setCondition(handleBinaryExp(new Node(NodeTypesEnum.BINARY_EXPRESSION)));
         }
+        popToken();
+        //consumeErrorFree(TokenType.SEMICOLON);
         return node;
     }
 
