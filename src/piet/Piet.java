@@ -30,8 +30,6 @@ public class Piet {
 
     int return_tmp_pos = -1;
 
-    boolean func_flag = false;
-
     public LinkedList<Block> parse(BlockLists list) throws Error{
         ArrayList<BBlock> bblocks = list.blockList;
         HashMap<String,Integer> funcMap = list.functionIndexMap;
@@ -161,7 +159,6 @@ public class Piet {
             }    
         } catch (Exception e) {
             //Possible null reference from get.Next / get.Alt
-        
         }
         return block;
     }
@@ -259,7 +256,7 @@ public class Piet {
         */
 
         int var_pos = -1;
-        if ((functionVariableSpeicher.get(var_name) != null) && func_flag){
+        if ((functionVariableSpeicher.get(var_name) != null)){
             var_pos = functionVariableSpeicher.get(var_name);
         }
         else if (VariablenSpeicher.contains(var_name)){
@@ -420,8 +417,6 @@ public class Piet {
         ProgramCounter += 1;
         // Safe id where Programm needs to return after function call
         returnIds.add(ProgramCounter);
-
-        func_flag = true;
 
         //Loope über alle Parameter der Funktion
         for (int p = 0; p < node.getAlternative().size(); p++){
