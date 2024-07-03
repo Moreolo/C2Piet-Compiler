@@ -1,6 +1,7 @@
 package piet.datatypes;
 
 public enum Command {
+    NOOP,
     PUSH,
     POP,
     ADD,
@@ -14,6 +15,8 @@ public enum Command {
     SWITCH,
     DUPLICATE,
     ROLL,
-    IN,
-    OUT
+    INNUMBER,
+    INCHAR,
+    OUTNUMBER,
+    OUTCHAR
 }
