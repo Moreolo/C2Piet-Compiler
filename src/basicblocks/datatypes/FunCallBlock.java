@@ -6,7 +6,7 @@ import ast.datatypes.Node;
 
 /*
 das normale next des FunCallBlock (geerbt von BBlock) zeigt auf die "return Adress"
-mit nameOfFunction (String - als key) kann der Coder der Funktion aus einer HashListe geholt werden
+mit nameOfFunction (String - als key) kann die Position der Funktionsdefinition aus einer HashListe geholt werden
 returnObjekt soll die Variable darstellen, in die der return value gelegt wird
  */
 public class FunCallBlock extends BBlock {
