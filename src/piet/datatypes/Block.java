@@ -12,7 +12,10 @@ public class Block {
     }
 
     public void addOperation(Operation operation) {
-        this.operations.add(operation);
+        
+        if (!operation.equals(null)) {
+            this.operations.add(operation);
+        }
     }
 
     public int getNum() {

@@ -1,0 +1,108 @@
+Dokumentation Piet Commands
+
+Input:
+Die Schnittstelle zum vorherigen Team (Team Basicblock) ist die Klasse BlockLists. 
+Darin befindet sich eine List mit den Basicblöcken und zusätzlich eine Hashmap funcMap in 
+der die Block-Ids der Funktionen gemapped sind. 
+
+Output:
+Für die Schnittstelle zum nachfolgenden Team (Design Team) wurde die Klasse Block (in der Datei Block.java) definiert.
+In der Klasse Block befindet sich eine Liste an Blöcken mit Operationen.
+Eine Operation (Operation Klasse in Datei Operation.java) besteht immer aus einem Piet-Command und kann entweder keinen, einen oder zwei Integer-Werte enthalen. 
+Diese zusätzlichen Integer-Werte werden von bestimmten Piet-Commands benötigt. 
+z.B. muss mit dem Piet-Command PUSH noch ein zusätzlicher Wert mitgegeben werden, damit klar ist welcher Wert gepusht werden soll.
+In der Datei Command.java befindet sich ein Enum mit allen verfügbaren Piet-Commands.
+Der Output ist eine Liste an Blöcken in der die Operationen aufgelistet sind.
+
+Konzepte:
+Variablen:
+Der Wert einer Variablen wird auf den Stack gepusht, wenn die Variable initialisiert wird.
+Die Position des Variablenwertes wird getrackt, in dem eine Liste Variablenspeicher geführt wird, in der die Namen der Variablen liegen.
+Die Namen der Variablen haben dieselbe Position in der Liste, wie die dazugehörigen Werte auf dem Stack.
+Wenn nun eine Variable verwendet werden soll wird ihr Wert von ihrer originalen Position (die Position des Variablennamens in der Liste) an die Spitze des Stacks gerollt.
+Dort wird der Wert dupliziert und wird danach wieder an die ursprüngliche Position zurückgerollt.
+Der Wert der Variablen liegt nun an der Spitze des Stacks und kann für Berechnungen und andere Dinge verwendet werden.
+Wenn einer Variable ein neuer Wert zugewiesen werden soll, wird der alte Wert an die Spitze des Stacks gerollt und gepopped. Der neue Wert wird dann an die originale Position der Variable gerollt.
+Um die Werte auf dem Stack hin und herzubewegen wurde die Funktion rotatevariables() implementiert.
+
+Solve Binary Expressions:
+Eine Binary Expression wird Schritt für Schritt gelöst. Dazu wird immer erst der linke Teil(Node) aufgelöst, danach wird der rechte Teil(Node) aufgelöst.
+Aufgelöst bedeuted das der Wert des Nodes errechnet wird und an der Spitze des Stacks liegt. 
+Wenn der linke Node ein LITERAL ist, ist dies einfach und es wird lediglich der Wert gepusht.
+Handelt es sich um eine Variable(IDENTIFIER), wird die Variable rotiert und der Wert der Variable wird kopiert (-> Wert der Variable liegt an der Spitze des Stacks).
+Es kann sich jedoch auch wieder um eine Binary Expression handeln. 
+Dann wird wieder die Funktion solveBinaryExpression() aufgerufen. Dies wird so lange getan bis es sich bei dem Node um einen IDENTIFIER oder ein LITERAL handelt.
+Danach wird der rechte Node auf die selbe Weise aufgelöst.
+
+Assignment Expression:
+Bei Assignment Expressions wird erst der rechte Node (der Wert der Assigned werden soll aufgelöst (siehe Solve Binary Expression)). 
+Anschließend wird gecheckt ob die Variable zu der der Wert assigned wird bereits auf dem Stack existiert, dazu wird im Variablenspeicher(wenn in Funktion Funktionsvariablenspeicher) nach dem Variablennamen gesucht.
+Wenn die Variable existiert wird der alte Wert hochrotiert und gepopped. Der neue Wert wird an die Position der Variable rotiert (im Variablenspeicher/Funktionsvariablenspeicher gespeichert).
+
+
+Handling von den verschiedenen Condition operatoren (==, >=, ...)
+Conditionen:
+Piet stellt nur den ">"-Command zur Verfügung. Alle anderen Conditionen müssen daher aus der ">"-Condition hergeleitet werden.
+Der ">"-Vergleich ist der einfachste Vergleich. Die beiden zu vergleichenden Werte werden an die Spitze des Stacks gerollt und dann wird der ">"-Command von Piet ausgeführt.
+Für den "<="-Vergleich wird ein ">"-Vergleich ausgeführt und das Ergebnis wird mit dem Not-Command von Piet umgekehrt.
+Für den "<"-Vergleich werden die zu vergleichenden Werte Vertausch und dann wird ein ">"-Vergleich ausgeführt. Durch das vertauschen der zu vergleichenden Werte entsteht aus dem ">"-Vergleich ein "<"-Vergleich.
+Der ">="-Vergleich wird genauso umgesetzt wie der "<"-Vergleich jedoch wird das Ergebnis noch mit dem Not-Command von Piet umgekehrt.
+Der "=="-Verlgeich ist der aufwendigste Vergleich. Für diesen Vergleich wird erst ein ">"-Vergleich durchgeführt und danach mit denselben Werten ein "<"-Vergleich. Die Ergebnisse der beiden Vergleiche werden addiert und noch mit dem Not-Command umgekehrt.
+
+
+Funktionen:
+Damit der Code von Funktionen wiederverwendbar ist und nicht jedes mal wenn die Funktion aufgerufen wird neu generiert werden muss, werden Funktionen in Blöcke geparsed auf die immer wieder verlinkt wird, wenn die Funktion aufgerufen wird.
+
+Funktion Definitionen:
+Bei der Funktionsdefinition werden alle benötigten Information aus dem Funktionsheader herausextrahiert und gespeichert. 
+Es wird der Funktionsname abgespeichert. Zudem wird ein Eintrag in einem Dictionary erzeugt, dass Funktionsname zu den Funktionsparametern mapped.
+Desweiteren wird auch ein Eintrag in einem Dictionary erzeugt, dass Funktionsname zu der BlockID (Id des Startblocks der Funktion) mapped.
+Danach wird der Inhalt der Funktion (der Code) geparsed und es entsteht ein Piet-Command Block. Dieser Block hat als ID die zuvor im Dictionary gespeicherte BlockID. 
+Falls es Verzweigungen in der Funktion gibt (if,...) verlinkt der Startblock der Funktion auf den nächsten Block usw bis schließlich der Block mit dem Return erstellt wird.
+
+Funktion Calls:
+Im ersten Schritt wird die BlockID des Blocks der nach dem Block mit dem Funktion Call kommt, abgespeichert und auf den Stack gepushed.
+Anschließend werden die Parameter der aufgerufenen Funktion abgerufen (Nachschauen in Dictionary mit Funktionsname).
+Danach werden die beim Funktion Call übergebenen Werte der Parameter auf den Stack gepushed. Dabei wird die Position der Parameterwerte mit einem Dictionary dem Funktionsvariablenspeicher (Key ist name des Parameters, Wert ist Position des Parameterwerts auf Stack) gemapped.
+Zum Schluss wird auf den Startblock der aufgerufenen Funktion verlinkt. Um dies zu tun wird die BlockID des Startblocks der Funktion auf den Stack gepushed.
+
+Function Return:
+Zuerst wird der Return-Value berechnet und auf den Stack gepushed.
+Anschließend werden alle Funktionsparameter und Variablen die in der Funktion initialisiert wurden vom Stack und aus dem Funktionsvariablenspeicher gelöscht.
+Nun befinden sich vom ursprünglichen Funktionsaufruf nur noch die BlockID des Blocks nach dem Block des Funktioncalls und der Return-Value auf dem Stack.
+Diese beiden Werte werden so angeordnet, dass die BlockID des nächsten Blocks an der Spitze liegt. Dann wird die Position des Return Values abgespeichert, damit man weiß wo der Return Value sich auf dem Stack befindet und damit man diesen abrufen kann.
+
+
+Programm:
+Das Hauptprogramm befindet sich in der Datei Piet.java. Dort wird die Klasse Piet definiert. 
+Die Klasse wandelt die Basicblöcke in Blöcke bestehend aus Piet-Commands um. 
+Zusätzlich wird das Stack- und Variablenmanagement darin umgesetzt. 
+
+parse():
+Der Einstiegspunkt der Piet Klasse ist die Funktion parse(). 
+Die Funktion erhält als Argument ein BlockLists Objekt. Daraus wird sich die BasicBlock-Liste, sowie die Hashmap funcMap, in der Funktionen zu BasicBlöcken gemapped wird, gezogen.
+Zudem wird die LinkedList (Output) erstellt, in der die Blöcke mit Piet-Commands hinzugefügt werden.
+Anschließend wird über die Liste an Basicblöcken gelooped.
+Für jeden Basicblock wird gecheckt um welchen Typ es sich beim Basicblock handelt (BBlock, CondBlock, FunCallBlock, FunDefBlock).
+Der Basicblock wird dann an die entsprechende Funktion(die zum Typ des Basicblocks passt) weitergeleitet und dort weiterverarbeitet.
+
+parseFunctionDefBlock(): 
+Basicblöcke die vom Typ FunDefBlock sind werden von der Funktion parseFunctionDefBlock() verarbeitet.
+Die Funktion nimmt sich den ersten Node von diesem Basicblock.
+Der erste Node eines FunDefBlocks muss immer vom NodeTyp FUNCTION_DEF sein.
+Dieser Node wird an die Funktion parseFunctionDef() weitergegeben welche den Node analysiert. 
+parseFunctionDef() hat als Return-Wert den Namen der Funktion. 
+Mit dem Funktionsnamen kann in der Hashmap funcMap die BBlock-Id des Funktionsblocks ermittelt werden.
+Mit dieser Id wird nun ein (PietCommands-)Block erzeugt.
+Anschließend wird über die restlichen Nodes aus dem FunDefBlock gelooped.
+Je nachdem welchen NodeTyp die Nodes haben werden sie unterschiedlich verarbeitet. 
+Nachdem über jeden Node gelooped wurde wird noch die Id des nachfolgenden Blocks auf den Stack gepusht.
+Falls jedoch ein Return-Node vorgekommen ist wird nicht die Id des nachfolgenden Blocks gepusht sonder die Id des Blocks zu der returned werden soll
+
+parseFunctionCallBlock():
+Basicblöcke die vom Typ FunCallBlock sind werden von der Funktion parseFunctionCallBlock() verarbeitet.
+Es wird zuerst ein neuer (PietCommands-)Block erstellt. 
+Danach wird gecheckt, wie viele Nodes sich in dem FunCallBlock befinden. Wenn in dem FunCallBlock mehr als 1 Node ist, wird ein Fehler geworfen.
+Anschließend wird der Node vom Typ FUNCTION_CALL weitergegeben, um weiterverarbeitet zu werden. 
+
+
