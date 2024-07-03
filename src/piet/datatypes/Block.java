@@ -4,7 +4,7 @@ import java.util.LinkedList;
 
 public class Block {
     private int num;
-    private LinkedList<Operation> operations = new LinkedList<>();
+    private LinkedList<Operation> operations;
 
     public Block(int num) {
         this.num = num;
