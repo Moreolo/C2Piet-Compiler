@@ -106,7 +106,7 @@ public class DesignTest {
         block2.addOperation(new Operation(Command.POINTER, 3, 4));
         blocks.add(block2);
 
-        Block block3 = new Block(2020);
+        Block block3 = new Block(202000000);
         block3.addOperation(new Operation(Command.PUSH, 2));
         block3.addOperation(new Operation(Command.PUSH, 1));
         block3.addOperation(new Operation(Command.ROLL));
@@ -126,7 +126,7 @@ public class DesignTest {
         block3.addOperation(new Operation(Command.PUSH, 2));
         blocks.add(block3);
 
-        Block block4 = new Block(3456);
+        Block block4 = new Block(123456789);
         block4.addOperation(new Operation(Command.DUPLICATE));
         block4.addOperation(new Operation(Command.OUTNUMBER));
         block4.addOperation(new Operation(Command.PUSH, 0));
