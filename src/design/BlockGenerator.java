@@ -139,7 +139,7 @@ public class BlockGenerator {
 
                     // keine Farbkollision mit rechts
                     PietColor first = new PietColor(0, 0);
-                    if (this.color == first) {
+                    if (this.color.is(first)) {
                         for (int i = 0; i < (rowVal / 3); i++) {
                             for (int j = 3; j >= 1; j--) {
                                 row[j].set(color);
