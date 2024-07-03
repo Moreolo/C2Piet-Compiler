@@ -235,61 +235,8 @@ public class Design {
         // Erhöht den y offset für die Operation
         currentYOffset += 1;
         // Verändert den Farbwert für den nächsten Pixel für die Operation
-        switch (c) {
-            case PUSH:
-                currentColor.add(0, 1);
-                break;
-            case POP:
-                currentColor.add(0, 2);
-                break;
-            case ADD:
-                currentColor.add(1, 0);
-                break;
-            case SUBTRACT:
-                currentColor.add(1, 1);
-                break;
-            case MULTIPLY:
-                currentColor.add(1, 2);
-                break;
-            case DIVIDE:
-                currentColor.add(2, 0);
-                break;
-            case MOD:
-                currentColor.add(2, 1);
-                break;
-            case NOT:
-                currentColor.add(2, 2);
-                break;
-            case GREATER:
-                currentColor.add(3, 0);
-                break;
-            case POINTER:
-                // Die Farbe wird bereits in der paintPointer Funktion angepasst
-                break;
-            case SWITCH:
-                currentColor.add(3, 2);
-                break;
-            case DUPLICATE:
-                currentColor.add(4, 0);
-                break;
-            case ROLL:
-                currentColor.add(4, 1);
-                break;
-            case INNUMBER:
-                currentColor.add(4, 2);
-                break;
-            case INCHAR:
-                currentColor.add(5, 0);
-                break;
-            case OUTNUMBER:
-                currentColor.add(5, 1);
-                break;
-            case OUTCHAR:
-                currentColor.add(5, 2);
-                break;
-            default:
-                break;
-        }
+        if (c != Command.POINTER)
+            currentColor.add(c);
     }
 
     // Setzt den Pixel mit den akutellen Werten und der x Position im Block
