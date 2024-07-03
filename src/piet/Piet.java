@@ -1,7 +1,5 @@
 package piet;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -10,13 +8,11 @@ import java.util.LinkedList;
 
 import ast.datatypes.Node;
 import ast.datatypes.NodeTypesEnum;
-import basicblocks.BBMain;
 import basicblocks.BBMain.BlockLists;
 import basicblocks.datatypes.BBlock;
 import basicblocks.datatypes.CondBlock;
 import basicblocks.datatypes.FunCallBlock;
 import basicblocks.datatypes.FunDefBlock;
-import basicblocks.datatypes.TermBlock;
 import piet.datatypes.Block;
 import piet.datatypes.Command;
 import piet.datatypes.Operation;
@@ -47,7 +43,7 @@ public class Piet {
             else if (block instanceof FunDefBlock) finalBlocks.add(parseFunctionDefBlock((FunDefBlock) block, funcMap));
             else if (block instanceof FunCallBlock) finalBlocks.add(parseFunctionCallBlock((FunCallBlock) block, num));
             else if (block instanceof BBlock) finalBlocks.add(parseBBlock(block, num));
-            else throw new Error("Unbekannter BlockTyp");  
+            else  return finalBlocks; //throw new Error("Unbekannter BlockTyp");  
             num += 1;
         }
         return finalBlocks;
@@ -58,7 +54,7 @@ public class Piet {
 
         Node func_def_node = bblock.getBody().get(0);
         if (func_def_node.getType() != NodeTypesEnum.FUNCTION_DEF){
-            throw new Error("Erster Node muss vom Typ FUNCTION_DEF sein");
+            return null;//throw new Error("Erster Node muss vom Typ FUNCTION_DEF sein");
         }
         String functionName = parseFunctionDef(func_def_node);
         
@@ -98,13 +94,13 @@ public class Piet {
 
         //Überprüfen, ob der Condition-BBlock richtiges Format hat (darf nur einen Node enthalten)
         if (nodes.size() != 1) {
-            throw new Error("FunctionCallBlock darf maximal einen Node enthalten");
+            return block;//throw new Error("FunctionCallBlock darf maximal einen Node enthalten");
         }
 
         Node node = nodes.get(0);
 
         if (node.getType() != NodeTypesEnum.FUNCTION_CALL){
-            throw new Error("Node in FunctionCallBlock muss vom Typ FUNCTION_CALL sein");
+            return block;//throw new Error("Node in FunctionCallBlock muss vom Typ FUNCTION_CALL sein");
         }
         block = parseFunctionCall(block, node, bblock.getNext()); //return as FUNCTION_CALL
         return block;
@@ -120,11 +116,15 @@ public class Piet {
                 block = parseDeclarations(block, node, "");
             }
             else{
-                throw new Error("Unvalider NodeTyp in BBlock");
+                return block;//throw new Error("Unvalider NodeTyp in BBlock");
             }
         }
         // Set Pointer for next Block
-        block.addOperation(new Operation(Command.PUSH, bblock.getNext()));
+        if (bblock.getNext() == null) {
+            block.addOperation(new Operation(Command.PUSH, 0));
+        } else {
+            block.addOperation(new Operation(Command.PUSH, bblock.getNext()));
+        }
         return block;
     }
 
@@ -141,21 +141,27 @@ public class Piet {
 
         //Überprüfen, ob der Condition-BBlock richtiges Format hat (darf nur einen Node enthalten)
         if (nodes.size() != 1) {
-            throw new Error("ConditionBlock darf maximal einen Node enthalten");
+            return block;//throw new Error("ConditionBlock darf maximal einen Node enthalten");
         }
         //über Node loopen
-        for (Node node : nodes) {
-            var type = node.getType();
-            //Überprüfung, ob Node vom Typ IF_STATEMENT ist 
-            if (!type.equals(NodeTypesEnum.IF_STATEMENT)){
-                throw new Error("Node im ConditionBlock muss vom NodeTyp IF_STATEMENT sein");
-            }
-            //Condition aus dem Node ziehen
-            var condition = node.getCondition();
-            //Condition analysieren -> Block mit commands kommt zurück
-            block = analyseConditionNode(block, condition);
-            //Pointer Command noch zu Block hinzufügen 
-            block.addOperation(new Operation(Command.POINTER, bblock.getNext(), bblock.getAlt())); // für condition bblock bitte noch getAlt function hinzufügen!!!
+        try {
+            for (Node node : nodes) {
+                //Condition aus dem Node ziehen
+                if (node.getCondition() != null) {   
+                    var condition = node.getCondition();
+                    //Condition analysieren -> Block mit commands kommt zurück
+                    block = analyseConditionNode(block, condition);
+                    //Pointer Command noch zu Block hinzufügen 
+                    block.addOperation(new Operation(Command.POINTER, bblock.getNext(), bblock.getAlt())); // für condition bblock bitte noch getAlt function hinzufügen!!!
+                } else {
+                    block = analyseConditionNode(block, node);
+                    //Pointer Command noch zu Block hinzufügen 
+                    block.addOperation(new Operation(Command.POINTER, bblock.getNext(), bblock.getAlt())); // für condition bblock bitte noch getAlt function hinzufügen!!!
+                }
+            }    
+        } catch (Exception e) {
+            //Possible null reference from get.Next / get.Alt
+        
         }
         return block;
     }
@@ -239,7 +245,7 @@ public class Piet {
                 break;
         
             default:
-                throw new Error("Unbekannter Vergleichs-Operator");
+            throw new Error("Unbekannter Vergleichs-Operator");
         }
         return block;
     }
@@ -281,36 +287,39 @@ public class Piet {
         * @param Node node ist die Node der Assignment Expression
         * @return Block block der mit Commands erweiterte block wird returned
         */
-
-        //Überprüfung ob Condition richiges Format hat (Rechts darf nur Typ IDENTIFIER oder LITERAL sein)
-        if(node.getType() == NodeTypesEnum.LITERAL){
-            //Pushe Wert auf die Spitze des Stacks, um später Vergleich darauf auszuführen
-            block.addOperation(new Operation(Command.PUSH, Integer.parseInt(node.getValue())));
-            ProgramCounter += 1;
-        }
-        else if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION){
-            //lösen der Binary Expression
-            block = solveBinaryExpresssion(block, node);
-        }
-        else if(node.getType() == NodeTypesEnum.IDENTIFIER){
-            //Kopiere Wert der Variable auf die Spitze des Stacks, um später Vergleich darauf auszuführen
-            String var_name = node.getValue();
-            block = rotateVariable(block, var_name);
-        }
-        else if(node.getType() == NodeTypesEnum.FUNCTION_TEMP_RETURN){
-            //Return wert der Funktion der zwischenzeitig auf Stack liegt an position return_tmp_position
-            if (return_tmp_pos != -1){
-                block.addOperation(new Operation(Command.PUSH, return_tmp_pos));
-                block.addOperation(new Operation(Command.PUSH, ProgramCounter));
-                block.addOperation(new Operation(Command.ROLL));
-                return_tmp_pos = -1;
+        try {
+            //Überprüfung ob Condition richiges Format hat (Rechts darf nur Typ IDENTIFIER oder LITERAL sein)
+            if(node.getType() == NodeTypesEnum.LITERAL){
+                //Pushe Wert auf die Spitze des Stacks, um später Vergleich darauf auszuführen
+                block.addOperation(new Operation(Command.PUSH, Integer.parseInt(node.getValue())));
+                ProgramCounter += 1;
+            }
+            else if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION){
+                //lösen der Binary Expression
+                block = solveBinaryExpresssion(block, node);
+            }
+            else if(node.getType() == NodeTypesEnum.IDENTIFIER){
+                //Kopiere Wert der Variable auf die Spitze des Stacks, um später Vergleich darauf auszuführen
+                String var_name = node.getValue();
+                block = rotateVariable(block, var_name);
+            }
+            else if(node.getType() == NodeTypesEnum.FUNCTION_TEMP_RETURN){
+                //Return wert der Funktion der zwischenzeitig auf Stack liegt an position return_tmp_position
+                if (return_tmp_pos != -1){
+                    block.addOperation(new Operation(Command.PUSH, return_tmp_pos));
+                    block.addOperation(new Operation(Command.PUSH, ProgramCounter));
+                    block.addOperation(new Operation(Command.ROLL));
+                    return_tmp_pos = -1;
+                }
+                else{
+                    throw new Error("kein Return Wert auf Stack");
+                }
             }
             else{
-                throw new Error("kein Return Wert auf Stack");
+                throw new Error("Es können nur die NodeTypen LITERAL, BINARY_EXPRESSION, IDENTIFIER und FUNCTION_TEMP_RETURN resolved werden");
             }
-        }
-        else{
-            throw new Error("Es können nur die NodeTypen LITERAL, BINARY_EXPRESSION, IDENTIFIER und FUNCTION_TEMP_RETURN resolved werden");
+        } catch (Exception e) {
+            // Falscher Datentyp z.B. buchstabe in LITERAL
         }
         return block;
     }
@@ -327,7 +336,7 @@ public class Piet {
         Node left = node.getLeft();
         String varString = "";
         if (left.getType() != NodeTypesEnum.IDENTIFIER){
-            throw new Error("Linker Node bei AssignmentExpression muss vom NodeTyp IDENTIFIER sein");
+            return block;//throw new Error("Linker Node bei AssignmentExpression muss vom NodeTyp IDENTIFIER sein");
         }
 
         varString = left.getValue();
@@ -546,18 +555,23 @@ public class Piet {
         // Check ob linke seite vom Type IDENTIFIER ist
         Node left = node.getLeft();
         String varString = "";
-        if (left.getType() != NodeTypesEnum.IDENTIFIER){
-            throw new Error("Linke Node bei DECLARATION Node muss vom Typ IDENTIFIER sein")
+        if (left == null) {
+            if (node.getCondition() == null) return block;
+            
+            return parseDeclarations(block, node.getCondition(), functionName);
         }
 
         varString = left.getValue();
 
         // Check ob rechte seite der assignment expression richtigen typ hat
         Node right = node.getRight();
+        if (right == null) {
+            return block;
+        }
         // pushe werte der rechten Seite auf den Stack
         block = resolveType(block, right);
         
-        if(functionName != ""){
+        if(functionName == ""){
             // initialisiere Variable und speichere Position des Wertes auf Stack
             VariablenSpeicher.add(varString);
         }

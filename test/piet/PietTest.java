@@ -9,6 +9,9 @@ import org.junit.Test;
 
 import ast.datatypes.Node;
 import ast.datatypes.NodeTypesEnum;
+import ast.lexer.Lexer;
+import basicblocks.BBMain;
+import basicblocks.BBMain.BlockLists;
 import basicblocks.datatypes.BBlock;
 import basicblocks.datatypes.CondBlock;
 import piet.datatypes.Block;
@@ -128,4 +131,26 @@ public class PietTest {
             System.out.println(e);
         }
     }
+
+
+            @Test
+        public void testWithASTGenerator() {
+
+            Node rootNode = null;
+            BlockLists TestList = null;
+            try{
+            
+            rootNode = Lexer.runFile("C:\\Users\\schat\\Desktop\\C2Piet-Compiler\\test\\ressources\\hello.c");
+            TestList = BBMain.parse(rootNode);
+
+            
+            
+            }catch(Exception e){
+                System.out.println(e);
+            }
+            Piet piet = new Piet();
+            LinkedList<Block> BlockList  = piet.parse(TestList);
+
+            System.out.println(BlockList);
+        }
 }
