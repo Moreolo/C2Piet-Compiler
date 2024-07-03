@@ -133,7 +133,7 @@ public class DesignTest {
         blocks.add(block4);
 
         try {
-            BufferedImage image = Design.compactParse(blocks);
+            BufferedImage image = Design.compactParse(blocks, false);
             File outFile = new File("manmult.png");
             ImageIO.write(image, "png", outFile);
         } catch (Error e) {

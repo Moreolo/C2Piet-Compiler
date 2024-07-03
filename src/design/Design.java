@@ -22,11 +22,11 @@ public class Design {
     BufferedImage image;
 
     // Erstellt ein kompaktes Bild
-    public static BufferedImage compactParse(LinkedList<Block> blocks) {
+    public static BufferedImage compactParse(LinkedList<Block> blocks, boolean original) {
         // Generiert Blöcke
         BlockGenerator[] blockGenerators = new BlockGenerator[blocks.size()];
         for (int i = 0; i < blockGenerators.length; i++)
-            blockGenerators[i] = new BlockGenerator(blocks.pop());
+            blockGenerators[i] = new BlockGenerator(blocks.pop(), original);
         // Rechnet Breite und Höhe aus
         int width = blockGenerators.length * BlockGenerator.blockWidth + 2;
         int heightTop = 0;

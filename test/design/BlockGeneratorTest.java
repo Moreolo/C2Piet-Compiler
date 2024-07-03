@@ -33,7 +33,7 @@ public class BlockGeneratorTest {
         block.addOperation(new Operation(Command.ROLL));
         block.addOperation(new Operation(Command.POINTER, 0, -20));
 
-        BlockGenerator blockGenerator = new BlockGenerator(block);
+        BlockGenerator blockGenerator = new BlockGenerator(block, false);
         LinkedList<PietColor[]> colorList = blockGenerator.getBlock();
         BufferedImage image = new BufferedImage(BlockGenerator.blockWidth - 1, colorList.size(), BufferedImage.TYPE_INT_RGB);
         for(int y = 0; !colorList.isEmpty(); y++) {

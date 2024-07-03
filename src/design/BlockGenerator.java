@@ -19,15 +19,20 @@ public class BlockGenerator {
     private PietColor[] row;
 
     private int blockNum;
+    private boolean original;
     private LinkedList<Operation> operations;
     private LinkedList<Operation> chooserPush;
 
     private int collision;
     private PietColor funkyColor;
 
-    public BlockGenerator(Block block) {
+    public BlockGenerator(Block block, boolean original) {
         blockNum = block.getNum();
-        generateChooser(blockNum);
+        this.original = original;
+        if (original)
+            generateChooser(blockNum);
+        else
+            newGenerateChooser(blockNum);
         generateBlock(block.getOperations());
     }
 
@@ -240,6 +245,76 @@ public class BlockGenerator {
             pushRowToChooser();
         }
 
+    }
+
+    private void newGenerateChooser(int blockNum) {
+        this.chooser = new LinkedList<>();
+
+        color = new PietColor(4, 1);
+        row = new PietColor[blockWidth - 1];
+        for (int i = 0; i < row.length; i++)
+            row[i] = new PietColor(true, false);
+
+        LinkedList<Integer> digits = new LinkedList<>();
+        while (blockNum > 19) {
+            digits.addFirst(blockNum % 10);
+            blockNum /= 10;
+        }
+        row[2].set(color);
+        row[3].set(color);
+        row[4].setBlack();
+        pushRowToChooser();
+        row[2].setBlack();
+        color.add(Command.DUPLICATE);
+        pos = 3;
+        row[3].set(color);
+        if (--blockNum > 0) {
+            row[4].set(color);
+            pos = -1;
+            generateChooserPush(--blockNum);
+        } else
+            pushRowToChooser();
+        color.add(Command.PUSH);
+
+        if (digits.isEmpty()) {
+            row[pos].set(color);
+            pushRowToChooser();
+            chooser.add(row);
+        } else {
+            while (!digits.isEmpty()) {
+                generateChooserPush(10);
+                color.add(Command.PUSH);
+                row[4].set(color);
+                pushRowToChooser();
+                color.add(Command.MULTIPLY);
+                int digit = digits.pop();
+                if (digit > 0) {
+                    generateChooserPush(digit);
+                    color.add(Command.PUSH);
+                    row[4].set(color);
+                } else {
+                    generateChooserPush(1);
+                    color.add(Command.PUSH);
+                }
+                pushRowToChooser();
+                color.add(Command.ADD);
+            }
+            row[pos].set(color);
+            chooser.add(row);
+        }
+    }
+
+    private void generateChooserPush(int num) {
+        while (num > 0) {
+            if (pos == -1) {
+                pushRowToChooser();
+                pos = 4;
+            }
+            row[pos--].set(color);
+            num--;
+        }
+        pushRowToChooser();
+        pos = 4;
     }
 
     private void generateBlock(LinkedList<Operation> operations) {
@@ -747,7 +822,10 @@ public class BlockGenerator {
         image.setRGB(xBlockPos + 2, yBlockPos - 6, PietColor.black);
         image.setRGB(xBlockPos + 3, yBlockPos - 6, PietColor.black);
         if (blockNum != 1)
-            image.setRGB(xBlockPos + 5, yBlockPos - 6, PietColor.black);
+            if (original)
+                image.setRGB(xBlockPos + 5, yBlockPos - 6, PietColor.black);
+            else
+            image.setRGB(xBlockPos + 4, yBlockPos - 6, PietColor.black);
         // Zeile 2
         image.setRGB(xBlockPos + 1, yBlockPos - 5, PietColor.black);
         image.setRGB(xBlockPos + 2, yBlockPos - 5, PietColor.lightCyan);
