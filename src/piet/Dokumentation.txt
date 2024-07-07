@@ -105,4 +105,13 @@ Es wird zuerst ein neuer (PietCommands-)Block erstellt.
 Danach wird gecheckt, wie viele Nodes sich in dem FunCallBlock befinden. Wenn in dem FunCallBlock mehr als 1 Node ist, wird ein Fehler geworfen.
 Anschließend wird der Node vom Typ FUNCTION_CALL weitergegeben, um weiterverarbeitet zu werden. 
 
+parseConditionBlock():
+Basicblöcke die vom Typ ConditionBlock werden von der Funktion parseConditionBlock verarbeitet.
+Als erstes wird gecheckt ob der ConditionBlock die richtige Form hat.
+Anschließend wird die Condition Node analysiert und je nach dem wird mit dem Pointer-Befehl von Piet, die Id des nächsten Blocks auf den Stack gepushed.
+
+parseBBlock():
+Normale BasicBlöcke die nur BinaryExpressions oder Declarations enthalten werden von parseBBlock verarbeitet.
+Dort werden die passenden Funktionen für den NodeType ausgeführt.
+
 

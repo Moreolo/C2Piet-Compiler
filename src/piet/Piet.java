@@ -31,10 +31,19 @@ public class Piet {
     int return_tmp_pos = -1;
 
     public LinkedList<Block> parse(BlockLists list) throws Error{
+        /**
+        * parse parsed BBlöcke zu Piet-Commands-Blöcken
+        * @param Liste an BBlöcken
+        * @return LinkedList mit erstellten Piet-Commands-Blöcken
+        */
+
+        // get bblock list and funcMap
         ArrayList<BBlock> bblocks = list.blockList;
         HashMap<String,Integer> funcMap = list.functionIndexMap;
         
+        // initialise LinkedList für Piet-Commands-Blöcke
         LinkedList<Block> finalBlocks = new LinkedList<>();  
+        // Setze Block-Id auf 1
         int num = 1;
         for (BBlock block : bblocks) {
             if (block instanceof CondBlock) finalBlocks.add(parseConditionBlock((CondBlock)block, num));
@@ -48,18 +57,29 @@ public class Piet {
     }
 
     private Block parseFunctionDefBlock(FunDefBlock bblock, HashMap<String,Integer> funcMap) throws Error{
+        /**
+        * parseFunctionDefBlock parsed die Function-Definition-BBlocks
+        * @param BBlock bblock ist der BBLock der als input dient
+        * @param num Id des erstellten Piet-Commands Blocks
+        * @return erstellte Piet-Commands Block
+        */
+
         boolean return_flag = false;
 
+        // get erste Node (enthält Funktionsdefinitions-Line)
         Node func_def_node = bblock.getBody().get(0);
         if (func_def_node.getType() != NodeTypesEnum.FUNCTION_DEF){
             return null;//throw new Error("Erster Node muss vom Typ FUNCTION_DEF sein");
         }
+        // parse Function Def und get Funktionsname
         String functionName = parseFunctionDef(func_def_node);
         
+        // get Block-ID von funcMap
         int func_id = funcMap.get(functionName);
         var block = new Block(func_id);
         functionIDsDict.put(functionName, func_id);
 
+        // Loope über nodes in FunctionDefinitionBlock
         for (int i=1; i<bblock.getBody().size(); i++){ //fange bei 1 zu loopen da erster Node schon analysiert wurde
             Node node = bblock.getBody().get(i);
             //if(node.getType() == NodeTypesEnum.BLOCK_STATEMENT) ; //return as BLOCK_STATEMENT
@@ -87,6 +107,14 @@ public class Piet {
     }
 
     private Block parseFunctionCallBlock(BBlock bblock, int num) throws Error{
+        /**
+        * parseFunctionCallBlock parsed die Function-Call-BBlocks
+        * @param BBlock bblock ist der BBLock der als input dient
+        * @param num Id des erstellten Piet-Commands Blocks
+        * @return erstellte Piet-Commands Block
+        */
+        
+        // initialise Block für Piet-Commands
         var block = new Block(num);
         var nodes = bblock.getBody();
 
@@ -95,6 +123,7 @@ public class Piet {
             return block;//throw new Error("FunctionCallBlock darf maximal einen Node enthalten");
         }
 
+        // Get Node
         Node node = nodes.get(0);
 
         if (node.getType() != NodeTypesEnum.FUNCTION_CALL){
@@ -105,6 +134,13 @@ public class Piet {
     }
 
     private Block parseBBlock(BBlock bblock, int num) throws Error{
+        /**
+        * parseBBlock parsed die BBlocks
+        * @param BBlock bblock ist der BBLock der als input dient
+        * @param num Id des erstellten Piet-Commands Blocks
+        * @return erstellte Piet-Commands Block
+        */
+
         var block = new Block(num);
         for (Node node : bblock.getBody()) {
             if(node.getType() == NodeTypesEnum.BINARY_EXPRESSION){
@@ -130,7 +166,8 @@ public class Piet {
         /**
         * parseCondition parsed die Condition-BBlocks
         * @param BBlock bblock ist der Condition-BBLock der als input dient
-        * @return int num gibt die id des BBlocks an
+        * @param num Id des erstellten Piet-Commands Blocks
+        * @return erstellte Piet-Commands Block 
         */
 
         //Initialisierung der nodes und des Blocks in dem die Piet-Commands gespeichert werden
